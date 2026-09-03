@@ -1,2 +1,8 @@
 [build.environment]
   NODE_VERSION = "20"
+  # Next.js/Turbopack's persistent build cache can capture resolved env values (e.g.
+  # AIRTABLE_API_KEY, read server-side while prerendering /submissions) into its own cache
+  # artifacts under .netlify/.next/cache. That directory is Netlify's internal build cache, never
+  # served to visitors, but Netlify's secrets scanner still inspects it - excluded here so a real
+  # server-only secret doesn't fail builds for merely appearing in build-cache internals.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**"
