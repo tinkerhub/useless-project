@@ -15,7 +15,6 @@ import VanishingElephant from "./vanishing-elephant";
 import WhySection from "./why-section";
 
 import FloatingPet from "./floating-pet";
-import HandbookButton from "./handbook-button";
 
 // ele4e.webp doesn't exist in public/ - the transition skips from d straight to f.
 const ELE4_FRAMES = ["/ele4a.webp", "/ele4b.webp", "/ele4c.webp", "/ele4d.webp", "/ele4f.webp"];
@@ -102,7 +101,6 @@ export default function Home() {
       <FaqSection />
       <TimerSection />
       <FloatingPet />
-      <HandbookButton />
     </>
   );
 }

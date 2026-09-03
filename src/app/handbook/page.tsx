@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import InstagramEmbed from "./instagram-embed";
+import ChecklistWidget from "./checklist";
 import HoverFrames from "./hover-frames";
 import LegoBlock, { CELL, LEGO_SHAPES, shapeWidth, shapeHeight, type LegoColor, type LegoShapeName } from "../lego-block";
 import { HoverDot } from "../hover-dot";
@@ -38,14 +39,14 @@ type Block =
   | { kind: "text"; text: string }
   | { kind: "subheading"; text: string }
   | { kind: "list"; items: string[] }
-  | { kind: "steps"; items: { title: string; text: string; href?: string; linkLabel?: string }[] }
+  | { kind: "steps"; items: { title: string; text: React.ReactNode; href?: string; linkLabel?: string }[] }
   | { kind: "note"; text: string }
   | { kind: "links"; items: { label: string; href: string; text: string; tag?: string }[] }
-  | { kind: "cards"; items: { tag?: string; title: string; text: string }[] }
+  | { kind: "cards"; items: { tag?: string; title: string; text: string; image?: string }[] }
   | { kind: "gallery"; items: { title: string; text: string; image?: string }[] }
   | { kind: "embeds"; items: { title: string; permalink: string }[] }
   | { kind: "video"; youtubeId: string; title: string }
-  | { kind: "prizes"; items: { label: string; text?: string; locked?: boolean; image?: string; imageScale?: number }[]; size?: "sm" | "lg" }
+  | { kind: "prizes"; items: { label: string; text?: string; locked?: boolean; image?: string; imageScale?: number; slug?: string }[]; size?: "sm" | "lg" }
   | { kind: "creatures"; items: { label: string; image: string; hoverFrames?: string[] }[] };
 
 type Section = {
@@ -59,7 +60,7 @@ type Section = {
 const SECTIONS: Section[] = [
   {
     id: "readme",
-    nav: "readme",
+    nav: "start here",
     title: "start here",
     lead: "Useless Projects is a build sprint about making something purely because you want to, not because it solves anything.",
     blocks: [
@@ -196,7 +197,15 @@ const SECTIONS: Section[] = [
         items: [
           {
             title: "Submit in the hub app",
-            text: "Same app you used to apply. Update your README properly. If it's software, deploy it: a live link and a GitHub repo are needed. If it's hardware, an updated README with diagrams, photos, and videos is needed.",
+            text: (
+              <>
+                Same app you used to apply. Update your README properly.{" "}
+                <strong>
+                  If it&apos;s software, deploy it: a live link and a GitHub repo are needed. If it&apos;s hardware, an
+                  updated README with diagrams, photos, and videos is needed.
+                </strong>
+              </>
+            ),
             href: "https://www.instagram.com/p/DMxhr0-vUj7/",
             linkLabel: "guide: how to submit your project in the Hub app",
           },
@@ -214,7 +223,16 @@ const SECTIONS: Section[] = [
           },
           {
             title: "Foundation announces final results",
-            text: "A few weeks after the hackathon, the Foundation reviews the venue-wise best projects and announces the final results.",
+            text: (
+              <>
+                A few weeks after the hackathon, the Foundation reviews the venue-wise best projects and announces the
+                final results.
+                <br />
+                <br />
+                Judging criteria: <strong>60% Creativity</strong>, <strong>20% Implementation Complexity</strong>,{" "}
+                <strong>20% Cross-Disciplinary Approach</strong>.
+              </>
+            ),
           },
         ],
       },
@@ -238,10 +256,10 @@ const SECTIONS: Section[] = [
         kind: "prizes",
         size: "lg",
         items: [
-          { label: "top 25 makers", text: "The 25 highest-scoring makers get a monthly scholarship worth up to ₹5 lakh.", image: "/handbook/5l.png" },
-          { label: "top 50 projects", text: "The 50 highest-scoring projects get a showcase slot at Maker Fair Kochi.", image: "/handbook/MF_Kochi_Logo_square.png", imageScale: 1.05 },
+          { label: "top 25 makers", text: "The 25 highest-scoring makers get a monthly scholarship from a total pool of ₹5 lakh.", image: "/handbook/5l.png" },
+          { label: "top 50 projects", text: "The 50 highest-scoring projects get a showcase slot at Maker Faire Kochi.", image: "/handbook/MF_Kochi_Logo_square.png", imageScale: 1.05 },
           { label: "goodies bag", text: "Selected participants take home a goodies bag.", image: "/handbook/goodie-bag.png" },
-          { label: "mentorship & learning access", text: "Selected participants get mentorship from industry experts and access to exclusive learning programs.", image: "/handbook/teachign.png" },
+          { label: "mentorship & learning access", text: "Selected participants get mentorship from industry experts and access to exclusive learning programs.", image: "/handbook/teachign.png", imageScale: 0.85 },
         ],
       },
       {
@@ -256,9 +274,114 @@ const SECTIONS: Section[] = [
         kind: "prizes",
         size: "sm",
         items: [
-          { label: "best build video documentary", image: "/handbook/video.png" },
-          { label: "", locked: true },
-          { label: "", locked: true },
+          // Items with a real badge image sort first; the rest (still real prizes, just no
+          // matching art yet) follow after, falling back to the default star medal.
+          {
+            label: "video journal",
+            text: "Top 3 get a ₹5,000 hardware kit each",
+            image: "/handbook/build-documentary.png",
+            slug: "best-build-video-documentary",
+          },
+          {
+            label: "venue after-movie",
+            text: "Top 3 venues get a ₹10,000 hardware kit each",
+            image: "/handbook/aftermovie-venue.png",
+            slug: "venue-aftermovie",
+          },
+          {
+            label: "project journal",
+            text: "Top 3 get a ₹5,000 hardware kit each",
+            image: "/handbook/journal.png",
+            slug: "journal-repo",
+          },
+          {
+            label: "best hardware project",
+            text: "₹3,000 worth of prizes",
+            image: "/handbook/hardware.png",
+            slug: "best-hardware-project",
+          },
+          {
+            label: "best finished project",
+            text: "₹3,000 worth of prizes",
+            image: "/handbook/finished-project.png",
+            slug: "best-finished-project",
+          },
+          {
+            label: "best use of local LLMs",
+            text: "₹3,000 worth of prizes",
+            image: "/handbook/llm.png",
+            slug: "best-use-of-local-llms",
+          },
+          {
+            label: "best pcb design / custom hardware",
+            text: "Clean routing, smart parts, or solder-mask art.",
+            image: "/handbook/processor.png",
+            slug: "best-pcb-design",
+          },
+          {
+            label: "most complex 3d printed assembly",
+            text: "Tight tolerances or print-in-place mechanisms.",
+            image: "/handbook/3d.png",
+            slug: "best-3d-printed-assembly",
+          },
+          {
+            label: "best reverse engineering / hardware hack",
+            text: "Tear down e-waste, repurpose it into something new.",
+            image: "/handbook/revverse.png",
+            slug: "best-reverse-engineering-hack",
+          },
+          {
+            label: "best interactive physical installation",
+            text: "Kinetic, audio-reactive, or projection-mapped art.",
+            image: "/handbook/display.png",
+            slug: "best-interactive-installation",
+          },
+          {
+            label: "best custom input device / alternative controller",
+            text: "A controller built to play a game in an unusual way.",
+            image: "/handbook/gaem.png",
+            slug: "best-custom-input-device",
+          },
+          {
+            label: "best fashion tech & wearables",
+            text: "Soft circuits or flexible displays, worn as clothing.",
+            slug: "best-fashion-tech-wearables",
+          },
+          {
+            label: "best superhero / sci-fi gadget",
+            text: "A working replica of a superhero or sci-fi tool.",
+            slug: "best-superhero-sci-fi-gadget",
+          },
+          {
+            label: "best game / interactive media",
+            text: "Standout gameplay, artwork, sound, and storytelling.",
+            slug: "best-game-interactive-media",
+          },
+          {
+            label: "best retro-futurism / analog hack",
+            text: "Vintage tech hacked to talk to microcontrollers.",
+            slug: "best-retro-futurism-hack",
+          },
+          {
+            label: "best edge ai / embedded systems",
+            text: "AI or computer vision running on-device.",
+            slug: "best-edge-ai-embedded-systems",
+          },
+          {
+            label: "best system integration",
+            text: "Mismatched APIs and protocols, stitched together.",
+            slug: "best-system-integration",
+          },
+          {
+            label: "best bio / materials tech",
+            text: "Bio-sensors, organisms, or sustainable materials.",
+            slug: "best-bio-materials-tech",
+          },
+          {
+            label: "most over-engineered solution to a non-problem",
+            text: "An absurdly complex fix for a trivial task.",
+            slug: "most-over-engineered-solution",
+          },
         ],
       },
       {
@@ -269,6 +392,10 @@ const SECTIONS: Section[] = [
           "Craft. Whatever you're making, make it well.",
           "The demo. Well spent, in front of a room that wants you to succeed.",
         ],
+      },
+      {
+        kind: "note",
+        text: "For both video journal and venue after-movie, you need to submit an application here.",
       },
     ],
   },
@@ -363,6 +490,7 @@ function PrizeMedal({
   locked = false,
   image,
   imageScale = 1.2,
+  slug,
 }: {
   label: string;
   text?: string;
@@ -370,58 +498,91 @@ function PrizeMedal({
   locked?: boolean;
   image?: string;
   imageScale?: number;
+  slug?: string;
 }) {
-  const svgSize = size === "lg" ? 112 : 76;
-  const boxWidth = size === "lg" ? 140 : 100;
+  const svgSize = size === "lg" ? 112 : 92;
+  const boxWidth = 140;
   const imageSize = svgSize * imageScale;
   // Every icon (medal SVG or badge image) sits in a slot of the same height per size variant,
   // so the label underneath lines up across a row even when a badge image scales larger than
   // the medal it's standing in for.
-  const slotHeight = size === "lg" ? 150 : 145;
-  return (
-    <li className="relative flex flex-col items-center gap-2 text-center" style={{ width: `${boxWidth}px` }}>
-      <div className={locked ? "flex flex-col items-center gap-2 blur-[3px] opacity-40 select-none" : "flex flex-col items-center gap-2"}>
-        <div className="flex items-center justify-center" style={{ height: slotHeight }}>
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={image}
-              alt=""
-              aria-hidden="true"
-              className="max-w-none object-contain"
-              style={{ width: imageSize, height: imageSize }}
-            />
-          ) : (
-            <svg viewBox="0 0 100 108" width={svgSize} height={svgSize * 1.08} aria-hidden="true">
-              <path d="M38,72 L28,104 L50,90 Z" fill="#1b352a" />
-              <path d="M62,72 L72,104 L50,90 Z" fill="#244638" />
-              <path d={SEAL_PATH} fill="#ea34df" />
-              <circle cx="50" cy="42" r="28" fill="#fff" />
-              <circle cx="50" cy="42" r="28" fill="none" stroke="#ea34df" strokeWidth="2" strokeDasharray="3 3.5" />
-              <text
-                x="50"
-                y="53"
-                textAnchor="middle"
-                fontSize="30"
-                fill="#ea34df"
-                style={{ fontFamily: "var(--font-drowner)" }}
-              >
-                ★
-              </text>
-            </svg>
-          )}
-        </div>
-        <span className={`font-nanum-pen leading-[1.1] text-[#0e0e0d] ${size === "lg" ? "text-[20px]" : "text-[15px]"}`}>
-          {label}
-        </span>
-        {text && (
-          <span
-            className={`font-helvetica leading-[1.4] text-[#33322f] ${size === "lg" ? "text-[13px]" : "text-[11px]"}`}
-          >
-            {text}
-          </span>
+  const slotHeight = size === "lg" ? 150 : 150;
+  // Side quests (sm) carry more text in a narrower column than the main quests do, so they get
+  // a little extra breathing room between the icon, label, and description rather than sharing
+  // the main quests' tighter gap.
+  const stackGap = size === "lg" ? "gap-2" : "gap-2.5";
+  // Main quests stay centered under their medal icon; side quests - denser, more text-heavy -
+  // read better left-aligned instead of centered ragged-line text.
+  const stackAlign = size === "lg" ? "items-center text-center" : "items-start text-left";
+  const medal = (
+    <>
+      <div className="flex items-center justify-center" style={{ height: slotHeight }}>
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={image}
+            alt=""
+            aria-hidden="true"
+            className="max-w-none object-contain"
+            style={{ width: imageSize, height: imageSize }}
+          />
+        ) : (
+          <svg viewBox="0 0 100 108" width={svgSize} height={svgSize * 1.08} aria-hidden="true">
+            <path d="M38,72 L28,104 L50,90 Z" fill="#1b352a" />
+            <path d="M62,72 L72,104 L50,90 Z" fill="#244638" />
+            <path d={SEAL_PATH} fill="#ea34df" />
+            <circle cx="50" cy="42" r="28" fill="#fff" />
+            <circle cx="50" cy="42" r="28" fill="none" stroke="#ea34df" strokeWidth="2" strokeDasharray="3 3.5" />
+            <text
+              x="50"
+              y="53"
+              textAnchor="middle"
+              fontSize="30"
+              fill="#ea34df"
+              style={{ fontFamily: "var(--font-drowner)" }}
+            >
+              ★
+            </text>
+          </svg>
         )}
       </div>
+      <span
+        className={`font-nanum-pen leading-[1.1] text-[#0e0e0d] ${
+          size === "lg" ? "text-[20px]" : "line-clamp-2 min-h-[2.3em] text-[20px]"
+        }`}
+      >
+        {label}
+      </span>
+      {text && (
+        <span
+          className={`font-helvetica leading-[1.4] text-[#33322f] ${
+            size === "lg" ? "text-[13px]" : "line-clamp-2 min-h-[2.9em] text-[12px] font-bold"
+          }`}
+        >
+          {text}
+        </span>
+      )}
+      {slug && !locked && (
+        <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full border border-[#ea34df] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-[#ea34df] uppercase transition-colors group-hover:bg-[#ea34df] group-hover:text-white">
+          know more
+        </span>
+      )}
+    </>
+  );
+  return (
+    <li className={`relative flex flex-col ${stackAlign} ${stackGap}`} style={{ width: `${boxWidth}px` }}>
+      {slug && !locked ? (
+        <Link
+          href={`/competitions/${slug}`}
+          className={`group flex flex-col ${stackAlign} ${stackGap} transition-transform hover:scale-[1.04]`}
+        >
+          {medal}
+        </Link>
+      ) : (
+        <div className={locked ? `flex flex-col ${stackAlign} ${stackGap} blur-[3px] opacity-40 select-none` : `flex flex-col ${stackAlign} ${stackGap}`}>
+          {medal}
+        </div>
+      )}
       {locked && (
         <span className="font-helvetica absolute inset-0 flex items-center justify-center text-[11px] tracking-[0.08em] text-[#33322f] uppercase">
           to be unlocked
@@ -471,7 +632,7 @@ function Blocks({ blocks }: { blocks: Block[] }) {
           return (
             <ul key={i} className="flex flex-wrap justify-center gap-x-6 gap-y-8 py-2 sm:justify-start">
               {block.items.map((item, itemIndex) => (
-                <PrizeMedal key={`${item.label}-${itemIndex}`} label={item.label} text={item.text} size={block.size} locked={item.locked} image={item.image} imageScale={item.imageScale} />
+                <PrizeMedal key={`${item.label}-${itemIndex}`} label={item.label} text={item.text} size={block.size} locked={item.locked} image={item.image} imageScale={item.imageScale} slug={item.slug} />
               ))}
             </ul>
           );
@@ -525,10 +686,25 @@ function Blocks({ blocks }: { blocks: Block[] }) {
             <ul key={i} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {block.items.map((card) => (
                 <li key={card.title} className={`flex flex-col gap-1.5 ${CARD_CLASS}`}>
-                  {card.tag && <Eyebrow>{card.tag}</Eyebrow>}
-                  <span className="font-nanum-pen text-[21px] leading-[1.2] text-[#0e0e0d] sm:text-[23px]">
-                    {card.title}
-                  </span>
+                  {card.image ? (
+                    <span className="mb-1 flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={card.image} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 object-contain" />
+                      <span className="flex flex-col gap-0.5">
+                        {card.tag && <Eyebrow>{card.tag}</Eyebrow>}
+                        <span className="font-nanum-pen text-[21px] leading-[1.2] text-[#0e0e0d] sm:text-[23px]">
+                          {card.title}
+                        </span>
+                      </span>
+                    </span>
+                  ) : (
+                    <>
+                      {card.tag && <Eyebrow>{card.tag}</Eyebrow>}
+                      <span className="font-nanum-pen text-[21px] leading-[1.2] text-[#0e0e0d] sm:text-[23px]">
+                        {card.title}
+                      </span>
+                    </>
+                  )}
                   <span className="font-helvetica text-[15px] leading-[1.6] text-[#33322f]">{card.text}</span>
                 </li>
               ))}
@@ -743,6 +919,29 @@ function Blocks({ blocks }: { blocks: Block[] }) {
   );
 }
 
+// The floating checklist widget's content - kept separate from SECTIONS since it isn't a page
+// block, it's a fixed overlay that rides along the whole page regardless of scroll position.
+const CHECKLIST_GROUPS = [
+  {
+    title: "Checklist",
+    items: [
+      "Checked in at my venue.",
+      "Read the participant handbook.",
+      "Built my project.",
+      "Kept my README updated throughout.",
+      "Added a deployed link (for software projects) or a video (for hardware projects).",
+      "Did a final README update.",
+      "Submitted my project on the app.",
+      "Documented my build.",
+      "Voted for other projects.",
+    ],
+  },
+  {
+    title: "Optional",
+    items: ["Completed side quests to earn extra prizes."],
+  },
+];
+
 export default function HandbookPage() {
   return (
     // data-page is what turns the root layout's mandatory scroll snapping off for this route - see
@@ -756,27 +955,22 @@ export default function HandbookPage() {
     // not the viewport, once one exists). `clip` achieves the same visual clipping without
     // creating that scroll container.
     <main data-page="handbook" className="w-full overflow-x-clip bg-white text-[#0e0e0d]">
-      <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-8 lg:px-10">
+      {/* Extra right padding reserves room for the checklist widget's collapsed edge tab (shown
+          at every width now that the full README checklist is too long to hold open on the
+          side), so it sits clear of the page copy instead of sitting on top of it. */}
+      <div className="mx-auto w-full max-w-[1120px] px-5 pr-11 sm:px-8 sm:pr-12 lg:pl-10 lg:pr-16">
         <header className="relative flex flex-col gap-6 border-b border-black/10 py-14 sm:py-20">
           {/* Flex-centered against the heading rather than absolutely positioned with a guessed
               top offset - the heading's fluid clamp() size means its box height keeps changing
               across viewports, so any fixed top value drifts out of alignment at some width. */}
-          <div className="flex items-center justify-between gap-4">
-            <h1
-              className="font-drowner leading-[0.9] text-[#0e0e0d]"
-              // Fluid rather than stepped, so the title fills the measure at every width instead of
-              // jumping at breakpoints - it is the one element big enough for the difference to show.
-              style={{ fontSize: "clamp(56px, 13vw, 132px)", letterSpacing: "0.02em" }}
-            >
-              handbook
-            </h1>
-            <Link
-              href="/"
-              className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-5 py-2 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105"
-            >
-              back
-            </Link>
-          </div>
+          <h1
+            className="font-drowner leading-[0.9] text-[#0e0e0d]"
+            // Fluid rather than stepped, so the title fills the measure at every width instead of
+            // jumping at breakpoints - it is the one element big enough for the difference to show.
+            style={{ fontSize: "clamp(56px, 13vw, 132px)", letterSpacing: "0.02em" }}
+          >
+            handbook
+          </h1>
           <p className="font-nanum-pen max-w-[46ch] text-[21px] leading-[1.4] text-[#244638] sm:text-[24px]">
             Everything worth knowing before you build something nobody asked for. Rules, timings, and how to take
             part.
@@ -838,6 +1032,8 @@ export default function HandbookPage() {
           </p>
         </footer>
       </div>
+
+      <ChecklistWidget storageKey="handbook-checklist" groups={CHECKLIST_GROUPS} />
     </main>
   );
 }

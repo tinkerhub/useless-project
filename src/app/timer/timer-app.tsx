@@ -296,14 +296,15 @@ export default function TimerApp() {
         <MinimizedPill hours={hours} minutes={minutes} seconds={seconds} onExpand={() => setMinimized(false)} />
       ) : (
         <>
-          {/* Reset and minimize grouped together (top-right) - reset is the "I didn't mean to
-              start this" escape hatch, available the moment the timer starts, not just once the
+          {/* Reset and minimize (top-left) - the top-right corner is the site nav's, so nothing
+              else can live there without colliding with it. Reset is the "I didn't mean to start
+              this" escape hatch, available the moment the timer starts, not just once the
               countdown has already finished. */}
-          <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+          <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
             <button
               type="button"
               onClick={resetTimer}
-              className="font-helvetica cursor-pointer rounded-full bg-black/80 px-4 py-2 text-[13px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5"
+              className="font-helvetica cursor-pointer rounded-full bg-black/80 px-4 py-2 text-[13px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5 md:px-5 md:py-2.5 md:text-[15px]"
               aria-label="Reset timer"
             >
               reset
@@ -311,7 +312,7 @@ export default function TimerApp() {
             <button
               type="button"
               onClick={() => setMinimized(true)}
-              className="font-helvetica cursor-pointer rounded-full bg-black/80 px-4 py-2 text-[13px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5"
+              className="font-helvetica cursor-pointer rounded-full bg-black/80 px-4 py-2 text-[13px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5 md:px-5 md:py-2.5 md:text-[15px]"
               aria-label="Minimize timer"
             >
               minimize

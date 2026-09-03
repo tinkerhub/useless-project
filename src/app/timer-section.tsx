@@ -56,6 +56,11 @@ const MOBILE_COUNTDOWN_SIZE = 90;
 // The same 0.04em the desktop countdown uses (4.7265 / 118.163).
 const MOBILE_COUNTDOWN_TRACKING = MOBILE_COUNTDOWN_SIZE * 0.04;
 const MOBILE_DOT_SIZE = 34.52;
+// Actual rendered height of one line vs. the two-line ("X hour" / "Y min") stack, at the
+// countdown's line-height - everything on this canvas is absolutely positioned with a fixed
+// top, not laid out in flow, so the button below has to pick its own top based on which of these
+// the text is actually showing rather than assuming a box height will push it down.
+const MOBILE_COUNTDOWN_LINE_HEIGHT = MOBILE_COUNTDOWN_SIZE * 1.05;
 
 const DOT_ASSETS = ["/why-dot.svg", "/hero-dot-1.svg", "/hero-dot-2.svg", "/hero-dot-3.svg", "/hero-dot-4.svg"] as const;
 
@@ -97,11 +102,18 @@ function CuriosityButton({
   revealed,
   onReveal,
   label,
+  centerOffset = 0,
 }: {
   top: number;
   revealed: boolean;
   onReveal: () => void;
   label: string;
+  // The elephant perches outside the button's own 180px box (positioned via the child's `right`
+  // offset below, not by taking up space in it), so centering just the box leaves the actual
+  // elephant+button cluster looking shifted left - most visible on the mobile canvas, where the
+  // ~27px of elephant hanging off the left edge is a much bigger fraction of the screen than on
+  // desktop. This nudges the box right by that same amount so the whole cluster reads as centered.
+  centerOffset?: number;
 }) {
   const [isFiring, setIsFiring] = useState(false);
   // 0 = cold iron, 1 = fully hot. Driven by a rAF ramp below rather than snapping straight to a
@@ -135,10 +147,10 @@ function CuriosityButton({
 
   return (
     <div
-      className={`absolute left-1/2 -translate-x-1/2 transition-opacity duration-200 ${
+      className={`absolute -translate-x-1/2 transition-opacity duration-200 ${
         revealed ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
-      style={{ top: `${top}px`, width: "180px", height: "48px" }}
+      style={{ top: `${top}px`, left: `calc(50% + ${centerOffset}px)`, width: "180px", height: "48px" }}
     >
       {/* Perches just left of the button, breathing fire at its own idle/burst rhythm - the
           button's color is driven off the same burst via onBurstChange rather than re-timed
@@ -272,7 +284,10 @@ export default function TimerSection() {
         </p>
 
         <CuriosityButton
-          top={330}
+          // 115 (countdown top) + however many lines it's actually showing right now + 32px
+          // breathing room - stays close under the text whether that's one line ("it's live")
+          // or the two-line hour/min stack, instead of always leaving room for both.
+          top={115 + MOBILE_COUNTDOWN_LINE_HEIGHT * (live ? 1 : 2) + 32}
           revealed={revealed}
           onReveal={() => setRevealed(true)}
           label={live ? "know where?" : "know when?"}

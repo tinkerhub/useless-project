@@ -55,7 +55,7 @@ export default function Splash({ children }: { children: React.ReactNode }) {
   return (
     <>
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#ffffff]">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#ffffff]">
           <div className="relative h-[60px] w-[60px]">
             {IMAGES.map((src, i) => (
               <Image
