@@ -167,7 +167,7 @@ function SetupForm({ onStart }: { onStart: (endAt: number) => void }) {
   return (
     <div className="relative z-10 flex w-full max-w-[400px] flex-col items-center gap-6 px-6 text-center">
       <h1 className="font-drowner text-[#0e0e0d]" style={{ fontSize: "clamp(32px, 6vw, 48px)" }}>
-        set a build timer
+        enter your end time of hackathon
       </h1>
       <p className="font-helvetica text-[15px] leading-[1.5] text-[#33322f]">
         Pick when you want to stop. The board fills in as the clock runs down.

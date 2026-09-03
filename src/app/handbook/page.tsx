@@ -511,9 +511,9 @@ function PrizeMedal({
   // a little extra breathing room between the icon, label, and description rather than sharing
   // the main quests' tighter gap.
   const stackGap = size === "lg" ? "gap-2" : "gap-2.5";
-  // Main quests stay centered under their medal icon; side quests - denser, more text-heavy -
-  // read better left-aligned instead of centered ragged-line text.
-  const stackAlign = size === "lg" ? "items-center text-center" : "items-start text-left";
+  // Both sizes read better left-aligned than as centered ragged lines - side quests especially,
+  // being denser and more text-heavy.
+  const stackAlign = "items-start text-left";
   const medal = (
     <>
       <div className="flex items-center justify-center" style={{ height: slotHeight }}>
