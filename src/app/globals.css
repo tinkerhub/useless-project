@@ -201,3 +201,47 @@ html:has([data-page="handbook"]) {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Creature gallery slots: base stacking order comes in as --z (submission order, set inline in
+   creature-swarm.tsx) rather than a plain inline `zIndex`, so :hover here can lift a creature -
+   sticker, name and all - above every other creature piled on top of it. An inline zIndex would
+   always beat this rule regardless of hover state, leaving no way to bring a buried creature
+   to the front when it's the one being pointed at. */
+.creature-slot {
+  z-index: var(--z, 0);
+}
+
+.creature-slot:hover {
+  z-index: 9999;
+}
+
+/* Creature gallery stickers: base tilt/size come in as --creature-rotate/--creature-scale (set
+   inline per creature in creature-swarm.tsx). Read as custom properties rather than a plain
+   inline `transform` so the :hover rule below can layer its own scale/wiggle on top - an inline
+   `transform` would always beat a stylesheet rule, hover or not, leaving no way to override it. */
+.creature-sticker {
+  transform: rotate(var(--creature-rotate, 0deg)) scale(var(--creature-scale, 1));
+  transition: transform 200ms ease-out;
+}
+
+.group:hover .creature-sticker {
+  /* `forwards` holds the enlarged end state for as long as the hover lasts, instead of the
+     500ms animation finishing and snapping straight back to the un-hovered .creature-sticker
+     transform while the cursor is still sitting right on top of it. */
+  animation: creature-wiggle 500ms ease-in-out forwards;
+}
+
+@keyframes creature-wiggle {
+  0% {
+    transform: rotate(var(--creature-rotate, 0deg)) scale(var(--creature-scale, 1));
+  }
+  30% {
+    transform: rotate(calc(var(--creature-rotate, 0deg) + 12deg)) scale(calc(var(--creature-scale, 1) * 1.25));
+  }
+  60% {
+    transform: rotate(calc(var(--creature-rotate, 0deg) - 10deg)) scale(calc(var(--creature-scale, 1) * 1.25));
+  }
+  100% {
+    transform: rotate(var(--creature-rotate, 0deg)) scale(calc(var(--creature-scale, 1) * 1.2));
+  }
+}

@@ -47,12 +47,27 @@ function IconClock(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+function IconPixel(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" {...props}>
+      <rect x={4} y={4} width={6} height={6} />
+      <rect x={14} y={4} width={6} height={6} />
+      <rect x={4} y={14} width={6} height={6} />
+      <rect x={14} y={14} width={6} height={6} fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
 
 const ROUTES = [
   { href: "/", label: "home", Icon: IconHome },
   { href: "/handbook", label: "handbook", Icon: IconBook },
   { href: "/competitions", label: "competitions", Icon: IconTrophy },
   { href: "/submissions", label: "submissions", Icon: IconUpload },
+  // Links straight to the gallery - that's the default landing spot for "creatures," with the
+  // editor (still at /creatures) reachable only from the gallery's own "draw your own" button.
+  // activeMatch stays the broader /creatures so the nav row still highlights while drawing, even
+  // though the link itself skips past that page.
+  { href: "/creatures/gallery", activeMatch: "/creatures", label: "creatures", Icon: IconPixel },
   { href: "/timer", label: "timer", Icon: IconClock },
 ];
 
@@ -102,8 +117,9 @@ export default function SiteNav() {
           aria-label="Site"
           className="animate-nav-pop absolute top-full right-0 mt-2 flex w-[190px] flex-col overflow-hidden rounded-xl border border-black/10 bg-white py-1.5 shadow-lg"
         >
-          {ROUTES.map(({ href, label, Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+          {ROUTES.map(({ href, activeMatch, label, Icon }) => {
+            const matchAgainst = activeMatch ?? href;
+            const active = matchAgainst === "/" ? pathname === "/" : pathname.startsWith(matchAgainst);
             return (
               <Link
                 key={href}

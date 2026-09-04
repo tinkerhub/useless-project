@@ -6,3 +6,14 @@
   # served to visitors, but Netlify's secrets scanner still inspects it - excluded here so a real
   # server-only secret doesn't fail builds for merely appearing in build-cache internals.
   SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**"
+
+# No `command` here on purpose: `netlify dev` only gives a spawned framework server ~15-20s to
+# bind its port before giving up, and on this OneDrive-synced checkout Next's cold start (Turbopack
+# + hydrating not-yet-downloaded node_modules files) can take noticeably longer than that, so
+# Netlify was declaring a timeout right before Next actually finished booting. Leaving `command`
+# unset means Netlify Dev doesn't spawn or race a framework server at all - it just proxies
+# whatever's already listening on `targetPort`, so run `npm run dev` yourself first, then
+# `netlify dev` in a second terminal to attach to it.
+[dev]
+  targetPort = 3000
+  framework = "next"
