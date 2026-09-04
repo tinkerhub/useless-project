@@ -29,6 +29,39 @@ export function checkAdminPassword(password: string): boolean {
   return safeEqual(password, adminPassword());
 }
 
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000;
+
+// In-memory per-IP throttle against password guessing - the only thing standing between the
+// login form and someone scripting a wordlist against it. Lives in the function instance's
+// memory rather than a database, so a cold start or a request landing on a different warm
+// instance resets it; that's an accepted gap given there's no datastore wired up for this, not a
+// substitute for a strong password.
+const attemptsByIp = new Map<string, { count: number; resetAt: number }>();
+
+export function isLoginRateLimited(ip: string): boolean {
+  const entry = attemptsByIp.get(ip);
+  if (!entry) return false;
+  if (Date.now() > entry.resetAt) {
+    attemptsByIp.delete(ip);
+    return false;
+  }
+  return entry.count >= MAX_ATTEMPTS;
+}
+
+export function registerFailedLogin(ip: string): void {
+  const entry = attemptsByIp.get(ip);
+  if (!entry || Date.now() > entry.resetAt) {
+    attemptsByIp.set(ip, { count: 1, resetAt: Date.now() + WINDOW_MS });
+    return;
+  }
+  entry.count += 1;
+}
+
+export function clearLoginAttempts(ip: string): void {
+  attemptsByIp.delete(ip);
+}
+
 export function isValidAdminSession(cookieValue: string | undefined): boolean {
   if (!cookieValue) return false;
   try {

@@ -1,7 +1,23 @@
 import { NextResponse } from "next/server";
-import { ADMIN_COOKIE, adminSessionValue, checkAdminPassword } from "@/lib/admin-auth";
+import {
+  ADMIN_COOKIE,
+  adminSessionValue,
+  checkAdminPassword,
+  clearLoginAttempts,
+  isLoginRateLimited,
+  registerFailedLogin,
+} from "@/lib/admin-auth";
+
+function clientIp(request: Request): string {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
 
 export async function POST(request: Request) {
+  const ip = clientIp(request);
+  if (isLoginRateLimited(ip)) {
+    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => null);
   const password = (body as Record<string, unknown> | null)?.password;
 
@@ -17,9 +33,11 @@ export async function POST(request: Request) {
   }
 
   if (!ok) {
+    registerFailedLogin(ip);
     return NextResponse.json({ error: "Wrong password." }, { status: 401 });
   }
 
+  clearLoginAttempts(ip);
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, adminSessionValue(), {
     httpOnly: true,
