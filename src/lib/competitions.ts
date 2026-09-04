@@ -39,7 +39,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-build-video-documentary",
     airtableTableId: "tblhvFymbFDdqZsi4",
     prizeLabel: "video journal / build log",
-    prizeText: "Top 3 get a ₹5,000-worth hardware kit each.",
+    prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
     image: "/handbook/build-documentary.png",
     tagline:
       "Compress your entire hackathon experience into a fast-paced, entertaining video build log - your project coming to life from scratch in under 90 seconds.",
@@ -66,7 +66,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "venue-aftermovie",
     airtableTableId: "tbl1Ef5OIVaJ6Wa98",
     prizeLabel: "venue after-movie",
-    prizeText: "Top 3 venues get a ₹10,000-worth hardware kit each.",
+    prizeText: "Top 3 venues get a ₹5,000-worth hardware kit each.",
     image: "/handbook/aftermovie-venue.png",
     tagline:
       "Capture the vibe, energy, and atmosphere of the entire event - the venue, the people, the late-night grinding, and the overall hackathon culture. Venue-exclusive: one entry per venue, submitted by the host, not individual participants.",
@@ -93,7 +93,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "journal-repo",
     prizeLabel: "project journal",
-    prizeText: "Top 3 get a ₹5,000-worth hardware kit each.",
+    prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
     image: "/handbook/journal.png",
     tagline: "Document your entire project-building process in a fun, engaging, creative narrative - hosted as its own page on GitHub Pages, not just a README.",
     howToRedeem:
@@ -189,6 +189,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-fashion-tech-wearables",
     prizeLabel: "best fashion tech & wearables",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/fashion.png",
     tagline: "Merging electronics seamlessly into style.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -202,6 +203,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-superhero-sci-fi-gadget",
     prizeLabel: "best superhero / sci-fi gadget",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/superhero.png",
     tagline: "Bring comic book logic into the real world.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -229,6 +231,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-game-interactive-media",
     prizeLabel: "best game / interactive media",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/game-interactive.png",
     tagline: "Awarded to standout digital games or narrative software.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -241,6 +244,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-retro-futurism-hack",
     prizeLabel: "best retro-futurism / analog hack",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/retro-futurism.png",
     tagline: "Old tech meets new code.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -254,6 +258,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-system-integration",
     prizeLabel: "best system integration",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/finished-project.png",
     tagline: "Rewarding complex communication pipelines.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -267,6 +272,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-bio-materials-tech",
     prizeLabel: "best bio / materials tech",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/bio-materials.png",
     tagline: "Experimenting with non-standard physical materials.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -280,6 +286,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "most-over-engineered-solution",
     prizeLabel: "most over-engineered solution to a non-problem",
     prizeText: "₹2,000 worth of prizes.",
+    image: "/handbook/hardware.png",
     tagline: "The ultimate trophy for unnecessary engineering.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",

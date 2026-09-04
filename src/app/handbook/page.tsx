@@ -278,19 +278,19 @@ const SECTIONS: Section[] = [
           // matching art yet) follow after, falling back to the default star medal.
           {
             label: "video journal",
-            text: "Top 3 get a ₹5,000 hardware kit each",
+            text: "Top 3 get a ₹3,000 hardware kit each",
             image: "/handbook/build-documentary.png",
             slug: "best-build-video-documentary",
           },
           {
             label: "venue after-movie",
-            text: "Top 3 venues get a ₹10,000 hardware kit each",
+            text: "Top 3 venues get a ₹5,000 hardware kit each",
             image: "/handbook/aftermovie-venue.png",
             slug: "venue-aftermovie",
           },
           {
             label: "project journal",
-            text: "Top 3 get a ₹5,000 hardware kit each",
+            text: "Top 3 get a ₹3,000 hardware kit each",
             image: "/handbook/journal.png",
             slug: "journal-repo",
           },
@@ -333,36 +333,43 @@ const SECTIONS: Section[] = [
           {
             label: "best fashion tech & wearables",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/fashion.png",
             slug: "best-fashion-tech-wearables",
           },
           {
             label: "best superhero / sci-fi gadget",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/superhero.png",
             slug: "best-superhero-sci-fi-gadget",
           },
           {
             label: "best game / interactive media",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/game-interactive.png",
             slug: "best-game-interactive-media",
           },
           {
             label: "best retro-futurism / analog hack",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/retro-futurism.png",
             slug: "best-retro-futurism-hack",
           },
           {
             label: "best system integration",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/finished-project.png",
             slug: "best-system-integration",
           },
           {
             label: "best bio / materials tech",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/bio-materials.png",
             slug: "best-bio-materials-tech",
           },
           {
             label: "most over-engineered solution to a non-problem",
             text: "₹2,000 worth of prizes",
+            image: "/handbook/hardware.png",
             slug: "most-over-engineered-solution",
           },
         ],
