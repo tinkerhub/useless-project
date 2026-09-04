@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { addCreature, countCreaturesForDevice, CELL_COUNT } from "@/lib/creatures";
+import { addCreature, areCreatureSubmissionsClosed, countCreaturesForDevice, CELL_COUNT } from "@/lib/creatures";
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
@@ -18,6 +18,10 @@ const MAX_PER_DEVICE = 2;
 const DEVICE_ID_PATTERN = /^[a-zA-Z0-9-]{1,100}$/;
 
 export async function POST(request: Request) {
+  if (await areCreatureSubmissionsClosed()) {
+    return NextResponse.json({ error: "Submissions are closed right now." }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });

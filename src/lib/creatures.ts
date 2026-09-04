@@ -101,3 +101,39 @@ export async function countCreaturesForDevice(deviceId: string): Promise<number>
   const all = await readAllCreatures();
   return all.filter((c) => c.deviceId === deviceId).length;
 }
+
+// Used by /admin - the raw list, unfiltered by hidden names, so a moderator can also find and
+// permanently delete the ones the name filter is only hiding.
+export async function listAllCreaturesForAdmin(): Promise<Creature[]> {
+  return readAllCreatures();
+}
+
+// Permanently removes a creature (unlike the hidden-name filter, which just hides it from the
+// gallery). Returns false if no creature with that id was found.
+export async function deleteCreature(id: string): Promise<boolean> {
+  const store = tryStore();
+  if (!store) return false;
+  const existing = await readAllCreatures();
+  const next = existing.filter((c) => c.id !== id);
+  if (next.length === existing.length) return false;
+  await store.setJSON(KEY, next);
+  return true;
+}
+
+// Whether the submit route should currently reject new creatures. Defaults to open (false) when
+// the store is unreachable or nothing has been set yet.
+export async function areCreatureSubmissionsClosed(): Promise<boolean> {
+  const store = tryStore();
+  if (!store) return false;
+  try {
+    const settings = await store.get(SETTINGS_KEY, { type: "json" });
+    return Boolean((settings as Settings | null)?.submissionsClosed);
+  } catch {
+    return false;
+  }
+}
+
+export async function setCreatureSubmissionsClosed(closed: boolean): Promise<void> {
+  const store = getStore(STORE_NAME);
+  await store.setJSON(SETTINGS_KEY, { submissionsClosed: closed } satisfies Settings);
+}
