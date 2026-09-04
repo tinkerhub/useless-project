@@ -1,3 +1,4 @@
-[
-  "not white"
-]
+{
+  "contains": ["not white"],
+  "exact": ["pp"]
+}
