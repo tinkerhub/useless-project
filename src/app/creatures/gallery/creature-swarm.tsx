@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Creature } from "@/lib/creatures";
+import type { PublicCreature } from "@/lib/creatures";
 
 const MIN_SIZE = 64; // floor size once the gallery is crowded - what creatures render at today
 const MAX_SIZE = 140; // size when there are only a couple of creatures around
@@ -20,7 +20,7 @@ function hash(seed: string) {
   return (h >>> 0) / 4294967295;
 }
 
-export default function CreatureSwarm({ creatures }: { creatures: Creature[] }) {
+export default function CreatureSwarm({ creatures }: { creatures: PublicCreature[] }) {
   if (creatures.length === 0) return null;
 
   // Every creature shares one size, driven by how crowded the gallery currently is: a mostly

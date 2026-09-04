@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listCreatures } from "@/lib/creatures";
+import { listCreatures, type PublicCreature } from "@/lib/creatures";
 import { LiveCreaturesProvider } from "./live-creatures";
 import GalleryCount from "./gallery-count";
 import LiveCreatureSwarm from "./gallery-swarm-live";
@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function GalleryPage() {
-  const creatures = await listCreatures();
+  const stored = await listCreatures();
+  // deviceId only matters for enforcing the per-visitor cap in the submit route - stripped here
+  // too, not just in /api/creatures/list, since these props cross the server/client boundary
+  // straight into the page's own initial HTML.
+  const creatures: PublicCreature[] = stored.map(({ id, name, pixels, createdAt }) => ({ id, name, pixels, createdAt }));
 
   return (
     // Seeds the client-side poll (see live-creatures.tsx) with what the server already fetched,

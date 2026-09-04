@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import type { Creature } from "@/lib/creatures";
+import type { PublicCreature } from "@/lib/creatures";
 
-const PollContext = createContext<Creature[]>([]);
+const PollContext = createContext<PublicCreature[]>([]);
 
 // There's no persistent connection here (Netlify's Functions are request/response, not
 // long-lived sockets), so "live" is approximated with a short poll rather than true push - 4s
@@ -14,7 +14,13 @@ const POLL_INTERVAL_MS = 4000;
 
 // Shared by GalleryCount and LiveCreatureSwarm so the gallery only opens one polling loop, not
 // one per consumer - both just read whatever this provider last fetched.
-export function LiveCreaturesProvider({ initialCreatures, children }: { initialCreatures: Creature[]; children: ReactNode }) {
+export function LiveCreaturesProvider({
+  initialCreatures,
+  children,
+}: {
+  initialCreatures: PublicCreature[];
+  children: ReactNode;
+}) {
   const [creatures, setCreatures] = useState(initialCreatures);
   const inFlight = useRef(false);
 

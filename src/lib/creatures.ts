@@ -2,6 +2,7 @@
 // runtime context Netlify injects into functions (or that `netlify dev` proxies in locally), so
 // this never runs against a plain `next dev` server.
 import { getStore } from "@netlify/blobs";
+import hiddenNames from "./hidden-creature-names.json";
 
 const STORE_NAME = "creatures";
 const KEY = "all";
@@ -15,7 +16,14 @@ export type Creature = {
   name: string;
   pixels: (string | null)[];
   createdAt: string;
+  // An anonymous per-browser id (see pixel-editor.tsx), used only to enforce the per-visitor
+  // creature cap in the submit route - never returned by /api/creatures/list.
+  deviceId: string;
 };
+
+// What the gallery and its client components actually work with - never carries deviceId across
+// the wire to other visitors' browsers, since it doesn't need it and it's not for them anyway.
+export type PublicCreature = Omit<Creature, "deviceId">;
 
 function tryStore() {
   try {
@@ -25,9 +33,18 @@ function tryStore() {
   }
 }
 
-// Used by the gallery. Fails soft (empty array) rather than throwing, so a plain `next dev`
-// session or a misconfigured deploy shows an empty gallery instead of a broken page.
-export async function listCreatures(): Promise<Creature[]> {
+// Names (or substrings of names, case-insensitive) to hide from the gallery without deleting the
+// underlying creature - lets us keep drawings people can't easily re-submit without wiping data.
+const hiddenNamePatterns = (hiddenNames as string[]).map((n) => n.toLowerCase());
+
+function isHidden(name: string): boolean {
+  const lower = name.toLowerCase();
+  return hiddenNamePatterns.some((pattern) => lower.includes(pattern));
+}
+
+// Raw read, with nothing hidden - the only version safe to build a write-back list from (see
+// addCreature) or to check the per-device cap against, since a hidden creature still counts.
+async function readAllCreatures(): Promise<Creature[]> {
   const store = tryStore();
   if (!store) return [];
   try {
@@ -38,21 +55,36 @@ export async function listCreatures(): Promise<Creature[]> {
   }
 }
 
+// Used by the gallery. Fails soft (empty array) rather than throwing, so a plain `next dev`
+// session or a misconfigured deploy shows an empty gallery instead of a broken page.
+export async function listCreatures(): Promise<Creature[]> {
+  const creatures = await readAllCreatures();
+  return creatures.filter((c) => !isHidden(c.name));
+}
+
 // All creatures live in one JSON blob rather than one-blob-per-creature: the gallery always
 // wants the full set, and listing the store would mean one extra round trip per creature just to
 // read it back. The tradeoff is a last-write-wins race if two people submit at the same instant -
 // acceptable for a for-fun gallery, not worth conditional writes here.
-export async function addCreature(name: string, pixels: (string | null)[]): Promise<Creature> {
+export async function addCreature(name: string, pixels: (string | null)[], deviceId: string): Promise<Creature> {
   const creature: Creature = {
     id: crypto.randomUUID(),
     name,
     pixels,
     createdAt: new Date().toISOString(),
+    deviceId,
   };
 
   const store = getStore(STORE_NAME);
-  const existing = await listCreatures();
+  const existing = await readAllCreatures();
   const next = [...existing, creature].slice(-MAX_CREATURES);
   await store.setJSON(KEY, next);
   return creature;
+}
+
+// Raw count, ignoring the hidden-name filter, so hiding a creature from the gallery doesn't let
+// its device submit past the cap again.
+export async function countCreaturesForDevice(deviceId: string): Promise<number> {
+  const all = await readAllCreatures();
+  return all.filter((c) => c.deviceId === deviceId).length;
 }
