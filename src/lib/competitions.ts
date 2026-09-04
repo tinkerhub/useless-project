@@ -112,51 +112,15 @@ export const COMPETITIONS: Competition[] = [
     autoJudged: true,
   },
   {
-    slug: "best-hardware-project",
-    prizeLabel: "best hardware project",
-    prizeText: "₹3,000 worth of prizes.",
-    image: "/handbook/hardware.png",
-    tagline: "For the project that had to fight breadboards, wiring, and physics, not just code.",
-    howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every hardware submission is automatically in the running.",
-    whatWeMean:
-      "Anything with a physical build behind it - sensors, microcontrollers, actuators, a soldering iron that saw real use. Judged on how well the hardware side was pulled off, not just whether it turned on.",
-    guidelines: [
-      "Has a real physical/hardware component, not just a software wrapper around a sensor demo.",
-      "Submitted through the Hub app like every other project.",
-      "The more your README documents the build (circuit diagram, photos), the easier it is to judge it well.",
-    ],
-    samples: [],
-    autoJudged: true,
-  },
-  {
-    slug: "best-finished-project",
-    prizeLabel: "best finished project",
-    prizeText: "₹3,000 worth of prizes.",
-    image: "/handbook/finished-project.png",
-    tagline: "For the project that actually got finished - working end to end, not 80% of the way there.",
-    howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
-    whatWeMean:
-      "Not the most ambitious idea - the one that got carried all the way to a working, demoable state. Scope it so it can actually be finished, then finish it.",
-    guidelines: [
-      "Works end to end, live at the venue - no big missing pieces held together by a promise.",
-      "Submitted through the Hub app like every other project.",
-      "A tighter, fully-working idea beats a bigger, half-working one here.",
-    ],
-    samples: [],
-    autoJudged: true,
-  },
-  {
     slug: "best-use-of-local-llms",
     prizeLabel: "best use of local LLMs",
-    prizeText: "₹3,000 worth of prizes.",
+    prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/llm.png",
     tagline: "For the project that ran its AI on-device or self-hosted, not just an OpenAI API key in a .env file.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission using a local/self-hosted LLM is automatically in the running.",
     whatWeMean:
-      "A model running locally or self-hosted (Ollama, llama.cpp, a local inference server, etc.) doing real work in your project - not just calling a hosted API.",
+      "A model running locally or self-hosted (Ollama, llama.cpp, a local inference server, etc.) doing real work in your project - not just calling a hosted API. This also covers lightweight AI models or computer vision running directly on microcontrollers, low-power microchips, or single-board computers (ESP32, Raspberry Pi) - smart intelligence without the cloud.",
     guidelines: [
       "The LLM actually runs locally/self-hosted, not through a third-party hosted API.",
       "Submitted through the Hub app like every other project.",
@@ -168,7 +132,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-pcb-design",
     prizeLabel: "best pcb design / custom hardware",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/processor.png",
     tagline: "Awarded for exceptional circuit design.",
     howToRedeem:
@@ -182,7 +146,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-3d-printed-assembly",
     prizeLabel: "most complex 3d printed assembly",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/3d.png",
     tagline: "For the physical builders pushing additive manufacturing to the limit.",
     howToRedeem:
@@ -196,7 +160,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-reverse-engineering-hack",
     prizeLabel: "best reverse engineering / hardware hack",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/revverse.png",
     tagline: "Taking an existing commercial product or discarded e-waste and repurposing it.",
     howToRedeem:
@@ -210,7 +174,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-interactive-installation",
     prizeLabel: "best interactive physical installation",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/display.png",
     tagline: "For projects meant to be experienced in a physical room.",
     howToRedeem:
@@ -224,7 +188,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-fashion-tech-wearables",
     prizeLabel: "best fashion tech & wearables",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "Merging electronics seamlessly into style.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -237,7 +201,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-superhero-sci-fi-gadget",
     prizeLabel: "best superhero / sci-fi gadget",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "Bring comic book logic into the real world.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -250,7 +214,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-custom-input-device",
     prizeLabel: "best custom input device / alternative controller",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/gaem.png",
     tagline: "Toss out the standard mouse and keyboard.",
     howToRedeem:
@@ -264,7 +228,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-game-interactive-media",
     prizeLabel: "best game / interactive media",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "Awarded to standout digital games or narrative software.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -276,7 +240,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-retro-futurism-hack",
     prizeLabel: "best retro-futurism / analog hack",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "Old tech meets new code.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -287,22 +251,9 @@ export const COMPETITIONS: Competition[] = [
     autoJudged: true,
   },
   {
-    slug: "best-edge-ai-embedded-systems",
-    prizeLabel: "best edge ai / embedded systems",
-    prizeText: "Themed recognition prize.",
-    tagline: "Smart intelligence without the cloud.",
-    howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
-    whatWeMean:
-      "Lightweight AI models or computer vision running directly on microcontrollers, low-power microchips, or single-board computers (ESP32, Raspberry Pi).",
-    guidelines: ["Submitted through the Hub app like every other project.", "Mention the model and hardware it runs on in your README."],
-    samples: [],
-    autoJudged: true,
-  },
-  {
     slug: "best-system-integration",
     prizeLabel: "best system integration",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "Rewarding complex communication pipelines.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -315,7 +266,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "best-bio-materials-tech",
     prizeLabel: "best bio / materials tech",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "Experimenting with non-standard physical materials.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -328,7 +279,7 @@ export const COMPETITIONS: Competition[] = [
   {
     slug: "most-over-engineered-solution",
     prizeLabel: "most over-engineered solution to a non-problem",
-    prizeText: "Themed recognition prize.",
+    prizeText: "₹2,000 worth of prizes.",
     tagline: "The ultimate trophy for unnecessary engineering.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
