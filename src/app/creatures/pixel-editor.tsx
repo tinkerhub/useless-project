@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { PALETTE } from "./palette";
 
@@ -11,7 +10,7 @@ export default function PixelEditor() {
   const [pixels, setPixels] = useState<(string | null)[]>(() => Array(CELL_COUNT).fill(null));
   const [color, setColor] = useState<string | null>(PALETTE[0]);
   const [name, setName] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [error, setError] = useState("");
   const paintingRef = useRef(false);
 
@@ -69,25 +68,15 @@ export default function PixelEditor() {
         setStatus("error");
         return;
       }
-      setStatus("done");
+      // A full navigation rather than router.push - the gallery is dynamic (fetches the latest
+      // creatures on every request), but Next's client-side router can still serve an already-
+      // cached RSC payload for a route visited earlier this session. Reloading the page
+      // guarantees the just-submitted creature actually shows up instead of a stale gallery.
+      window.location.href = "/creatures/gallery";
     } catch {
       setError("Couldn't reach the server. Check your connection and try again.");
       setStatus("error");
     }
-  }
-
-  if (status === "done") {
-    return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-black/5 bg-[#244638]/5 p-6 text-center">
-        <p className="font-nanum-pen text-[22px] leading-[1.3] text-[#244638]">Your creature is loose in the wild.</p>
-        <Link
-          href="/creatures/gallery"
-          className="font-helvetica rounded-full bg-[#0e0e0d] px-5 py-2.5 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105"
-        >
-          See the gallery
-        </Link>
-      </div>
-    );
   }
 
   return (
