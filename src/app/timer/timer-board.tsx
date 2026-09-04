@@ -119,18 +119,26 @@ export default function TimerBoard({ progress, remainingMs }: { progress: number
   const skyline = useMemo(() => (columns && rows ? buildSkyline(columns, rows) : null), [columns, rows]);
   const totalBlocks = skyline?.blocks.length ?? 0;
 
+  const clamped = Math.min(1, Math.max(0, progress));
+  const target = Math.min(totalBlocks, Math.floor(totalBlocks * clamped));
+
+  // Latest target, read (not depended on) by the skyline-rebuild effect below - so a rebuild can
+  // catch the board up to however much time has already elapsed without re-running every time
+  // progress ticks forward.
+  const targetRef = useRef(target);
+  targetRef.current = target;
+
   // How many pieces have actually landed (rendered as plain static blocks - see below), and
   // which single index (if any) is currently mid-fall. Both reset whenever the board itself is
-  // rebuilt (a real resize), since they're indices into that specific block list.
+  // rebuilt (a real resize, or the first build after a reload) - jumping straight to the current
+  // target rather than 0, since on a reload the countdown may already be well underway and the
+  // board shouldn't visually re-flood from empty over whatever time is left.
   const [landed, setLanded] = useState(0);
   const [fallingAt, setFallingAt] = useState<number | null>(null);
   useEffect(() => {
-    setLanded(0);
+    setLanded(targetRef.current);
     setFallingAt(null);
   }, [skyline]);
-
-  const clamped = Math.min(1, Math.max(0, progress));
-  const target = Math.min(totalBlocks, Math.floor(totalBlocks * clamped));
 
   // Behind schedule and nothing currently falling - drop the next one. Re-checked whenever
   // `progress` ticks forward or a piece finishes landing, so the queue keeps draining toward
