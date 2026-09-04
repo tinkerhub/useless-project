@@ -108,30 +108,32 @@ export default function AdminPanel() {
         ) : creatures.length === 0 ? (
           <p className="font-helvetica text-[14px] text-[#33322f]/70">Nothing here yet.</p>
         ) : (
-          <ul className="grid grid-cols-1 gap-6 [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))]">
+          // Dense auto-fill grid rather than the previous one-tall-card-per-row list - a small
+          // thumbnail plus a hover-only delete overlay is enough to moderate by, and packing many
+          // tiles per row means scanning hundreds of creatures doesn't mean hundreds of scrolls.
+          <ul className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(96px,1fr))]">
             {creatures.map((creature) => (
-              <li key={creature.id} className="flex flex-col gap-2 rounded-xl border border-black/10 p-3">
+              <li key={creature.id} className="group relative">
                 <div
                   className="grid overflow-hidden rounded-lg border border-black/10"
                   style={{ gridTemplateColumns: `repeat(16, 1fr)`, width: "100%", aspectRatio: "1 / 1" }}
+                  title={`${creature.name} — ${new Date(creature.createdAt).toLocaleString()}`}
                 >
                   {creature.pixels.map((cell, i) => (
                     <div key={i} style={{ backgroundColor: cell ?? "#ffffff" }} />
                   ))}
                 </div>
-                <span className="font-nanum-pen truncate text-[15px] text-[#0e0e0d]" title={creature.name}>
+                <span className="font-nanum-pen mt-1 block truncate text-center text-[12px] text-[#0e0e0d]">
                   {creature.name}
-                </span>
-                <span className="font-helvetica text-[11px] text-[#33322f]/60">
-                  {new Date(creature.createdAt).toLocaleString()}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleDelete(creature.id)}
                   disabled={deletingId === creature.id}
-                  className="font-helvetica cursor-pointer rounded-full border border-[#c0326b]/30 px-3 py-1.5 text-[11px] tracking-[0.06em] text-[#c0326b] uppercase transition-transform hover:scale-105 disabled:opacity-50"
+                  aria-label={`Delete ${creature.name}`}
+                  className="font-helvetica absolute top-1 right-1 flex size-6 cursor-pointer items-center justify-center rounded-full bg-[#c0326b] text-[13px] leading-none text-white opacity-70 shadow transition-opacity group-hover:opacity-100"
                 >
-                  {deletingId === creature.id ? "Deleting..." : "Delete"}
+                  {deletingId === creature.id ? "…" : "×"}
                 </button>
               </li>
             ))}

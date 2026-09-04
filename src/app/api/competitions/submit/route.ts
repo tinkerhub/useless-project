@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { createSubmission, submissionsTag } from "@/lib/airtable";
 import { CAMPUSES, getCompetition } from "@/lib/competitions";
+import { isRequestTooLarge } from "@/lib/request-guards";
+
+// A real payload here (a name, campus, link, and short notes) runs well under 1KB.
+const MAX_BODY_BYTES = 4 * 1024;
 
 function isValidSubmissionLink(link: string, allowedHosts: string[]) {
   try {
@@ -15,6 +19,10 @@ function isValidSubmissionLink(link: string, allowedHosts: string[]) {
 }
 
 export async function POST(request: Request) {
+  if (isRequestTooLarge(request, MAX_BODY_BYTES)) {
+    return NextResponse.json({ error: "Request too large." }, { status: 413 });
+  }
+
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });

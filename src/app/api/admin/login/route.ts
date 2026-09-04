@@ -7,12 +7,17 @@ import {
   isLoginRateLimited,
   registerFailedLogin,
 } from "@/lib/admin-auth";
+import { clientIp } from "@/lib/rate-limit";
+import { isRequestTooLarge } from "@/lib/request-guards";
 
-function clientIp(request: Request): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-}
+// A real payload here is just a password string, well under this.
+const MAX_BODY_BYTES = 1024;
 
 export async function POST(request: Request) {
+  if (isRequestTooLarge(request, MAX_BODY_BYTES)) {
+    return NextResponse.json({ error: "Request too large." }, { status: 413 });
+  }
+
   const ip = clientIp(request);
   if (isLoginRateLimited(ip)) {
     return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });

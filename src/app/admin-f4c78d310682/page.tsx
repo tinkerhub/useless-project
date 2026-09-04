@@ -15,7 +15,7 @@ export default async function AdminPage() {
 
   return (
     <main data-page="handbook" className="w-full overflow-x-hidden bg-white text-[#0e0e0d]">
-      <div className="mx-auto flex w-full max-w-[960px] flex-col gap-8 px-5 py-14 sm:px-8 sm:py-20">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-5 py-14 sm:px-8 sm:py-20">
         <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(28px, 5vw, 40px)" }}>
           admin
         </h1>
