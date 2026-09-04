@@ -60,6 +60,11 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
             {competition.tagline}
           </p>
           <p className="font-helvetica text-[13px] font-bold tracking-[0.04em] text-[#ea34df] uppercase">{competition.prizeText}</p>
+          {competition.deadline && (
+            <p className="font-helvetica text-[13px] font-bold tracking-[0.04em] text-[#33322f] uppercase">
+              Submission deadline: {competition.deadline}
+            </p>
+          )}
         </header>
 
         <section className="flex flex-col gap-3">

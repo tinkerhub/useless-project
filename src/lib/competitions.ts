@@ -32,6 +32,9 @@ export type Competition = {
   // True when this is entered per venue (by the venue host, on behalf of everyone there) rather
   // than per individual participant/team - venue aftermovie is the only one of these right now.
   venueExclusive?: boolean;
+  // Pre-formatted for display on the detail page, rather than an ISO string parsed at render
+  // time - there's no countdown or reminder logic reading this, just text shown as-is.
+  deadline?: string;
 };
 
 export const COMPETITIONS: Competition[] = [
@@ -40,6 +43,7 @@ export const COMPETITIONS: Competition[] = [
     airtableTableId: "tblhvFymbFDdqZsi4",
     prizeLabel: "video journal / build log",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
+    deadline: "September 20, 2026",
     image: "/handbook/build-documentary.png",
     tagline:
       "Compress your entire hackathon experience into a fast-paced, entertaining video build log - your project coming to life from scratch in under 90 seconds.",
@@ -67,6 +71,7 @@ export const COMPETITIONS: Competition[] = [
     airtableTableId: "tbl1Ef5OIVaJ6Wa98",
     prizeLabel: "venue after-movie",
     prizeText: "Top 3 venues get a ₹5,000-worth hardware kit each.",
+    deadline: "September 20, 2026",
     image: "/handbook/aftermovie-venue.png",
     tagline:
       "Capture the vibe, energy, and atmosphere of the entire event - the venue, the people, the late-night grinding, and the overall hackathon culture. Venue-exclusive: one entry per venue, submitted by the host, not individual participants.",

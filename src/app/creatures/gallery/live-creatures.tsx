@@ -6,11 +6,11 @@ import type { PublicCreature } from "@/lib/creatures";
 const PollContext = createContext<PublicCreature[]>([]);
 
 // There's no persistent connection here (Netlify's Functions are request/response, not
-// long-lived sockets), so "live" is approximated with a short poll rather than true push - 4s
-// feels close to instant without hammering the function. Even at this rate the cost is trivial:
-// Netlify's free tier charges ~2 credits per 10k requests, so one visitor polling nonstop for an
-// entire hour (900 requests) costs about 0.18 credits out of the 300/month free budget.
-const POLL_INTERVAL_MS = 4000;
+// long-lived sockets), so "live" is approximated with a short poll rather than true push. This
+// was 4s, but the gallery is also what the QR banner points a venue's own display at - several
+// of those left open for hours during the hackathon adds up fast at that rate. 20s still reads as
+// "live" for a gallery that isn't changing second-to-second, at a fifth of the request volume.
+const POLL_INTERVAL_MS = 20000;
 
 // Shared by GalleryCount and LiveCreatureSwarm so the gallery only opens one polling loop, not
 // one per consumer - both just read whatever this provider last fetched.
