@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { useEffect, useState, type CSSProperties } from "react";
 import type { PublicCreature } from "@/lib/creatures";
 
 const MIN_SIZE = 64; // floor size once the gallery is crowded - what creatures render at today
@@ -20,14 +22,34 @@ function hash(seed: string) {
   return (h >>> 0) / 4294967295;
 }
 
-export default function CreatureSwarm({ creatures }: { creatures: PublicCreature[] }) {
-  if (creatures.length === 0) return null;
+// Fits the whole cluster inside the viewport rather than letting it get clipped at the edges (the
+// crowd only grows outward as more creatures arrive, so on a narrow phone it can easily end up
+// wider than the screen). Read live rather than baked into the swarm's own size math, since the
+// same board has to fit differently on a phone versus a wide desktop window.
+function useFitScale(boardSize: number) {
+  const [scale, setScale] = useState(1);
 
-  // Every creature shares one size, driven by how crowded the gallery currently is: a mostly
-  // empty board shows big, easy-to-see creatures, and each new arrival nudges everyone a little
-  // smaller (an exponential decay toward MIN_SIZE) so hundreds of them can still pile up near the
-  // center without turning into an unreadable wall.
-  const size = Math.round(MIN_SIZE + (MAX_SIZE - MIN_SIZE) * Math.exp(-creatures.length / SIZE_DECAY));
+  useEffect(() => {
+    function update() {
+      const maxWidth = window.innerWidth * 0.92;
+      const maxHeight = window.innerHeight * 0.6;
+      setScale(Math.min(1, maxWidth / boardSize, maxHeight / boardSize));
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [boardSize]);
+
+  return scale;
+}
+
+export default function CreatureSwarm({ creatures }: { creatures: PublicCreature[] }) {
+  // Tapping a creature reveals its name and brings it to the front - :hover alone never fires on
+  // a touch device, so without this the name label and hover-driven z-index bump both never show
+  // up on mobile at all, only on a mouse.
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const size = creatures.length === 0 ? 0 : computeSize(creatures.length);
   const cellPx = size / 16;
   const spacing = 30 * (size / BASE_SIZE);
 
@@ -49,42 +71,79 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
 
   const maxOffset = placed.reduce((max, p) => Math.max(max, Math.abs(p.x), Math.abs(p.y)), 0);
   const boardSize = maxOffset * 2 + size * 2;
+  const fitScale = useFitScale(boardSize || 1);
+
+  if (creatures.length === 0) return null;
 
   return (
-    <div className="relative" style={{ width: boardSize, height: boardSize }}>
-      {placed.map(({ creature, x, y, rotate, scale }, i) => (
-        // "group" is for the hover name label and wiggle below - the tilt/scale live on the
-        // inner div instead of here, so they stay upright and don't tilt along with the sticker.
-        // z-index comes from the --z custom property (read by .creature-slot in globals.css)
-        // rather than a plain inline `zIndex`, so the :hover rule there can override it - an
-        // inline zIndex would otherwise always beat a stylesheet rule and the hovered creature
-        // could stay buried under later ones.
-        <div
-          key={creature.id}
-          className="group creature-slot absolute"
-          style={{
-            left: `calc(50% + ${x}px)`,
-            top: `calc(50% + ${y}px)`,
-            transform: "translate(-50%, -50%)",
-            "--z": i,
-          } as CSSProperties}
-        >
-          <div
-            className="creature-sticker"
-            style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": scale } as CSSProperties}
-          >
-            <CreaturePixels pixels={creature.pixels} size={size} cellPx={cellPx} />
-          </div>
-          {/* Plain cursive text rather than a tooltip/pill - CSS-only and instant, unlike the
-              native title tooltip's OS-controlled delay. */}
-          <span className="font-nanum-pen pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full text-[20px] leading-none whitespace-nowrap text-[#0e0e0d] opacity-0 transition-opacity group-hover:opacity-100">
-            {creature.name}
-          </span>
-          <span className="sr-only">{creature.name}</span>
-        </div>
-      ))}
+    <div style={{ width: boardSize * fitScale, height: boardSize * fitScale }}>
+      {/* z-index: 0 (not left at the default `auto`) plus the transform below makes this its own
+          stacking context on purpose - a tapped/hovered creature's z-index: 9999 (see `active`
+          below) only ever competes against its siblings in here, and can never escape above
+          site-wide fixed elements like the nav menu (z-[55] in site-nav.tsx) further up the tree. */}
+      <div
+        className="relative"
+        style={{
+          width: boardSize,
+          height: boardSize,
+          transform: `scale(${fitScale})`,
+          transformOrigin: "top left",
+          zIndex: 0,
+        }}
+      >
+        {placed.map(({ creature, x, y, rotate, scale }, i) => {
+          const active = activeId === creature.id;
+          return (
+            // "group" is for the hover name label and wiggle below - the tilt/scale live on the
+            // inner div instead of here, so they stay upright and don't tilt along with the sticker.
+            // z-index comes from the --z custom property (read by .creature-slot in globals.css)
+            // rather than a plain inline `zIndex`, so the :hover rule there can override it - an
+            // inline zIndex would otherwise always beat a stylesheet rule. Tapping sets an actual
+            // inline zIndex instead (see `active` below), since that's a deliberate JS-driven
+            // override rather than something a stylesheet rule needs to win against.
+            <div
+              key={creature.id}
+              className="group creature-slot absolute cursor-pointer"
+              onClick={() => setActiveId((prev) => (prev === creature.id ? null : creature.id))}
+              style={{
+                left: `calc(50% + ${x}px)`,
+                top: `calc(50% + ${y}px)`,
+                transform: "translate(-50%, -50%)",
+                "--z": i,
+                ...(active ? { zIndex: 9999 } : {}),
+              } as CSSProperties}
+            >
+              <div
+                className="creature-sticker"
+                style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": scale } as CSSProperties}
+              >
+                <CreaturePixels pixels={creature.pixels} size={size} cellPx={cellPx} />
+              </div>
+              {/* Plain cursive text rather than a tooltip/pill - CSS-only and instant, unlike the
+                  native title tooltip's OS-controlled delay. Shown on hover (desktop) or tap
+                  (touch, via `active`) - a touch device never triggers :hover on its own. */}
+              <span
+                className={`font-nanum-pen pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full text-[20px] leading-none whitespace-nowrap text-[#0e0e0d] transition-opacity group-hover:opacity-100 ${
+                  active ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {creature.name}
+              </span>
+              <span className="sr-only">{creature.name}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
+}
+
+// Every creature shares one size, driven by how crowded the gallery currently is: a mostly empty
+// board shows big, easy-to-see creatures, and each new arrival nudges everyone a little smaller
+// (an exponential decay toward MIN_SIZE) so hundreds of them can still pile up near the center
+// without turning into an unreadable wall.
+function computeSize(count: number) {
+  return Math.round(MIN_SIZE + (MAX_SIZE - MIN_SIZE) * Math.exp(-count / SIZE_DECAY));
 }
 
 function CreaturePixels({ pixels, size, cellPx }: { pixels: (string | null)[]; size: number; cellPx: number }) {

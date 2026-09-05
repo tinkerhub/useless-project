@@ -24,9 +24,11 @@ export default async function DrawHereBanner() {
     // display someone else is looking at across the room - a visitor already on their own phone
     // gets a small button straight to the draw page instead, not a code to scan themselves.
     <div className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6">
+      {/* Same cursive "draw yours" as the desktop card below - this button and that card's text
+          are the same CTA in two layouts, not two different labels, so they read as one voice. */}
       <Link
         href="/creatures"
-        className="font-helvetica block rounded-full bg-[#0e0e0d] px-4 py-2 text-[11px] tracking-[0.06em] text-white uppercase shadow-lg transition-transform hover:scale-105 sm:hidden"
+        className="font-nanum-pen block rounded-full bg-[#0e0e0d] px-5 py-2 text-[18px] leading-none text-white shadow-lg transition-transform hover:scale-105 sm:hidden"
       >
         draw yours
       </Link>
@@ -35,10 +37,14 @@ export default async function DrawHereBanner() {
           className="size-20 shrink-0 overflow-hidden rounded-md sm:size-28 [&_svg]:block [&_svg]:h-full [&_svg]:w-full"
           dangerouslySetInnerHTML={{ __html: qrSvg }}
         />
-        <p className="font-nanum-pen text-[14px] leading-[1.15] text-[#0e0e0d] sm:text-[18px]">draw yours</p>
-        <p className="font-helvetica text-[9px] leading-tight font-bold whitespace-nowrap text-[#0e0e0d] sm:text-[11px]">
-          useless.tinkerhub.org/creatures
-        </p>
+        {/* The QR itself is for someone scanning with a phone camera, not clicking - but a mouse
+            user already on this device wants a real link, not just a code to look at. */}
+        <Link href="/creatures" className="transition-transform hover:scale-105">
+          <p className="font-nanum-pen text-[14px] leading-[1.15] text-[#0e0e0d] sm:text-[18px]">draw yours</p>
+          <p className="font-helvetica text-[9px] leading-tight font-bold whitespace-nowrap text-[#0e0e0d] sm:text-[11px]">
+            useless.tinkerhub.org/creatures
+          </p>
+        </Link>
       </div>
     </div>
   );

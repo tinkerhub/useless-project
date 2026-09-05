@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { listCreatures, type PublicCreature } from "@/lib/creatures";
 import { LiveCreaturesProvider } from "./live-creatures";
 import GalleryCount from "./gallery-count";
@@ -29,17 +28,12 @@ export default async function GalleryPage() {
     <LiveCreaturesProvider initialCreatures={creatures}>
       <main data-page="handbook" className="flex min-h-svh w-full flex-col overflow-x-hidden bg-white text-[#0e0e0d]">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-5 pt-14 sm:px-8 sm:pt-20">
-          <header className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
-              creature gallery
-            </h1>
-            <Link
-              href="/creatures"
-              className="font-helvetica w-fit shrink-0 rounded-lg bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
-            >
-              draw your own
-            </Link>
-          </header>
+          {/* No "draw your own" button here anymore - DrawHereBanner's corner card (both its
+              mobile link and its now-clickable desktop QR card) is the one consistent "draw
+              yours" entry point, instead of duplicating it up here too. */}
+          <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
+            creature gallery
+          </h1>
           <GalleryCount />
         </div>
 
