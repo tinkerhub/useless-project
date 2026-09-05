@@ -85,7 +85,7 @@ export default function SubmissionsList({ submissions, header }: { submissions: 
           {submissions.length === 0 ? "Nothing here yet." : "No submissions for that venue yet."}
         </p>
       ) : (
-        <ul className="grid grid-cols-1 gap-8 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
+        <ul className="grid gap-8 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
           {visible.map((submission) => {
             const isInstagram = submission.link.includes("instagram.com");
             const youtubeId = isInstagram ? null : youtubeIdFrom(submission.link);

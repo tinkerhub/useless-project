@@ -145,9 +145,17 @@ const MorphingText: React.FC<MorphingTextProps> = ({ texts, className, style }) 
   // (e.g. a plain `text-[...]` up against this component's own `lg:text-[...]`) wouldn't
   // reliably win over a hardcoded default at that same breakpoint, which is exactly the kind of
   // mismatch that made a caller's chosen size not actually stick everywhere it needed to.
+  //
+  // The gooey merge (`filter: url(#threshold) ...`) only applies from `sm` up - referencing an
+  // SVG filter by id like this is a long-standing WebKit bug on iOS (every mobile browser there,
+  // Chrome included, since they're all WebKit under the hood): instead of just failing to apply,
+  // it can make the whole filtered element render as invisible, which reads as "there's no
+  // transition at all" rather than "the transition is there minus one polish effect." The actual
+  // crossfade (the per-span blur/opacity in useMorphingText above) is plain CSS with no SVG
+  // involved, so it's unaffected and still plays on mobile with this one extra filter left off.
   <div
     className={cn(
-      "relative mx-auto w-full max-w-screen-md text-center [filter:url(#threshold)_blur(0.3px)]",
+      "relative mx-auto w-full max-w-screen-md text-center sm:[filter:url(#threshold)_blur(0.3px)]",
       className,
     )}
     style={style}

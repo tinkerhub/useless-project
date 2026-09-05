@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import type { PublicCreature } from "@/lib/creatures";
 
 const PollContext = createContext<PublicCreature[]>([]);
+const MessageContext = createContext<string | null>(null);
 
 // A poll firing when nothing actually changed would still hand back a brand-new array (a fresh
 // JSON parse), and setting that unconditionally would re-render the entire swarm for no reason.
@@ -28,12 +29,15 @@ const POLL_INTERVAL_MS = 20000;
 // one per consumer - both just read whatever this provider last fetched.
 export function LiveCreaturesProvider({
   initialCreatures,
+  initialMessage = null,
   children,
 }: {
   initialCreatures: PublicCreature[];
+  initialMessage?: string | null;
   children: ReactNode;
 }) {
   const [creatures, setCreatures] = useState(initialCreatures);
+  const [message, setMessage] = useState(initialMessage);
   const inFlight = useRef(false);
 
   const poll = useCallback(async () => {
@@ -47,6 +51,9 @@ export function LiveCreaturesProvider({
         const data = await res.json();
         if (Array.isArray(data.creatures)) {
           setCreatures((prev) => (sameCreatures(prev, data.creatures) ? prev : data.creatures));
+        }
+        if (typeof data.message === "string" || data.message === null) {
+          setMessage(data.message);
         }
       }
     } catch {
@@ -67,9 +74,17 @@ export function LiveCreaturesProvider({
     };
   }, [poll]);
 
-  return <PollContext.Provider value={creatures}>{children}</PollContext.Provider>;
+  return (
+    <PollContext.Provider value={creatures}>
+      <MessageContext.Provider value={message}>{children}</MessageContext.Provider>
+    </PollContext.Provider>
+  );
 }
 
 export function useLiveCreatures() {
   return useContext(PollContext);
+}
+
+export function useGalleryBigMessage() {
+  return useContext(MessageContext);
 }

@@ -12,6 +12,10 @@ const MAX_CREATURES = 300;
 type Settings = {
   // Flipped from /admin to stop new creatures without touching the gallery itself.
   submissionsClosed: boolean;
+  // A one-off announcement an admin can post over the gallery (a venue change, "judging starts
+  // in 10 minutes", whatever) - null/absent means nothing to show. Free text rather than a
+  // richer structure since this is meant for a single short line, not a durable content type.
+  bigMessage: string | null;
 };
 
 export const GRID_SIZE = 16;
@@ -144,20 +148,51 @@ export async function deleteCreature(id: string): Promise<boolean> {
   });
 }
 
-// Whether the submit route should currently reject new creatures. Defaults to open (false) when
-// the store is unreachable or nothing has been set yet.
-export async function areCreatureSubmissionsClosed(): Promise<boolean> {
+// Fails soft to "nothing set" rather than throwing, same reasoning as readAllCreatures - a plain
+// `next dev` session or a misconfigured deploy should read as defaults, not a crashed page.
+async function readSettings(): Promise<Partial<Settings>> {
   const store = tryStore();
-  if (!store) return false;
+  if (!store) return {};
   try {
     const settings = await store.get(SETTINGS_KEY, { type: "json" });
-    return Boolean((settings as Settings | null)?.submissionsClosed);
+    return (settings as Partial<Settings> | null) ?? {};
   } catch {
-    return false;
+    return {};
   }
 }
 
-export async function setCreatureSubmissionsClosed(closed: boolean): Promise<void> {
+// Settings share one blob (there's only ever a couple of scalar fields, not worth a round trip
+// each), so writing one field back has to start from a fresh read and merge into it - writing
+// `{ [field]: value }` alone would silently wipe out whatever the *other* setting currently holds.
+// Like setCreatureSubmissionsClosed below, this is a plain read-then-write rather than the
+// compare-and-swap retry updateCreaturesList uses for the creatures list - two admins changing
+// settings at the exact same moment is rare enough, and the stakes low enough (worst case, one
+// admin's change from a second ago needs to be redone), that the extra complexity isn't worth it
+// here.
+async function updateSettings(patch: Partial<Settings>): Promise<void> {
   const store = getStore(STORE_NAME);
-  await store.setJSON(SETTINGS_KEY, { submissionsClosed: closed } satisfies Settings);
+  const current = await readSettings();
+  await store.setJSON(SETTINGS_KEY, { ...current, ...patch });
+}
+
+// Whether the submit route should currently reject new creatures. Defaults to open (false) when
+// the store is unreachable or nothing has been set yet.
+export async function areCreatureSubmissionsClosed(): Promise<boolean> {
+  const settings = await readSettings();
+  return Boolean(settings.submissionsClosed);
+}
+
+export async function setCreatureSubmissionsClosed(closed: boolean): Promise<void> {
+  await updateSettings({ submissionsClosed: closed });
+}
+
+// Used by the gallery to show (or not) the admin's announcement banner. Defaults to nothing when
+// the store is unreachable, nothing has been set yet, or an admin cleared it back to blank.
+export async function getGalleryBigMessage(): Promise<string | null> {
+  const settings = await readSettings();
+  return settings.bigMessage?.trim() ? settings.bigMessage : null;
+}
+
+export async function setGalleryBigMessage(message: string | null): Promise<void> {
+  await updateSettings({ bigMessage: message?.trim() ? message.trim() : null });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Project } from "@/lib/metabase";
 import Dropdown from "./dropdown";
 
@@ -11,6 +11,17 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 type Sort = "latest" | "oldest" | "name";
+
+// Rendering every project at once means every cover image loads (or at least gets requested and
+// laid out) immediately, even the ones nobody will scroll far enough to see - this caps the
+// initial render to a manageable page and only grows it on request, the same "don't pay for what
+// isn't on screen yet" idea as the creature gallery's own recent DOM-node fix. Mobile gets a
+// smaller page (and a smaller "load more" step to match) on top of that - a phone on a slow
+// connection pays for those extra 20 images with much less to gain from them, since it only ever
+// shows a couple of columns at a time anyway.
+const DESKTOP_PAGE_SIZE = 30;
+const MOBILE_PAGE_SIZE = 10;
+const MOBILE_BREAKPOINT_PX = 640; // matches Tailwind's `sm` used everywhere else on this grid
 
 function IconFilter(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -146,84 +157,139 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
       {visible.length === 0 ? (
         <p className="font-helvetica max-w-[60ch] text-[16px] leading-[1.7] text-[#33322f]">No projects match that filter.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visible.map((project) => {
-            const categoryList = project.categories ? project.categories.split(",").map((c) => c.trim()).filter(Boolean) : [];
+        // Keyed by the filter/sort signature so switching any of them mounts a fresh PaginatedGrid
+        // instance instead of reusing the old one - the cleanest way to reset its own "how many
+        // pages have been loaded" state without reaching for an effect (which would commit the
+        // stale page size for one extra render) or reading a ref during render (which this
+        // project's stricter React Compiler lint rules disallow, since the compiler needs to
+        // assume a component with the same key is safe to treat as unchanged across renders).
+        <PaginatedGrid key={`${sort}|${venue}|${category}|${status}|${type}`} projects={visible} />
+      )}
+    </>
+  );
+}
 
-            return (
-              <li key={project.id} className="flex h-full flex-col gap-3 rounded-2xl border border-black/10 p-3">
-                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-[#f5f4f0]">
-                  {project.coverImage ? (
-                    // Cover images are user-submitted, hosted on whatever bucket the Hub app's
-                    // upload happened to use - there's no fixed set of hostnames to allow through
-                    // next/image's remotePatterns, so a plain <img> is the only thing that works
-                    // for arbitrary external sources like this.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={project.coverImage} alt="" loading="lazy" className="size-full object-cover" />
-                  ) : (
-                    <span className="font-helvetica px-4 text-center text-[12px] text-[#33322f]/40 uppercase">no image</span>
-                  )}
-                  {project.status && (
-                    <span
-                      className={`font-helvetica absolute top-2 right-2 rounded-full px-2 py-0.5 text-[9px] tracking-[0.05em] uppercase ${
-                        STATUS_STYLE[project.status] ?? "bg-black/5 text-[#33322f]/70"
-                      }`}
-                    >
-                      {project.status}
-                    </span>
-                  )}
-                </div>
+function PaginatedGrid({ projects }: { projects: Project[] }) {
+  // Both start at the desktop size, matching what the server rendered - there's no window to
+  // measure yet on that first pass, and starting client and server apart here would show up as a
+  // hydration mismatch (a different number of <li>s, and the "load more" count text disagreeing).
+  // The one-time mount measurement below corrects it immediately after for an actual mobile
+  // viewport, the same "measure once and adjust" shape as useFitScale in creature-swarm.tsx.
+  const [pageSize, setPageSize] = useState(DESKTOP_PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState(DESKTOP_PAGE_SIZE);
 
-                <div className="flex flex-1 flex-col gap-1.5 px-1">
-                  <span className="font-nanum-pen truncate text-[19px] leading-[1.2] text-[#0e0e0d]">{project.name}</span>
-                  {project.tagline && (
-                    <span className="font-helvetica line-clamp-2 text-[13px] leading-[1.4] text-[#33322f]">{project.tagline}</span>
-                  )}
-                  <span className="font-helvetica text-[11px] leading-[1.4] text-[#33322f]/60">
-                    {[project.teamName, project.venueName ?? project.campusName].filter(Boolean).join(" — ")}
+  useEffect(() => {
+    // A resize subscription (matching useFitScale in creature-swarm.tsx) rather than a bare
+    // one-shot check - also means rotating a phone or resizing the window across the breakpoint
+    // adjusts the page size live, not just at whatever size the page happened to load. Only acts
+    // when the mobile/desktop classification actually flips (tracked via `pageSize` itself, one of
+    // only two possible values) rather than on every resize - otherwise every ordinary window
+    // resize (maximizing, devtools opening) would reset "load more" progress even when it never
+    // crossed the breakpoint, and resizing back up to desktop width would never restore the
+    // larger page size at all (it would just clamp back down every time).
+    function update() {
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT_PX;
+      setPageSize((prev) => {
+        const wasMobile = prev === MOBILE_PAGE_SIZE;
+        if (mobile === wasMobile) return prev;
+        setVisibleCount(mobile ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE);
+        return mobile ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE;
+      });
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return (
+    <>
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {projects.slice(0, visibleCount).map((project) => {
+          const categoryList = project.categories ? project.categories.split(",").map((c) => c.trim()).filter(Boolean) : [];
+
+          return (
+            <li key={project.id} className="flex h-full flex-col gap-3 rounded-2xl border border-black/10 p-3">
+              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-[#f5f4f0]">
+                {project.coverImage ? (
+                  // Cover images are user-submitted, hosted on whatever bucket the Hub app's
+                  // upload happened to use - there's no fixed set of hostnames to allow through
+                  // next/image's remotePatterns, so a plain <img> is the only thing that works
+                  // for arbitrary external sources like this.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={project.coverImage} alt="" loading="lazy" className="size-full object-cover" />
+                ) : (
+                  <span className="font-helvetica px-4 text-center text-[12px] text-[#33322f]/40 uppercase">no image</span>
+                )}
+                {project.status && (
+                  <span
+                    className={`font-helvetica absolute top-2 right-2 rounded-full px-2 py-0.5 text-[9px] tracking-[0.05em] uppercase ${
+                      STATUS_STYLE[project.status] ?? "bg-black/5 text-[#33322f]/70"
+                    }`}
+                  >
+                    {project.status}
                   </span>
-                  {categoryList.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {categoryList.map((c) => (
-                        <span
-                          key={c}
-                          className="font-helvetica rounded-full border border-black/10 px-2 py-0.5 text-[9px] tracking-[0.04em] text-[#33322f]/70 uppercase"
-                        >
-                          {c}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
+              </div>
 
-                {(project.projectUrl || project.sourceCodeUrl) && (
-                  <div className="flex flex-wrap gap-2 px-1">
-                    {project.projectUrl && (
-                      <a
-                        href={project.projectUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-helvetica rounded-full bg-[#0e0e0d] px-3 py-1.5 text-[11px] tracking-[0.06em] text-white uppercase transition-transform hover:scale-105"
+              <div className="flex flex-1 flex-col gap-1.5 px-1">
+                <span className="font-nanum-pen truncate text-[19px] leading-[1.2] text-[#0e0e0d]">{project.name}</span>
+                {project.tagline && (
+                  <span className="font-helvetica line-clamp-2 text-[13px] leading-[1.4] text-[#33322f]">{project.tagline}</span>
+                )}
+                <span className="font-helvetica text-[11px] leading-[1.4] text-[#33322f]/60">
+                  {[project.teamName, project.venueName ?? project.campusName].filter(Boolean).join(" — ")}
+                </span>
+                {categoryList.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {categoryList.map((c) => (
+                      <span
+                        key={c}
+                        className="font-helvetica rounded-full border border-black/10 px-2 py-0.5 text-[9px] tracking-[0.04em] text-[#33322f]/70 uppercase"
                       >
-                        live
-                      </a>
-                    )}
-                    {project.sourceCodeUrl && (
-                      <a
-                        href={project.sourceCodeUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-helvetica rounded-full border border-black/10 px-3 py-1.5 text-[11px] tracking-[0.06em] text-[#33322f] uppercase transition-transform hover:scale-105"
-                      >
-                        code
-                      </a>
-                    )}
+                        {c}
+                      </span>
+                    ))}
                   </div>
                 )}
-              </li>
-            );
-          })}
-        </ul>
+              </div>
+
+              {(project.projectUrl || project.sourceCodeUrl) && (
+                <div className="flex flex-wrap gap-2 px-1">
+                  {project.projectUrl && (
+                    <a
+                      href={project.projectUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-helvetica rounded-full bg-[#0e0e0d] px-3 py-1.5 text-[11px] tracking-[0.06em] text-white uppercase transition-transform hover:scale-105"
+                    >
+                      live
+                    </a>
+                  )}
+                  {project.sourceCodeUrl && (
+                    <a
+                      href={project.sourceCodeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-helvetica rounded-full border border-black/10 px-3 py-1.5 text-[11px] tracking-[0.06em] text-[#33322f] uppercase transition-transform hover:scale-105"
+                    >
+                      code
+                    </a>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      {visibleCount < projects.length && (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((c) => c + pageSize)}
+          className="font-helvetica mx-auto mt-6 block cursor-pointer rounded-full border border-black/10 px-6 py-2.5 text-[12px] tracking-[0.06em] text-[#33322f] uppercase transition-transform hover:scale-105"
+        >
+          Load more ({projects.length - visibleCount} left)
+        </button>
       )}
     </>
   );
