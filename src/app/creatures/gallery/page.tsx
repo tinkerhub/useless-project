@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { listCreatures, type PublicCreature } from "@/lib/creatures";
 import { LiveCreaturesProvider } from "./live-creatures";
 import GalleryCount from "./gallery-count";
@@ -28,12 +29,24 @@ export default async function GalleryPage() {
     <LiveCreaturesProvider initialCreatures={creatures}>
       <main data-page="handbook" className="flex min-h-svh w-full flex-col overflow-x-hidden bg-white text-[#0e0e0d]">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-5 pt-14 sm:px-8 sm:pt-20">
-          {/* No "draw your own" button here anymore - DrawHereBanner's corner card (both its
-              mobile link and its now-clickable desktop QR card) is the one consistent "draw
-              yours" entry point, instead of duplicating it up here too. */}
-          <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
-            creature gallery
-          </h1>
+          {/* On mobile, DrawHereBanner's corner pill is already the one clear "draw yours" entry
+              point (right there under the thumb) - a second button up here would just be a
+              duplicate a phone screen has no room for. A desktop visitor's mouse is nowhere near
+              that corner by default, and the QR card down there reads as "scan this with your
+              phone" rather than "click here" at a glance - so on wider screens the button belongs
+              next to the heading, where it's the first thing seen instead of something to notice
+              in a corner. */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
+              creature gallery
+            </h1>
+            <Link
+              href="/creatures"
+              className="font-nanum-pen hidden shrink-0 rounded-full bg-[#0e0e0d] px-6 py-2.5 text-[18px] leading-none text-white shadow-lg transition-transform hover:scale-105 sm:block"
+            >
+              draw yours
+            </Link>
+          </div>
           <GalleryCount />
         </div>
 

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { PALETTE } from "./palette";
 import ShareCard from "./share-card";
@@ -122,14 +121,19 @@ export default function PixelEditor() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full flex-col items-center gap-6">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col items-center gap-4">
       <div
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={stopPainting}
         onPointerLeave={stopPainting}
         className="grid touch-none overflow-hidden rounded-lg border border-black/10 shadow-sm select-none"
-        style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, width: "min(90vw, 384px)", height: "min(90vw, 384px)" }}
+        // Capped by viewport height as well as width - on a short window (a laptop with a lot of
+        // browser chrome, or landscape on a phone) a 384px-tall board on top of the heading,
+        // palette, name field and buttons below it easily runs past the fold. Capping by vh too
+        // means the board itself gives up the space instead of pushing "release into the wild"
+        // off-screen.
+        style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, width: "min(90vw, 32vh, 384px)", height: "min(90vw, 32vh, 384px)" }}
       >
         {pixels.map((cell, i) => (
           <div key={i} data-index={i} style={{ backgroundColor: cell ?? "#ffffff" }} className="border border-black/5" />
@@ -183,21 +187,13 @@ export default function PixelEditor() {
 
       {status === "error" && <p className="font-helvetica text-[14px] text-[#c0326b]">{error}</p>}
 
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <button
-          type="submit"
-          disabled={status === "submitting"}
-          className="font-helvetica cursor-pointer rounded-full bg-[#0e0e0d] px-6 py-3 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-[1.02] disabled:opacity-50"
-        >
-          {status === "submitting" ? "Releasing..." : "Release into the wild"}
-        </button>
-        <Link
-          href="/creatures/gallery"
-          className="font-helvetica rounded-full border border-black/10 px-6 py-3 text-[13px] tracking-[0.08em] text-[#0e0e0d] uppercase transition-transform hover:scale-105"
-        >
-          see the gallery
-        </Link>
-      </div>
+      <button
+        type="submit"
+        disabled={status === "submitting"}
+        className="font-helvetica cursor-pointer rounded-full bg-[#0e0e0d] px-6 py-3 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-[1.02] disabled:opacity-50"
+      >
+        {status === "submitting" ? "Releasing..." : "Release into the wild"}
+      </button>
     </form>
   );
 }

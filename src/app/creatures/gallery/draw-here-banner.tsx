@@ -32,7 +32,7 @@ export default async function DrawHereBanner() {
       >
         draw yours
       </Link>
-      <div className="hidden flex-col items-center gap-1.5 rounded-2xl border border-black/10 bg-white/95 p-3 text-center shadow-lg backdrop-blur sm:flex sm:gap-2 sm:p-4">
+      <div className="hidden flex-col items-center gap-1.5 border border-black/10 bg-white/95 p-3 text-center shadow-lg backdrop-blur sm:flex sm:gap-2 sm:p-4">
         <div
           className="size-20 shrink-0 overflow-hidden rounded-md sm:size-28 [&_svg]:block [&_svg]:h-full [&_svg]:w-full"
           dangerouslySetInnerHTML={{ __html: qrSvg }}
@@ -41,7 +41,7 @@ export default async function DrawHereBanner() {
             user already on this device wants a real link, not just a code to look at. */}
         <Link href="/creatures" className="transition-transform hover:scale-105">
           <p className="font-nanum-pen text-[14px] leading-[1.15] text-[#0e0e0d] sm:text-[18px]">draw yours</p>
-          <p className="font-helvetica text-[9px] leading-tight font-bold whitespace-nowrap text-[#0e0e0d] sm:text-[11px]">
+          <p className="font-nanum-pen text-[11px] leading-tight whitespace-nowrap text-[#0e0e0d] sm:text-[14px]">
             useless.tinkerhub.org/creatures
           </p>
         </Link>
