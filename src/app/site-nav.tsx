@@ -47,6 +47,16 @@ function IconClock(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+function IconGrid(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" {...props}>
+      <rect x={4} y={4} width={7} height={7} rx={1} />
+      <rect x={13} y={4} width={7} height={7} rx={1} />
+      <rect x={4} y={13} width={7} height={7} rx={1} />
+      <rect x={13} y={13} width={7} height={7} rx={1} />
+    </svg>
+  );
+}
 function IconPixel(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" {...props}>
@@ -62,6 +72,7 @@ const ROUTES = [
   { href: "/", label: "home", Icon: IconHome },
   { href: "/handbook", label: "handbook", Icon: IconBook },
   { href: "/competitions", label: "competitions", Icon: IconTrophy },
+  { href: "/projects", label: "projects", Icon: IconGrid },
   { href: "/submissions", label: "submissions", Icon: IconUpload },
   // Links straight to the gallery - that's the default landing spot for "creatures," with the
   // editor (still at /creatures) reachable only from the gallery's own "draw your own" button.

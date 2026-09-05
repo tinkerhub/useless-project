@@ -1,5 +1,6 @@
 import AppamSection from "./appam-section";
 import CelebratingSection from "./celebrating-section";
+import DesktopOnly from "./desktop-only";
 import { FAQ_ITEMS } from "./faq-data";
 import FaqSection from "./faq-section";
 import HeroDots from "./hero-dots";
@@ -60,8 +61,15 @@ export default function Home() {
       <div className="relative hidden min-h-screen shrink-0 snap-start snap-always items-center justify-center overflow-hidden lg:flex">
         {/* Rendered before the canvas below (and so painted behind it) to match the Figma layer
             order - the title/button/badges sit above the tetris field, which they slightly
-            overlap by design (e.g. the reveal button sits right at the skyline's edge). */}
-        <TetrisField targetCell={68} />
+            overlap by design (e.g. the reveal button sits right at the skyline's edge).
+            DesktopOnly rather than relying on this section's own "hidden lg:flex" alone - a
+            display:none element still mounts, still runs its animation/physics loop, and still
+            renders its full lego-block grid and particle DOM, just invisibly. MobileHero mounts
+            its own TetrisField for the visible mobile skyline, so without this a phone was running
+            two of these simultaneously - this drops it back to one. */}
+        <DesktopOnly>
+          <TetrisField targetCell={68} />
+        </DesktopOnly>
         <div
           className="absolute"
           style={{

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Nanum_Pen_Script } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Splash from "./splash";
@@ -15,25 +15,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// .woff2 copies alongside the originals - the .otf/.ttf sources stay put since _social-image.tsx
+// still needs raw font bytes in a format satori accepts (which doesn't include .woff2) to render
+// the OG image, but the browser has no reason to download the larger uncompressed format.
 const drowner = localFont({
-  src: "../fonts/Drowner.otf",
+  src: "../fonts/Drowner.woff2",
   variable: "--font-drowner",
 });
 
 const jrk = localFont({
-  src: "../fonts/JRK.otf",
+  src: "../fonts/JRK.woff2",
   variable: "--font-jrk",
 });
 
-const nanumPen = localFont({
-  src: "../fonts/NanumPenScript-Regular.ttf",
+// Was a local .ttf shipping the font's full Hangul glyph set (3.1MB, preloaded on every page) -
+// every use on this site is Latin text, so pulling it from next/font/google instead lets Next
+// subset to just the "latin" glyphs and self-host as .woff2, the same as the Geist fonts above.
+const nanumPen = Nanum_Pen_Script({
+  weight: "400",
+  subsets: ["latin"],
   variable: "--font-nanum-pen",
 });
 
 const helvetica = localFont({
   src: [
-    { path: "../fonts/Helvetica.ttf", weight: "400", style: "normal" },
-    { path: "../fonts/Helvetica-Bold.ttf", weight: "700", style: "normal" },
+    { path: "../fonts/Helvetica.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/Helvetica-Bold.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-helvetica",
 });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import BadgeFallback from "../badge-fallback";
 import { COMPETITIONS } from "@/lib/competitions";
@@ -60,14 +61,11 @@ export default function CompetitionsIndexPage() {
                     </span>
                   )}
                   {competition.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={competition.image}
-                      alt=""
-                      aria-hidden="true"
-                      className="max-w-none object-contain"
-                      style={{ width: 110, height: 110 }}
-                    />
+                    // Source badges run much larger than this 110px slot - next/image resizes
+                    // and re-compresses instead of shipping the full file to every card here.
+                    <div className="relative" style={{ width: 110, height: 110 }}>
+                      <Image src={competition.image} alt="" aria-hidden="true" fill sizes="110px" className="object-contain" />
+                    </div>
                   ) : (
                     <BadgeFallback size={92} />
                   )}

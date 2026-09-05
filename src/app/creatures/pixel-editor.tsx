@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { PALETTE } from "./palette";
+import ShareCard from "./share-card";
 
 const GRID_SIZE = 16;
 const CELL_COUNT = GRID_SIZE * GRID_SIZE;
@@ -36,7 +37,7 @@ export default function PixelEditor() {
   const [pixels, setPixels] = useState<(string | null)[]>(() => Array(CELL_COUNT).fill(null));
   const [color, setColor] = useState<string | null>(PALETTE[0]);
   const [name, setName] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "error" | "released">("idle");
   const [error, setError] = useState("");
   const paintingRef = useRef(false);
 
@@ -105,15 +106,18 @@ export default function PixelEditor() {
         setStatus("error");
         return;
       }
-      // A full navigation rather than router.push - the gallery is dynamic (fetches the latest
-      // creatures on every request), but Next's client-side router can still serve an already-
-      // cached RSC payload for a route visited earlier this session. Reloading the page
-      // guarantees the just-submitted creature actually shows up instead of a stale gallery.
-      window.location.href = "/creatures/gallery";
+      // Stays on this screen to build a shareable image from the pixels/name already in memory,
+      // rather than redirecting straight to the gallery - the creature's still sitting right here,
+      // no need to fetch it back from the server just to turn it into a share card.
+      setStatus("released");
     } catch {
       setError("Couldn't reach the server. Check your connection and try again.");
       setStatus("error");
     }
+  }
+
+  if (status === "released") {
+    return <ShareCard name={name.trim()} pixels={pixels} />;
   }
 
   return (

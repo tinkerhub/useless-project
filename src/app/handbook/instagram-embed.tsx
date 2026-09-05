@@ -1,64 +1,71 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-declare global {
-  interface Window {
-    instgrm?: { Embeds: { process: () => void } };
+const NATIVE_WIDTH = 328;
+// A reasonable guess for a captioned post before Instagram tells us its real height - close
+// enough that the fallback link (see below) rarely has to kick in just because a post is a bit
+// taller or shorter than average.
+const FALLBACK_HEIGHT = 480;
+
+// How long to wait for Instagram's iframe to report its real size before giving up and showing a
+// plain link instead - a post the iframe can't render (deleted, private, blocked, flaky network)
+// would otherwise just sit there at FALLBACK_HEIGHT with nothing in it.
+const EMBED_TIMEOUT_MS = 6000;
+
+// Instagram's own oEmbed API (api.instagram.com/oembed, which the old <blockquote class=
+// "instagram-media"> + embed.js technique calls behind the scenes) has redirected instead of
+// returning embed data since Meta locked public oEmbed access down in 2020 - that technique can
+// no longer work for anyone, on any site, not just this one. Their embed *page* is still public
+// and unauthenticated, though (https://www.instagram.com/p/<shortcode>/embed/captioned/) - this
+// embeds that directly in an iframe instead, no dead API in the loop.
+function embedSrc(permalink: string): string | null {
+  try {
+    const { pathname } = new URL(permalink);
+    const match = pathname.match(/^\/(p|reel|tv)\/([^/]+)/);
+    if (!match) return null;
+    return `https://www.instagram.com/${match[1]}/${match[2]}/embed/captioned/`;
+  } catch {
+    return null;
   }
 }
 
-const EMBED_SCRIPT_SRC = "https://www.instagram.com/embed.js";
-const NATIVE_WIDTH = 328;
-
-// Instagram's oEmbed widget only rewrites <blockquote class="instagram-media"> tags into the
-// actual player when window.instgrm.Embeds.process() runs, so the script has to be (re)triggered
-// on every mount rather than just loaded once.
-// How long to wait for Instagram's iframe to actually resize (via ResizeObserver) before giving
-// up and showing a plain link instead. A blank <blockquote> has no fallback content of its own -
-// unlike Instagram's real oEmbed HTML, ours never fetches that - so a post that embed.js can't
-// process (deleted, private, blocked script, flaky network) would otherwise just render nothing.
-const EMBED_TIMEOUT_MS = 6000;
-
 export default function InstagramEmbed({ permalink, scale = 1 }: { permalink: string; scale?: number }) {
-  const innerRef = useRef<HTMLDivElement>(null);
-  const [nativeHeight, setNativeHeight] = useState(0);
+  const src = embedSrc(permalink);
+  const [height, setHeight] = useState<number | null>(null);
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    const process = () => window.instgrm?.Embeds.process();
+    if (!src) return;
 
-    if (window.instgrm) {
-      process();
-    } else {
-      const existing = document.querySelector<HTMLScriptElement>(`script[src="${EMBED_SCRIPT_SRC}"]`);
-      if (existing) {
-        existing.addEventListener("load", process);
-      } else {
-        const script = document.createElement("script");
-        script.src = EMBED_SCRIPT_SRC;
-        script.async = true;
-        script.addEventListener("load", process);
-        document.body.appendChild(script);
+    // There's no way to read a cross-origin iframe's content size directly - Instagram's embed
+    // page posts its real height back via window.postMessage once it finishes rendering (the same
+    // protocol their own embed.js listens for), so this listens for it instead of using that script.
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== "https://www.instagram.com") return;
+      let data: unknown;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+      if (!data || typeof data !== "object") return;
+      const { type, details } = data as Record<string, unknown>;
+      if (type === "MEASURE" && details && typeof details === "object") {
+        const measuredHeight = (details as Record<string, unknown>).height;
+        if (typeof measuredHeight === "number") setHeight(measuredHeight);
       }
     }
 
+    window.addEventListener("message", handleMessage);
     const timeout = setTimeout(() => setTimedOut(true), EMBED_TIMEOUT_MS);
-
-    // Instagram resizes its iframe to the post's real height asynchronously (via postMessage)
-    // well after embed.js loads, so a ResizeObserver on the unscaled wrapper is the only reliable
-    // way to know the true height to reserve once we're visually shrinking it with a CSS transform.
-    const el = innerRef.current;
-    if (!el) return () => clearTimeout(timeout);
-    const observer = new ResizeObserver(([entry]) => setNativeHeight(entry.contentRect.height));
-    observer.observe(el);
     return () => {
+      window.removeEventListener("message", handleMessage);
       clearTimeout(timeout);
-      observer.disconnect();
     };
-  }, [permalink]);
+  }, [src]);
 
-  if (timedOut && !nativeHeight) {
+  if (!src || (timedOut && !height)) {
     return (
       <a
         href={permalink}
@@ -72,29 +79,16 @@ export default function InstagramEmbed({ permalink, scale = 1 }: { permalink: st
     );
   }
 
+  const displayHeight = height ?? FALLBACK_HEIGHT;
+
   return (
-    <div
-      style={{
-        width: NATIVE_WIDTH * scale,
-        height: nativeHeight ? nativeHeight * scale : undefined,
-        overflow: "hidden",
-      }}
-    >
-      <div
-        ref={innerRef}
-        style={{ width: NATIVE_WIDTH, transform: `scale(${scale})`, transformOrigin: "top left" }}
-      >
-        {/* Instagram's non-captioned embed variant (omitting data-instgrm-captioned) never resizes
-            past a 2px-tall iframe - it appears to be broken/deprecated on their end - so the
-            captioned card is the only variant that actually renders and plays. */}
-        <blockquote
-          className="instagram-media"
-          data-instgrm-captioned
-          data-instgrm-permalink={permalink}
-          data-instgrm-version="14"
-          style={{ background: "#FFF", border: 0, margin: 0, padding: 0, width: "100%" }}
-        />
-      </div>
+    <div style={{ width: NATIVE_WIDTH * scale, height: displayHeight * scale, overflow: "hidden" }}>
+      <iframe
+        src={src}
+        title="Instagram post"
+        scrolling="no"
+        style={{ width: NATIVE_WIDTH, height: displayHeight, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }}
+      />
     </div>
   );
 }

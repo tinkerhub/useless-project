@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import InstagramEmbed from "../../handbook/instagram-embed";
@@ -29,8 +30,9 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
         <header className="flex flex-col gap-4">
           <span className="flex h-24 items-center justify-start">
             {competition.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={competition.image} alt="" aria-hidden="true" className="h-24 w-24 object-contain" />
+              <span className="relative block h-24 w-24">
+                <Image src={competition.image} alt="" aria-hidden="true" fill sizes="96px" className="object-contain" />
+              </span>
             ) : (
               <BadgeFallback size={80} />
             )}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import InstagramEmbed from "./instagram-embed";
 import ChecklistWidget from "./checklist";
@@ -508,14 +509,12 @@ function PrizeMedal({
     <>
       <div className="flex items-center justify-center" style={{ height: slotHeight }}>
         {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={image}
-            alt=""
-            aria-hidden="true"
-            className="max-w-none object-contain"
-            style={{ width: imageSize, height: imageSize }}
-          />
+          // Source badges are shot/exported far larger than this slot ever renders (some pushing
+          // 800px+) - next/image resizes and re-compresses to what's actually needed instead of
+          // shipping the full file for an ~80-135px icon.
+          <div className="relative" style={{ width: imageSize, height: imageSize }}>
+            <Image src={image} alt="" aria-hidden="true" fill sizes={`${Math.ceil(imageSize)}px`} className="object-contain" />
+          </div>
         ) : (
           <svg viewBox="0 0 100 108" width={svgSize} height={svgSize * 1.08} aria-hidden="true">
             <path d="M38,72 L28,104 L50,90 Z" fill="#1b352a" />
@@ -654,8 +653,9 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                       // to its right sideways and back on each frame swap.
                       <HoverFrames frames={item.hoverFrames} className="h-16 w-16 object-contain sm:h-20 sm:w-20" />
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image} alt="" aria-hidden="true" className="h-16 w-auto object-contain sm:h-20" />
+                      <div className="relative h-16 w-16 sm:h-20 sm:w-20">
+                        <Image src={item.image} alt="" aria-hidden="true" fill sizes="80px" className="object-contain" />
+                      </div>
                     )}
                     {/* Just the name, in the site's handwritten voice - no pill, no background,
                         nothing else competing with it. */}
@@ -678,8 +678,9 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                 <li key={card.title} className={`flex flex-col gap-1.5 ${CARD_CLASS}`}>
                   {card.image ? (
                     <span className="mb-1 flex items-center gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={card.image} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 object-contain" />
+                      <span className="relative h-10 w-10 shrink-0">
+                        <Image src={card.image} alt="" aria-hidden="true" fill sizes="40px" className="object-contain" />
+                      </span>
                       <span className="flex flex-col gap-0.5">
                         {card.tag && <Eyebrow>{card.tag}</Eyebrow>}
                         <span className="font-nanum-pen text-[21px] leading-[1.2] text-[#0e0e0d] sm:text-[23px]">
