@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listCreatures, type PublicCreature } from "@/lib/creatures";
+import { getGalleryBigMessage, listCreatures, type PublicCreature } from "@/lib/creatures";
 import { LiveCreaturesProvider } from "./live-creatures";
 import GalleryCount from "./gallery-count";
 import LiveCreatureSwarm from "./gallery-swarm-live";
 import DrawHereBanner from "./draw-here-banner";
+import GalleryBigMessage from "./gallery-big-message";
 
 export const metadata: Metadata = {
   title: "Creature Gallery · Useless Projects",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function GalleryPage() {
-  const stored = await listCreatures();
+  const [stored, bigMessage] = await Promise.all([listCreatures(), getGalleryBigMessage()]);
   // deviceId only matters for enforcing the per-visitor cap in the submit route - stripped here
   // too, not just in /api/creatures/list, since these props cross the server/client boundary
   // straight into the page's own initial HTML.
@@ -25,9 +26,11 @@ export default async function GalleryPage() {
   return (
     // Seeds the client-side poll (see live-creatures.tsx) with what the server already fetched,
     // so the gallery still works the same on first load - the poll only matters for whoever
-    // leaves the tab open long enough for someone else to add a creature.
-    <LiveCreaturesProvider initialCreatures={creatures}>
+    // leaves the tab open long enough for someone else to add a creature (or an admin to post or
+    // clear the announcement below).
+    <LiveCreaturesProvider initialCreatures={creatures} initialMessage={bigMessage}>
       <main data-page="handbook" className="flex min-h-svh w-full flex-col overflow-x-hidden bg-white text-[#0e0e0d]">
+        <GalleryBigMessage />
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-5 pt-14 sm:px-8 sm:pt-20">
           {/* On mobile, DrawHereBanner's corner pill is already the one clear "draw yours" entry
               point (right there under the thumb) - a second button up here would just be a

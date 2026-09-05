@@ -6,8 +6,11 @@ import type { Creature } from "@/lib/creatures";
 export default function AdminPanel() {
   const [creatures, setCreatures] = useState<Creature[] | null>(null);
   const [closed, setClosed] = useState<boolean | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [messageDraft, setMessageDraft] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingClosed, setTogglingClosed] = useState(false);
+  const [savingMessage, setSavingMessage] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -17,7 +20,11 @@ export default function AdminPanel() {
       .catch(() => setError("Couldn't load creatures."));
     fetch("/api/admin/settings")
       .then((res) => res.json())
-      .then((data) => setClosed(Boolean(data.closed)))
+      .then((data) => {
+        setClosed(Boolean(data.closed));
+        setSavedMessage(data.bigMessage ?? null);
+        setMessageDraft(data.bigMessage ?? "");
+      })
       .catch(() => setError("Couldn't load settings."));
   }, []);
 
@@ -64,6 +71,29 @@ export default function AdminPanel() {
     }
   }
 
+  async function handleSaveMessage(message: string | null) {
+    setSavingMessage(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bigMessage: message }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? `Couldn't update that setting (${res.status}).`);
+        return;
+      }
+      setSavedMessage(message);
+      setMessageDraft(message ?? "");
+    } catch {
+      setError("Couldn't reach the server.");
+    } finally {
+      setSavingMessage(false);
+    }
+  }
+
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
     window.location.reload();
@@ -94,6 +124,43 @@ export default function AdminPanel() {
           >
             Log out
           </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-black/10 p-5">
+        <div>
+          <p className="font-helvetica text-[14px] font-bold text-[#0e0e0d]">Gallery announcement</p>
+          <p className="font-helvetica text-[13px] text-[#33322f]/70">
+            {savedMessage ? "Currently showing over the gallery." : "Nothing showing right now."}
+          </p>
+        </div>
+        <textarea
+          value={messageDraft}
+          onChange={(e) => setMessageDraft(e.target.value)}
+          rows={2}
+          maxLength={200}
+          placeholder="e.g. Judging starts in 10 minutes at the main stage"
+          className="font-helvetica w-full resize-none rounded-xl border border-black/10 px-4 py-3 text-[14px] text-[#0e0e0d] outline-none transition-colors focus:border-[#ea34df]"
+        />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => handleSaveMessage(messageDraft)}
+            disabled={savingMessage || messageDraft.trim() === (savedMessage ?? "")}
+            className="font-helvetica cursor-pointer rounded-full bg-[#0e0e0d] px-5 py-2.5 text-[12px] tracking-[0.06em] text-white uppercase transition-transform hover:scale-105 disabled:opacity-50"
+          >
+            {savingMessage ? "Saving..." : "Show on gallery"}
+          </button>
+          {savedMessage && (
+            <button
+              type="button"
+              onClick={() => handleSaveMessage(null)}
+              disabled={savingMessage}
+              className="font-helvetica cursor-pointer rounded-full border border-black/10 px-5 py-2.5 text-[12px] tracking-[0.06em] text-[#33322f] uppercase transition-transform hover:scale-105 disabled:opacity-50"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
