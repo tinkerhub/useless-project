@@ -6,7 +6,6 @@ import type { PublicCreature } from "@/lib/creatures";
 const MIN_SIZE = 64; // floor size once the gallery is crowded - what creatures render at today
 const MAX_SIZE = 140; // size when there are only a couple of creatures around
 const SIZE_DECAY = 10; // roughly how many creatures it takes to fall most of the way to MIN_SIZE
-const BASE_SIZE = 64; // the size SPACING/rotate/scale below were tuned against
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // ~137.5deg, the sunflower-seed spiral angle
 
@@ -20,6 +19,29 @@ function hash(seed: string) {
     h = Math.imul(h, 16777619);
   }
   return (h >>> 0) / 4294967295;
+}
+
+// A real drawing almost never fills its whole 16x16 square - most have transparent margins around
+// an irregular silhouette (a thin stick figure, a small compact blob, whatever). A single fixed
+// spacing constant tuned for one guess at "typical coverage" either leaves gaps (whenever actual
+// creatures are sparser than the guess) or looks needlessly cluttered (whenever they're denser) -
+// it can't win for every gallery. This measures each creature's actual reach (the farthest any
+// filled pixel sits from its own center) and spaces the spiral by the population's *own* average,
+// so the layout adapts to whatever people have actually drawn instead of a guess.
+function inkRadius(pixels: (string | null)[]): number {
+  let maxDistSq = 0;
+  for (let i = 0; i < pixels.length; i++) {
+    if (!pixels[i]) continue;
+    const col = i % 16;
+    const row = Math.floor(i / 16);
+    const dx = col - 7.5;
+    const dy = row - 7.5;
+    const distSq = dx * dx + dy * dy;
+    if (distSq > maxDistSq) maxDistSq = distSq;
+  }
+  // A creature with nothing filled can't happen (the submit route requires 10+ pixels), but a
+  // small floor keeps this sane if that rule ever changes.
+  return maxDistSq === 0 ? 2 : Math.sqrt(maxDistSq) + 0.5;
 }
 
 // A creature's 16x16 grid used to be 256 individual <div>s - fine for one creature, but a gallery
@@ -107,11 +129,17 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
   const ready = useIsHydrated();
 
   const size = creatures.length === 0 ? 0 : computeSize(creatures.length);
-  // A real drawing rarely fills its whole 16x16 square - most have transparent margins around an
-  // irregular silhouette, so spacing tuned for solid squares left visible gaps between neighbors.
-  // 18 (down from 30) packs the spiral tight enough that those gaps close up under typical
-  // overlap/rotation, at the cost of more overlap for anyone who does draw edge-to-edge.
-  const spacing = 18 * (size / BASE_SIZE);
+  const cellPx = size / 16;
+
+  // For a Fermat/Vogel spiral (radius = spacing * sqrt(index)), the average nearest-neighbor
+  // distance between points works out to spacing * sqrt(pi) - a known result for this specific
+  // placement. Solving that for spacing, using this population's own average ink reach as the
+  // target neighbor distance (times OVERLAP, since some deliberate overlap is the "pile of
+  // stickers" look this is going for, not a hard requirement to never touch).
+  const OVERLAP = 0.8;
+  const avgInkRadiusPx =
+    creatures.length === 0 ? 0 : (creatures.reduce((sum, c) => sum + inkRadius(c.pixels), 0) / creatures.length) * cellPx;
+  const spacing = (2 * avgInkRadiusPx * OVERLAP) / Math.sqrt(Math.PI);
 
   const placed = creatures.map((creature, index) => {
     // Sunflower-seed (phyllotaxis) spiral: creature 0 sits dead center, and each following one
