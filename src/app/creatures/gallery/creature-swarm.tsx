@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
 import type { PublicCreature } from "@/lib/creatures";
 
 const MIN_SIZE = 64; // floor size once the gallery is crowded - what creatures render at today
@@ -20,6 +20,56 @@ function hash(seed: string) {
     h = Math.imul(h, 16777619);
   }
   return (h >>> 0) / 4294967295;
+}
+
+// A creature's 16x16 grid used to be 256 individual <div>s - fine for one creature, but a gallery
+// with a couple hundred of them meant 50,000+ DOM nodes, and every visitor's browser had to lay
+// out and paint all of it on first load and again on every resize. Baking each creature down to a
+// single small raster image (cached by id, computed at most once per id ever) cuts that to one
+// DOM node per creature - image-rendering: pixelated keeps it crisp at any display size, and as a
+// bonus a canvas has no subpixel seams to bleed over in the first place.
+const CANVAS_RES = 64;
+const imageCache = new Map<string, string>();
+
+function buildCreatureImage(pixels: (string | null)[]): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = CANVAS_RES;
+  canvas.height = CANVAS_RES;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+  const cell = CANVAS_RES / 16;
+  for (let i = 0; i < pixels.length; i++) {
+    const color = pixels[i];
+    if (!color) continue;
+    const col = i % 16;
+    const row = Math.floor(i / 16);
+    ctx.fillStyle = color;
+    ctx.fillRect(col * cell, row * cell, cell, cell);
+  }
+  return canvas.toDataURL();
+}
+
+// Only ever called from render passes that are guaranteed client-side (see `ready` below) -
+// building a canvas during a server render would throw, since there's no DOM there at all.
+function getCreatureImageUrl(creature: PublicCreature): string {
+  const cached = imageCache.get(creature.id);
+  if (cached) return cached;
+  const url = buildCreatureImage(creature.pixels);
+  imageCache.set(creature.id, url);
+  return url;
+}
+
+// True from the client's first post-hydration render onward, false during the server render and
+// the client's matching first pass - the standard React pattern for "is this safe to touch the
+// DOM/canvas yet," since it doesn't need cascading setState-in-effect the way a plain
+// useState+useEffect flag would (there's genuinely nothing to subscribe to here, this only ever
+// flips once).
+function useIsHydrated() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 }
 
 // Fits the whole cluster inside the viewport rather than letting it get clipped at the edges (the
@@ -49,8 +99,14 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
   // up on mobile at all, only on a mouse.
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Next.js server-renders this component too, and there's no canvas/document on the server -
+  // `ready` stays false for that pass and for the client's first (hydration) pass so the two
+  // match exactly, then flips true right after mount. Every render from then on (including ones
+  // triggered by a poll bringing in creatures we've never imaged before) is guaranteed
+  // client-side, so building an image inline during render is safe from that point on.
+  const ready = useIsHydrated();
+
   const size = creatures.length === 0 ? 0 : computeSize(creatures.length);
-  const cellPx = size / 16;
   const spacing = 30 * (size / BASE_SIZE);
 
   const placed = creatures.map((creature, index) => {
@@ -117,7 +173,17 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
                 className="creature-sticker"
                 style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": scale } as CSSProperties}
               >
-                <CreaturePixels pixels={creature.pixels} size={size} cellPx={cellPx} />
+                {ready ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- a locally-generated data: URL, not an optimizable remote image
+                  <img
+                    src={getCreatureImageUrl(creature)}
+                    alt=""
+                    draggable={false}
+                    style={{ width: size, height: size, imageRendering: "pixelated" }}
+                  />
+                ) : (
+                  <div style={{ width: size, height: size }} />
+                )}
               </div>
               {/* Plain cursive text rather than a tooltip/pill - CSS-only and instant, unlike the
                   native title tooltip's OS-controlled delay. Shown on hover (desktop) or tap
@@ -144,22 +210,4 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
 // without turning into an unreadable wall.
 function computeSize(count: number) {
   return Math.round(MIN_SIZE + (MAX_SIZE - MIN_SIZE) * Math.exp(-count / SIZE_DECAY));
-}
-
-function CreaturePixels({ pixels, size, cellPx }: { pixels: (string | null)[]; size: number; cellPx: number }) {
-  return (
-    <div className="grid" style={{ gridTemplateColumns: `repeat(16, ${cellPx}px)`, width: size, height: size }}>
-      {pixels.map((color, i) =>
-        color ? (
-          // The box-shadow bleeds each cell's own color half a pixel past its edge, covering the
-          // hairline gaps browsers otherwise render between adjacent grid cells - needed once the
-          // grid gets scaled by a non-integer factor (the sticker scale() above) or cellPx itself
-          // isn't a whole number (size varies continuously with the crowd size).
-          <div key={i} style={{ backgroundColor: color, boxShadow: `0 0 0 0.75px ${color}` }} />
-        ) : (
-          <div key={i} />
-        )
-      )}
-    </div>
-  );
 }
