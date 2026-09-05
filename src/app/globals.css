@@ -231,17 +231,24 @@ html:has([data-page="handbook"]) {
   animation: creature-wiggle 500ms ease-in-out forwards;
 }
 
+/* Tapping (see `active` in creature-swarm.tsx) holds the same enlarged end state as a hover, for
+   touch devices that never trigger :hover at all - a plain transition rather than the wiggle
+   animation above, since there's no tap equivalent of "the cursor arrived and is still moving." */
+.creature-sticker--active {
+  transform: rotate(var(--creature-rotate, 0deg)) scale(calc(var(--creature-scale, 1) * 2.2));
+}
+
 @keyframes creature-wiggle {
   0% {
     transform: rotate(var(--creature-rotate, 0deg)) scale(var(--creature-scale, 1));
   }
   30% {
-    transform: rotate(calc(var(--creature-rotate, 0deg) + 12deg)) scale(calc(var(--creature-scale, 1) * 1.25));
+    transform: rotate(calc(var(--creature-rotate, 0deg) + 12deg)) scale(calc(var(--creature-scale, 1) * 2.4));
   }
   60% {
-    transform: rotate(calc(var(--creature-rotate, 0deg) - 10deg)) scale(calc(var(--creature-scale, 1) * 1.25));
+    transform: rotate(calc(var(--creature-rotate, 0deg) - 10deg)) scale(calc(var(--creature-scale, 1) * 2.4));
   }
   100% {
-    transform: rotate(var(--creature-rotate, 0deg)) scale(calc(var(--creature-scale, 1) * 1.2));
+    transform: rotate(var(--creature-rotate, 0deg)) scale(calc(var(--creature-scale, 1) * 2.2));
   }
 }

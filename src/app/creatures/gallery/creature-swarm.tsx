@@ -8,6 +8,7 @@ const MAX_SIZE = 140; // size when there are only a couple of creatures around
 const SIZE_DECAY = 10; // roughly how many creatures it takes to fall most of the way to MIN_SIZE
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // ~137.5deg, the sunflower-seed spiral angle
+const RADIUS_POWER = 0.6; // see the comment where this is used, in the placement loop below
 
 // A small deterministic hash so a creature's tilt/scale stays put across renders instead of
 // rerolling on every request - same idea as a seeded random, just inlined since this is a plain
@@ -42,6 +43,31 @@ function inkRadius(pixels: (string | null)[]): number {
   // A creature with nothing filled can't happen (the submit route requires 10+ pixels), but a
   // small floor keeps this sane if that rule ever changes.
   return maxDistSq === 0 ? 2 : Math.sqrt(maxDistSq) + 0.5;
+}
+
+// Every creature's clickable/hoverable area used to be its full 16x16 square, padding and all -
+// which is mostly transparent for a typical drawing. Once creatures overlap (the whole point of
+// the spiral layout), a square that size sitting on top completely blocks the empty margin of
+// whatever's underneath it too, even where neither creature has anything actually drawn - so a
+// creature boxed in on all sides could never be hovered or tapped at all, no matter how much open
+// canvas space was visually around it. This finds the tight rectangle around a creature's actual
+// drawn pixels, so its hit-target only ever covers what it actually drew.
+function inkBounds(pixels: (string | null)[]): { minCol: number; maxCol: number; minRow: number; maxRow: number } {
+  let minCol = 15;
+  let maxCol = 0;
+  let minRow = 15;
+  let maxRow = 0;
+  for (let i = 0; i < pixels.length; i++) {
+    if (!pixels[i]) continue;
+    const col = i % 16;
+    const row = Math.floor(i / 16);
+    if (col < minCol) minCol = col;
+    if (col > maxCol) maxCol = col;
+    if (row < minRow) minRow = row;
+    if (row > maxRow) maxRow = row;
+  }
+  // Same "can't actually happen" guard as inkRadius above - falls back to the full square.
+  return minCol > maxCol ? { minCol: 0, maxCol: 15, minRow: 0, maxRow: 15 } : { minCol, maxCol, minRow, maxRow };
 }
 
 // A creature's 16x16 grid used to be 256 individual <div>s - fine for one creature, but a gallery
@@ -131,23 +157,56 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
   const size = creatures.length === 0 ? 0 : computeSize(creatures.length);
   const cellPx = size / 16;
 
-  // For a Fermat/Vogel spiral (radius = spacing * sqrt(index)), the average nearest-neighbor
-  // distance between points works out to spacing * sqrt(pi) - a known result for this specific
-  // placement. Solving that for spacing, using this population's own average ink reach as the
-  // target neighbor distance (times OVERLAP, since some deliberate overlap is the "pile of
-  // stickers" look this is going for, not a hard requirement to never touch).
-  const OVERLAP = 0.8;
+  // A flat population-average spacing treats every creature as if it took up the same amount of
+  // room - so a sparse, tightly-drawn creature (small actual ink reach) still gets pushed exactly
+  // as far from its neighbors as a sprawling one, leaving a visible gap around it, while a bigger
+  // one sitting near several other big ones can end up too tightly packed. Accumulating each
+  // creature's own ink reach as we go (as an "area" - inkRadius squared, since area scales with
+  // radius squared) and basing each creature's distance from center on the running total up to
+  // that point, rather than a shared average, spaces every gap by what's actually sitting on
+  // either side of it instead of a population-wide guess.
+  const OVERLAP = 0.55;
   const avgInkRadiusPx =
     creatures.length === 0 ? 0 : (creatures.reduce((sum, c) => sum + inkRadius(c.pixels), 0) / creatures.length) * cellPx;
-  const spacing = (2 * avgInkRadiusPx * OVERLAP) / Math.sqrt(Math.PI);
+  // Coefficient chosen so that a population of uniformly-sized creatures reduces to the same
+  // radius formula as the flat-average version this replaced (spacing * index^RADIUS_POWER) -
+  // the adaptivity below only matters once individual creatures start deviating from that average.
+  const areaCoeff =
+    avgInkRadiusPx === 0 ? 0 : ((2 * OVERLAP) / Math.sqrt(Math.PI)) * Math.pow(avgInkRadiusPx, 1 - 2 * RADIUS_POWER);
+
+  // Own footprint ("area", i.e. inkRadius squared) per creature, and - for each one - the running
+  // total of every earlier creature's footprint. Built as a plain prefix sum rather than a mutable
+  // accumulator inside the placement loop below, since React's compiler flags reassigning a
+  // variable across render (it can't tell a `let` scoped to this render call apart from state).
+  const ownInkAreas = creatures.map((c) => {
+    const r = inkRadius(c.pixels) * cellPx;
+    return r * r;
+  });
+  const rawCumulativeInkAreaBefore = ownInkAreas.map((_, i) => ownInkAreas.slice(0, i).reduce((sum, a) => sum + a, 0));
+  // Whichever handful of creatures happen to land first in submission order sets how tightly
+  // *every* gallery packs near dead center, since there's so little accumulated area yet to base
+  // their spacing on - if those happen to be smaller/plainer drawings (common for whoever
+  // submitted early on), the middle of the spiral clumps far tighter than the "pile of stickers"
+  // look intended anywhere else. Flooring the running total at what an average-sized population
+  // would have accumulated by this point keeps that from happening, while never kicking in once
+  // real creatures have actually built up more area than that (so it doesn't loosen anything else).
+  const MIN_AREA_FRACTION = 1.1;
+  const cumulativeInkAreaBefore = rawCumulativeInkAreaBefore.map((cum, i) =>
+    Math.max(cum, MIN_AREA_FRACTION * avgInkRadiusPx * avgInkRadiusPx * i)
+  );
 
   const placed = creatures.map((creature, index) => {
     // Sunflower-seed (phyllotaxis) spiral: creature 0 sits dead center, and each following one
-    // turns a fixed golden angle further round at a radius growing with sqrt(index). Unlike a
-    // grid, positions are continuous - creatures land close enough to overlap at the edges, like
-    // a pile of stickers stuck onto a board, rather than sitting in neat, evenly spaced cells.
+    // turns a fixed golden angle further round. Unlike a grid, positions are continuous -
+    // creatures land close enough to overlap at the edges, like a pile of stickers stuck onto a
+    // board, rather than sitting in neat, evenly spaced cells.
     const angle = index * GOLDEN_ANGLE;
-    const radius = spacing * Math.sqrt(index);
+    // A pure sqrt of the running total spaces every ring at constant density, which is only
+    // "even" in the limit of many creatures - with real gallery counts, the handful of low-index
+    // creatures near dead center end up looking like a bare gap next to how packed the outer rings
+    // get. A slightly higher exponent keeps that inner ring tighter while easing later rings
+    // further apart, trading the theoretical even density for what actually reads as even by eye.
+    const radius = areaCoeff * Math.pow(cumulativeInkAreaBefore[index], RADIUS_POWER);
     // Rounded rather than left at full float precision - the browser reformats an inline style's
     // px values when it parses the server-rendered HTML, so an unrounded number here made React's
     // hydration check see the server's (browser-reformatted) string and the client's (raw JS
@@ -158,7 +217,19 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
     const rotate = (hash(`${creature.id}-r`) - 0.5) * 50; // -25..25deg sticker tilt
     const scale = 0.85 + hash(`${creature.id}-s`) * 0.35; // 0.85..1.2, so they're not all identical
 
-    return { creature, x, y, rotate, scale };
+    // The hit-target rectangle (see inkBounds above), scaled and centered to match this creature's
+    // own rendered size - `scale` already stretches the visible sticker by the same factor, so the
+    // clickable area needs to grow with it or a bigger-than-average sticker would end up with a
+    // hit-target smaller than what's actually drawn on screen.
+    const bounds = inkBounds(creature.pixels);
+    const hitWidth = Math.round((bounds.maxCol - bounds.minCol + 1) * cellPx * scale * 100) / 100;
+    const hitHeight = Math.round((bounds.maxRow - bounds.minRow + 1) * cellPx * scale * 100) / 100;
+    // Offset of the hit rectangle's own center from the sticker's center (grid col/row 8, the same
+    // reference point inkRadius above measures distance from), in the same rounded px terms as x/y.
+    const hitOffsetX = Math.round(((bounds.minCol + bounds.maxCol + 1) / 2 - 8) * cellPx * scale * 100) / 100;
+    const hitOffsetY = Math.round(((bounds.minRow + bounds.maxRow + 1) / 2 - 8) * cellPx * scale * 100) / 100;
+
+    return { creature, x, y, rotate, scale, hitWidth, hitHeight, hitOffsetX, hitOffsetY };
   });
 
   const maxOffset = placed.reduce((max, p) => Math.max(max, Math.abs(p.x), Math.abs(p.y)), 0);
@@ -183,24 +254,30 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
           zIndex: 0,
         }}
       >
-        {placed.map(({ creature, x, y, rotate, scale }, i) => {
+        {placed.map(({ creature, x, y, rotate, scale, hitWidth, hitHeight, hitOffsetX, hitOffsetY }, i) => {
           const active = activeId === creature.id;
           return (
             // "group" is for the hover name label and wiggle below - the tilt/scale live on the
-            // inner div instead of here, so they stay upright and don't tilt along with the sticker.
+            // inner sticker div instead of here, so they stay upright and don't tilt along with it.
             // z-index comes from the --z custom property (read by .creature-slot in globals.css)
             // rather than a plain inline `zIndex`, so the :hover rule there can override it - an
             // inline zIndex would otherwise always beat a stylesheet rule. Tapping sets an actual
             // inline zIndex instead (see `active` below), since that's a deliberate JS-driven
-            // override rather than something a stylesheet rule needs to win against.
+            // override rather than something a stylesheet rule needs to win against. This whole
+            // wrapper is pointer-events: none - it exists to position and stack the sticker image
+            // and the (separately positioned) hit-target below, not to be interacted with itself,
+            // since its own box is the full padded square. Hovering the hit-target still counts as
+            // hovering this element as far as :hover/group-hover go (that follows the actual
+            // pointer target's ancestor chain, not this element's own pointer-events value) -
+            // pointer-events only decides who gets picked as the hit target in the first place.
             <div
               key={creature.id}
-              className="group creature-slot absolute cursor-pointer"
-              onClick={() => setActiveId((prev) => (prev === creature.id ? null : creature.id))}
+              className="group creature-slot absolute"
               style={{
                 left: `calc(50% + ${x}px)`,
                 top: `calc(50% + ${y}px)`,
                 transform: "translate(-50%, -50%)",
+                pointerEvents: "none",
                 // A custom property always round-trips through the DOM as a string (CSSOM has no
                 // "number" type for them), so passing the raw number here made React see a
                 // number-vs-string mismatch between its server and client renders. Stringifying
@@ -210,7 +287,7 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
               } as CSSProperties}
             >
               <div
-                className="creature-sticker"
+                className={`creature-sticker ${active ? "creature-sticker--active" : ""}`}
                 style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": String(scale) } as CSSProperties}
               >
                 {ready ? (
@@ -225,17 +302,39 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
                   <div style={{ width: size, height: size }} />
                 )}
               </div>
+              {/* The actual hit-target: sized and centered to just this creature's own drawn
+                  pixels (see inkBounds), not the full sticker square, so a neighbor sitting in the
+                  transparent margin around it stays reachable. */}
+              <div
+                className="absolute cursor-pointer"
+                onClick={() => setActiveId((prev) => (prev === creature.id ? null : creature.id))}
+                style={{
+                  left: `calc(50% + ${hitOffsetX}px)`,
+                  top: `calc(50% + ${hitOffsetY}px)`,
+                  width: hitWidth,
+                  height: hitHeight,
+                  transform: "translate(-50%, -50%)",
+                  pointerEvents: "auto",
+                }}
+              >
+                <span className="sr-only">{creature.name}</span>
+              </div>
               {/* Plain cursive text rather than a tooltip/pill - CSS-only and instant, unlike the
                   native title tooltip's OS-controlled delay. Shown on hover (desktop) or tap
-                  (touch, via `active`) - a touch device never triggers :hover on its own. */}
+                  (touch, via `active`) - a touch device never triggers :hover on its own. Anchored
+                  to the sticker's own center (not the small hit-target above) with a fixed
+                  clearance big enough for the *enlarged* sticker (up to ~2.2x its resting size,
+                  see .creature-sticker--active/creature-wiggle in globals.css) - anchoring it to
+                  the hit-target's edge left it sitting right where the enlarged art now reaches,
+                  covering its own name. */}
               <span
-                className={`font-nanum-pen pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full text-[20px] leading-none whitespace-nowrap text-[#0e0e0d] transition-opacity group-hover:opacity-100 ${
-                  active ? "opacity-100" : "opacity-0"
+                className={`font-nanum-pen pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-full leading-none whitespace-nowrap text-[#0e0e0d] transition-opacity group-hover:text-[34px] group-hover:opacity-100 ${
+                  active ? "text-[34px] opacity-100" : "text-[20px] opacity-0"
                 }`}
+                style={{ top: `calc(50% - ${Math.round(size * 1.4)}px)` }}
               >
                 {creature.name}
               </span>
-              <span className="sr-only">{creature.name}</span>
             </div>
           );
         })}
