@@ -5,6 +5,18 @@ import type { PublicCreature } from "@/lib/creatures";
 
 const PollContext = createContext<PublicCreature[]>([]);
 
+// A poll firing when nothing actually changed would still hand back a brand-new array (a fresh
+// JSON parse), and setting that unconditionally would re-render the entire swarm for no reason.
+// Comparing ids is enough - a creature's pixels never change after it's created, only the set of
+// which creatures exist does (a new submission, or a moderator hiding one).
+function sameCreatures(a: PublicCreature[], b: PublicCreature[]) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id) return false;
+  }
+  return true;
+}
+
 // There's no persistent connection here (Netlify's Functions are request/response, not
 // long-lived sockets), so "live" is approximated with a short poll rather than true push. This
 // was 4s, but the gallery is also what the QR banner points a venue's own display at - several
@@ -33,7 +45,9 @@ export function LiveCreaturesProvider({
       const res = await fetch("/api/creatures/list", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.creatures)) setCreatures(data.creatures);
+        if (Array.isArray(data.creatures)) {
+          setCreatures((prev) => (sameCreatures(prev, data.creatures) ? prev : data.creatures));
+        }
       }
     } catch {
       // A missed poll just leaves the gallery as-is until the next one - nothing to surface.

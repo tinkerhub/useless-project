@@ -75,10 +75,37 @@ export async function listCreatures(): Promise<Creature[]> {
   return creatures.filter((c) => !isHidden(c.name));
 }
 
-// All creatures live in one JSON blob rather than one-blob-per-creature: the gallery always
-// wants the full set, and listing the store would mean one extra round trip per creature just to
-// read it back. The tradeoff is a last-write-wins race if two people submit at the same instant -
-// acceptable for a for-fun gallery, not worth conditional writes here.
+// All creatures live in one JSON blob rather than one-blob-per-creature: the gallery always wants
+// the full set, and listing the store would mean one extra round trip per creature just to read
+// it back. The tradeoff is that two writers (someone submitting, an admin deleting, two admins)
+// racing a plain read-modify-write can clobber each other - a delete's write can land on data
+// read *before* a near-simultaneous submission's write, silently reviving whatever it deleted.
+// This retries the whole read-modify-write against Blobs' own compare-and-swap (onlyIfMatch/
+// onlyIfNew on the ETag) instead of ever writing blind, so a losing writer sees its conflict and
+// tries again against the new state rather than overwriting it.
+const MAX_WRITE_ATTEMPTS = 5;
+
+async function updateCreaturesList<T>(mutate: (current: Creature[]) => { next: Creature[]; result: T }): Promise<T> {
+  const store = getStore(STORE_NAME);
+  for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt++) {
+    const existing = await store.getWithMetadata(KEY, { type: "json" });
+    const current: Creature[] = Array.isArray(existing?.data) ? (existing.data as Creature[]) : [];
+    const { next, result } = mutate(current);
+    // `mutate` returning the same array back (e.g. deleteCreature finding no match) means there's
+    // nothing to persist - skip the write entirely rather than writing an identical list back.
+    if (next === current) return result;
+    const write = await store.setJSON(
+      KEY,
+      next,
+      existing?.etag ? { onlyIfMatch: existing.etag } : { onlyIfNew: true }
+    );
+    if (write.modified) return result;
+    // Someone else wrote between our read and our write attempt - loop and retry against
+    // whatever the store actually has now.
+  }
+  throw new Error("Too many concurrent writes to the creatures store - try again.");
+}
+
 export async function addCreature(name: string, pixels: (string | null)[], deviceId: string): Promise<Creature> {
   const creature: Creature = {
     id: crypto.randomUUID(),
@@ -88,11 +115,10 @@ export async function addCreature(name: string, pixels: (string | null)[], devic
     deviceId,
   };
 
-  const store = getStore(STORE_NAME);
-  const existing = await readAllCreatures();
-  const next = [...existing, creature].slice(-MAX_CREATURES);
-  await store.setJSON(KEY, next);
-  return creature;
+  return updateCreaturesList((current) => ({
+    next: [...current, creature].slice(-MAX_CREATURES),
+    result: creature,
+  }));
 }
 
 // Raw count, ignoring the hidden-name filter, so hiding a creature from the gallery doesn't let
@@ -111,13 +137,11 @@ export async function listAllCreaturesForAdmin(): Promise<Creature[]> {
 // Permanently removes a creature (unlike the hidden-name filter, which just hides it from the
 // gallery). Returns false if no creature with that id was found.
 export async function deleteCreature(id: string): Promise<boolean> {
-  const store = tryStore();
-  if (!store) return false;
-  const existing = await readAllCreatures();
-  const next = existing.filter((c) => c.id !== id);
-  if (next.length === existing.length) return false;
-  await store.setJSON(KEY, next);
-  return true;
+  if (!tryStore()) return false;
+  return updateCreaturesList((current) => {
+    const next = current.filter((c) => c.id !== id);
+    return next.length === current.length ? { next: current, result: false } : { next, result: true };
+  });
 }
 
 // Whether the submit route should currently reject new creatures. Defaults to open (false) when
