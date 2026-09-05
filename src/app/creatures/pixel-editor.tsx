@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { PALETTE } from "./palette";
 import ShareCard from "./share-card";
@@ -182,13 +183,21 @@ export default function PixelEditor() {
 
       {status === "error" && <p className="font-helvetica text-[14px] text-[#c0326b]">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="font-helvetica cursor-pointer rounded-full bg-[#0e0e0d] px-6 py-3 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-[1.02] disabled:opacity-50"
-      >
-        {status === "submitting" ? "Releasing..." : "Release into the wild"}
-      </button>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="submit"
+          disabled={status === "submitting"}
+          className="font-helvetica cursor-pointer rounded-full bg-[#0e0e0d] px-6 py-3 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-[1.02] disabled:opacity-50"
+        >
+          {status === "submitting" ? "Releasing..." : "Release into the wild"}
+        </button>
+        <Link
+          href="/creatures/gallery"
+          className="font-helvetica rounded-full border border-black/10 px-6 py-3 text-[13px] tracking-[0.08em] text-[#0e0e0d] uppercase transition-transform hover:scale-105"
+        >
+          see the gallery
+        </Link>
+      </div>
     </form>
   );
 }
