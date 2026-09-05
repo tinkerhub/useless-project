@@ -107,7 +107,11 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
   const ready = useIsHydrated();
 
   const size = creatures.length === 0 ? 0 : computeSize(creatures.length);
-  const spacing = 30 * (size / BASE_SIZE);
+  // A real drawing rarely fills its whole 16x16 square - most have transparent margins around an
+  // irregular silhouette, so spacing tuned for solid squares left visible gaps between neighbors.
+  // 18 (down from 30) packs the spiral tight enough that those gaps close up under typical
+  // overlap/rotation, at the cost of more overlap for anyone who does draw edge-to-edge.
+  const spacing = 18 * (size / BASE_SIZE);
 
   const placed = creatures.map((creature, index) => {
     // Sunflower-seed (phyllotaxis) spiral: creature 0 sits dead center, and each following one
@@ -116,8 +120,12 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
     // a pile of stickers stuck onto a board, rather than sitting in neat, evenly spaced cells.
     const angle = index * GOLDEN_ANGLE;
     const radius = spacing * Math.sqrt(index);
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
+    // Rounded rather than left at full float precision - the browser reformats an inline style's
+    // px values when it parses the server-rendered HTML, so an unrounded number here made React's
+    // hydration check see the server's (browser-reformatted) string and the client's (raw JS
+    // number) string as "different," even though they're the same position to well under a pixel.
+    const x = Math.round(Math.cos(angle) * radius * 100) / 100;
+    const y = Math.round(Math.sin(angle) * radius * 100) / 100;
 
     const rotate = (hash(`${creature.id}-r`) - 0.5) * 50; // -25..25deg sticker tilt
     const scale = 0.85 + hash(`${creature.id}-s`) * 0.35; // 0.85..1.2, so they're not all identical
@@ -165,13 +173,17 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
                 left: `calc(50% + ${x}px)`,
                 top: `calc(50% + ${y}px)`,
                 transform: "translate(-50%, -50%)",
-                "--z": i,
+                // A custom property always round-trips through the DOM as a string (CSSOM has no
+                // "number" type for them), so passing the raw number here made React see a
+                // number-vs-string mismatch between its server and client renders. Stringifying
+                // it upfront means both sides agree from the start.
+                "--z": String(i),
                 ...(active ? { zIndex: 9999 } : {}),
               } as CSSProperties}
             >
               <div
                 className="creature-sticker"
-                style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": scale } as CSSProperties}
+                style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": String(scale) } as CSSProperties}
               >
                 {ready ? (
                   // eslint-disable-next-line @next/next/no-img-element -- a locally-generated data: URL, not an optimizable remote image
