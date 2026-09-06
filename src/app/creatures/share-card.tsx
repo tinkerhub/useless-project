@@ -56,7 +56,15 @@ async function buildShareImage(pixels: (string | null)[]): Promise<Blob> {
   });
 }
 
-export default function ShareCard({ name, pixels }: { name: string; pixels: (string | null)[] }) {
+export default function ShareCard({
+  name,
+  pixels,
+  onDrawAnother,
+}: {
+  name: string;
+  pixels: (string | null)[];
+  onDrawAnother: () => void;
+}) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [canShareFiles, setCanShareFiles] = useState(false);
@@ -97,25 +105,28 @@ export default function ShareCard({ name, pixels }: { name: string; pixels: (str
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-5 text-center">
-      <p className="font-nanum-pen text-[22px] leading-[1.3] text-[#244638] sm:text-[24px]">
-        Your creature is loose in the wild - share it!
+    <div className="flex w-full max-w-[280px] flex-col items-center gap-4 text-center">
+      <p className="font-nanum-pen text-[20px] leading-[1.3] text-[#244638] sm:text-[22px]">
+        &ldquo;{name}&rdquo; is loose in the wild!
       </p>
 
+      {/* Height-capped by svh, not just a fixed max-width, so this (the one variable-size element
+          on the screen) is what gives up space on a short viewport - the rest of the screen is
+          buttons and single lines of text, none of it worth shrinking before this is. */}
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- a locally-generated blob: URL, not an optimizable remote image
         <img
           src={imageUrl}
           alt={`Share card for ${name}`}
-          className="w-full max-w-[240px] rounded-2xl border border-black/10 shadow-sm"
+          className="h-auto max-h-[44svh] w-auto max-w-[220px] rounded-2xl border border-black/10 shadow-sm"
         />
       ) : (
-        <div className="flex aspect-9/16 w-full max-w-[240px] items-center justify-center rounded-2xl border border-black/10 bg-black/[0.02] text-[13px] text-[#33322f]">
+        <div className="flex aspect-9/16 max-h-[44svh] w-auto max-w-[220px] items-center justify-center rounded-2xl border border-black/10 bg-black/[0.02] text-[12px] text-[#33322f]">
           Building your share image...
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-2.5">
         {canShareFiles && (
           <button
             type="button"
@@ -129,17 +140,34 @@ export default function ShareCard({ name, pixels }: { name: string; pixels: (str
           <a
             href={imageUrl}
             download={`${name || "creature"}.png`}
-            className="font-helvetica rounded-full border border-black/10 px-5 py-2.5 text-[13px] tracking-[0.08em] text-[#0e0e0d] uppercase transition-transform hover:scale-105"
+            className={`font-helvetica rounded-full px-5 py-2.5 text-[13px] tracking-[0.08em] uppercase transition-transform hover:scale-105 ${
+              canShareFiles
+                ? "border border-black/10 text-[#0e0e0d]"
+                : "bg-[#0e0e0d] text-white"
+            }`}
           >
-            download image
+            download
           </a>
         )}
+      </div>
+
+      {/* Next steps, not sharing actions - kept visually distinct (underlined text, not filled
+          buttons) from the row above so "spread the word" and "what next" don't read as one
+          undifferentiated pile of five buttons. */}
+      <div className="flex items-center justify-center gap-4">
         <Link
           href="/creatures/gallery"
           className="font-helvetica text-[12px] tracking-[0.06em] text-[#33322f] uppercase underline underline-offset-4"
         >
           see the gallery
         </Link>
+        <button
+          type="button"
+          onClick={onDrawAnother}
+          className="font-helvetica cursor-pointer text-[12px] tracking-[0.06em] text-[#33322f] uppercase underline underline-offset-4"
+        >
+          draw another
+        </button>
       </div>
     </div>
   );

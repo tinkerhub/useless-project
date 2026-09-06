@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { PALETTE } from "./palette";
-import ShareCard from "./share-card";
 
 const GRID_SIZE = 16;
 const CELL_COUNT = GRID_SIZE * GRID_SIZE;
@@ -33,11 +32,15 @@ function getDeviceId(): string {
   }
 }
 
-export default function PixelEditor() {
+export default function PixelEditor({
+  onReleased,
+}: {
+  onReleased: (name: string, pixels: (string | null)[]) => void;
+}) {
   const [pixels, setPixels] = useState<(string | null)[]>(() => Array(CELL_COUNT).fill(null));
   const [color, setColor] = useState<string | null>(PALETTE[0]);
   const [name, setName] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "error" | "released">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [error, setError] = useState("");
   const paintingRef = useRef(false);
 
@@ -106,18 +109,14 @@ export default function PixelEditor() {
         setStatus("error");
         return;
       }
-      // Stays on this screen to build a shareable image from the pixels/name already in memory,
-      // rather than redirecting straight to the gallery - the creature's still sitting right here,
-      // no need to fetch it back from the server just to turn it into a share card.
-      setStatus("released");
+      // Hands the pixels/name already in memory up to the parent, which swaps this editor out for
+      // the share screen - no need to fetch the creature back from the server just to build a
+      // share card from data already sitting right here.
+      onReleased(name.trim(), pixels);
     } catch {
       setError("Couldn't reach the server. Check your connection and try again.");
       setStatus("error");
     }
-  }
-
-  if (status === "released") {
-    return <ShareCard name={name.trim()} pixels={pixels} />;
   }
 
   return (
