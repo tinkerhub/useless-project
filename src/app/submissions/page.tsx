@@ -23,7 +23,12 @@ export default async function SubmissionsPage() {
     <main data-page="handbook" className="w-full overflow-x-hidden bg-white text-[#0e0e0d]">
       <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-14 px-5 py-14 sm:px-8 sm:py-20">
         <header className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Column on mobile, row from sm: up - a top-right button on the same line as the
+              heading landed in the same few pixels as the fixed "menu" pill (top-3 right-3 in
+              site-nav.tsx) whenever the heading was short enough not to force a wrap on its own,
+              so the two visibly touched. Stacking below the heading until there's room to sit
+              beside it sidesteps that instead of relying on wrapping to happen to kick in. */}
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(36px, 6vw, 56px)" }}>
               submissions
             </h1>
