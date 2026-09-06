@@ -26,7 +26,10 @@ export default function CreaturesFlow({ closed }: { closed: boolean }) {
   return (
     <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center gap-8 px-5 py-14 sm:px-8 sm:py-20">
       <header className="flex w-full flex-col items-start gap-3 text-left">
-        <div className="flex w-full flex-wrap items-center justify-between gap-4">
+        {/* Column on mobile, row from sm: up - a same-line button here landed right against the
+            fixed "menu" pill (top-3 right-3 in site-nav.tsx) whenever "creatures" alone left
+            enough width not to force a wrap on its own, so the two visibly touched. */}
+        <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-drowner leading-[0.95] text-[#0e0e0d]" style={{ fontSize: "clamp(36px, 6vw, 56px)" }}>
             creatures
           </h1>
