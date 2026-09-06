@@ -20,10 +20,11 @@ function sameCreatures(a: PublicCreature[], b: PublicCreature[]) {
 
 // There's no persistent connection here (Netlify's Functions are request/response, not
 // long-lived sockets), so "live" is approximated with a short poll rather than true push. This
-// was 4s, but the gallery is also what the QR banner points a venue's own display at - several
-// of those left open for hours during the hackathon adds up fast at that rate. 20s still reads as
-// "live" for a gallery that isn't changing second-to-second, at a fifth of the request volume.
-const POLL_INTERVAL_MS = 20000;
+// was 4s, then 20s, but the gallery is also what the QR banner points a venue's own display at -
+// several of those left open for hours during the hackathon adds up fast either way. 45s still
+// reads as "live" for a gallery that isn't changing second-to-second, at a ninth of the original
+// request volume.
+const POLL_INTERVAL_MS = 45000;
 
 // Shared by GalleryCount and LiveCreatureSwarm so the gallery only opens one polling loop, not
 // one per consumer - both just read whatever this provider last fetched.
