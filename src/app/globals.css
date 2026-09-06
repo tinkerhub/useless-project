@@ -221,14 +221,36 @@ html:has([data-page="handbook"]) {
    `transform` would always beat a stylesheet rule, hover or not, leaving no way to override it. */
 .creature-sticker {
   transform: rotate(var(--creature-rotate, 0deg)) scale(var(--creature-scale, 1));
-  transition: transform 200ms ease-out;
+  transition: transform 200ms ease-out, filter 200ms ease-out;
 }
 
-.group:hover .creature-sticker {
-  /* `forwards` holds the enlarged end state for as long as the hover lasts, instead of the
-     500ms animation finishing and snapping straight back to the un-hovered .creature-sticker
-     transform while the cursor is still sitting right on top of it. */
-  animation: creature-wiggle 500ms ease-in-out forwards;
+/* Both rules below are real-mouse-only on purpose: most touch browsers simulate :hover on tap
+   (it lingers until the next tap elsewhere), which would otherwise fire alongside the JS `active`
+   state this same tap already sets (see creature-swarm.tsx). The two used to fight each other -
+   a tap would jump straight to .creature-sticker--active's enlarged transform, then the
+   simulated :hover kicked in a beat later and restarted the wiggle animation below from its own
+   0% keyframe (a plain small/rotated scale), which CSS animations always snap to *instantly* the
+   moment they start - so the sticker visibly popped up, snapped back down, then wiggled back up
+   to the same end state. Scoping both to devices with a real hoverable pointer means touch gets
+   exactly one enlarge (the JS-driven one), never two competing ones. */
+@media (hover: hover) and (pointer: fine) {
+  /* Blurs every other creature while one is hovered, so the hovered one reads as the clear focal
+     point instead of getting lost in the pile - :has() lets this react to any creature's hover
+     without extra JS, the same "hover is CSS-only, tap needs JS" split the rest of this file uses
+     (see the inline `filter` in creature-swarm.tsx for the touch/tap equivalent, since a real tap
+     still needs its own path even on a device this query excludes). Hovering the hit-target
+     counts as hovering .creature-slot itself for the same reason the z-index rule above already
+     relies on that - see the comment on the hit-target in creature-swarm.tsx. */
+  .creature-board:has(.creature-slot:hover) .creature-slot:not(:hover) .creature-sticker {
+    filter: blur(3px);
+  }
+
+  .group:hover .creature-sticker {
+    /* `forwards` holds the enlarged end state for as long as the hover lasts, instead of the
+       500ms animation finishing and snapping straight back to the un-hovered .creature-sticker
+       transform while the cursor is still sitting right on top of it. */
+    animation: creature-wiggle 500ms ease-in-out forwards;
+  }
 }
 
 /* Tapping (see `active` in creature-swarm.tsx) holds the same enlarged end state as a hover, for

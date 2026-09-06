@@ -245,7 +245,13 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
           below) only ever competes against its siblings in here, and can never escape above
           site-wide fixed elements like the nav menu (z-[55] in site-nav.tsx) further up the tree. */}
       <div
-        className="relative"
+        className="relative creature-board"
+        // Tapping empty board space (anywhere that isn't a creature's own hit-target, which stops
+        // this from firing - see its onClick below) clears the active one back to normal. Without
+        // this, a tapped creature had no way back to its resting size on a touch device short of
+        // tapping that exact same creature again - not something a phone screen full of
+        // overlapping stickers makes obvious or reliable to land on twice.
+        onClick={() => setActiveId(null)}
         style={{
           width: boardSize,
           height: boardSize,
@@ -256,6 +262,10 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
       >
         {placed.map(({ creature, x, y, rotate, scale, hitWidth, hitHeight, hitOffsetX, hitOffsetY }, i) => {
           const active = activeId === creature.id;
+          // Tap/click has no CSS :hover to hook into the way a mouse does (see the .creature-board
+          // :has() rule in globals.css for that side) - this is the same blur, applied inline, for
+          // whichever creature isn't the one currently tapped.
+          const blurredByTap = activeId !== null && !active;
           return (
             // "group" is for the hover name label and wiggle below - the tilt/scale live on the
             // inner sticker div instead of here, so they stay upright and don't tilt along with it.
@@ -288,7 +298,13 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
             >
               <div
                 className={`creature-sticker ${active ? "creature-sticker--active" : ""}`}
-                style={{ "--creature-rotate": `${rotate}deg`, "--creature-scale": String(scale) } as CSSProperties}
+                style={
+                  {
+                    "--creature-rotate": `${rotate}deg`,
+                    "--creature-scale": String(scale),
+                    ...(blurredByTap ? { filter: "blur(3px)" } : {}),
+                  } as CSSProperties
+                }
               >
                 {ready ? (
                   // eslint-disable-next-line @next/next/no-img-element -- a locally-generated data: URL, not an optimizable remote image
@@ -307,7 +323,12 @@ export default function CreatureSwarm({ creatures }: { creatures: PublicCreature
                   transparent margin around it stays reachable. */}
               <div
                 className="absolute cursor-pointer"
-                onClick={() => setActiveId((prev) => (prev === creature.id ? null : creature.id))}
+                // Stops the board's own onClick (see above) from firing right after this one for
+                // the same tap and immediately clearing back to null what this just set.
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveId((prev) => (prev === creature.id ? null : creature.id));
+                }}
                 style={{
                   left: `calc(50% + ${hitOffsetX}px)`,
                   top: `calc(50% + ${hitOffsetY}px)`,
