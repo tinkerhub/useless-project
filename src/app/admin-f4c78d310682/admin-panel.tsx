@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Creature } from "@/lib/creatures";
+import type { HitReport } from "@/lib/hits";
 
 export default function AdminPanel() {
   const [creatures, setCreatures] = useState<Creature[] | null>(null);
@@ -11,6 +12,7 @@ export default function AdminPanel() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingClosed, setTogglingClosed] = useState(false);
   const [savingMessage, setSavingMessage] = useState(false);
+  const [hitReport, setHitReport] = useState<HitReport | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -26,6 +28,12 @@ export default function AdminPanel() {
         setMessageDraft(data.bigMessage ?? "");
       })
       .catch(() => setError("Couldn't load settings."));
+    // Failing quietly here (no setError) on purpose - traffic numbers are a nice-to-have, not
+    // worth surfacing an error banner over if the blob store hiccups.
+    fetch("/api/admin/hits")
+      .then((res) => res.json())
+      .then((data) => setHitReport(data))
+      .catch(() => {});
   }, []);
 
   async function handleDelete(id: string) {
@@ -162,6 +170,42 @@ export default function AdminPanel() {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-black/10 p-5">
+        <div>
+          <p className="font-helvetica text-[14px] font-bold text-[#0e0e0d]">Gallery traffic</p>
+          <p className="font-helvetica text-[13px] text-[#33322f]/70">
+            Counts times the gallery poll actually reached the server - many tabs polling at once often share
+            one cached answer, so this runs lower than the true number of visitors.
+          </p>
+        </div>
+        {hitReport === null ? (
+          <p className="font-helvetica text-[14px] text-[#33322f]/70">Loading...</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-6">
+              <div>
+                <p className="font-helvetica text-[22px] font-bold text-[#0e0e0d]">{hitReport.totalLast24h}</p>
+                <p className="font-helvetica text-[12px] text-[#33322f]/70">last 24h</p>
+              </div>
+              <div>
+                <p className="font-helvetica text-[22px] font-bold text-[#0e0e0d]">{hitReport.totalLast7d}</p>
+                <p className="font-helvetica text-[12px] text-[#33322f]/70">last 7d</p>
+              </div>
+            </div>
+            {hitReport.daily.length > 0 && (
+              <ul className="font-helvetica flex flex-col gap-1 text-[13px] text-[#33322f]">
+                {hitReport.daily.slice(0, 7).map(({ day, count }) => (
+                  <li key={day} className="flex justify-between border-b border-black/5 py-1 last:border-0">
+                    <span>{day}</span>
+                    <span className="font-bold text-[#0e0e0d]">{count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
       </div>
 
       {error && <p className="font-helvetica text-[13px] text-[#c0326b]">{error}</p>}
