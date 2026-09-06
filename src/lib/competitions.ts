@@ -44,7 +44,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "video journal / build log",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
     deadline: "September 20, 2026",
-    image: "/handbook/build-documentary.png",
+    image: "/handbook/build-documentary.webp",
     tagline:
       "Compress your entire hackathon experience into a fast-paced, entertaining video build log - your project coming to life from scratch in under 90 seconds.",
     howToRedeem:
@@ -72,7 +72,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "venue after-movie",
     prizeText: "Top 3 venues get a ₹5,000-worth hardware kit each.",
     deadline: "September 20, 2026",
-    image: "/handbook/aftermovie-venue.png",
+    image: "/handbook/aftermovie-venue.webp",
     tagline:
       "Capture the vibe, energy, and atmosphere of the entire event - the venue, the people, the late-night grinding, and the overall hackathon culture. Venue-exclusive: one entry per venue, submitted by the host, not individual participants.",
     howToRedeem:
@@ -99,7 +99,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "journal-repo",
     prizeLabel: "project journal",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
-    image: "/handbook/journal.png",
+    image: "/handbook/journal.webp",
     tagline: "Document your entire project-building process in a fun, engaging, creative narrative - hosted as its own page on GitHub Pages, not just a README.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from your repo, submitted through the Hub app as usual. Create a new branch (e.g. journal or docs) in your project repo and deploy it via GitHub Pages, and every submission is automatically in the running.",
@@ -120,7 +120,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-use-of-local-llms",
     prizeLabel: "best use of local LLMs",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/llm.png",
+    image: "/handbook/llm.webp",
     tagline: "For the project that ran its AI on-device or self-hosted, not just an OpenAI API key in a .env file.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission using a local/self-hosted LLM is automatically in the running.",
@@ -138,7 +138,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-pcb-design",
     prizeLabel: "best pcb design / custom hardware",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/processor.png",
+    image: "/handbook/processor.webp",
     tagline: "Awarded for exceptional circuit design.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every hardware submission is automatically in the running.",
@@ -152,7 +152,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-3d-printed-assembly",
     prizeLabel: "most complex 3d printed assembly",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/3d.png",
+    image: "/handbook/3d.webp",
     tagline: "For the physical builders pushing additive manufacturing to the limit.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -166,7 +166,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-reverse-engineering-hack",
     prizeLabel: "best reverse engineering / hardware hack",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/revverse.png",
+    image: "/handbook/revverse.webp",
     tagline: "Taking an existing commercial product or discarded e-waste and repurposing it.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -180,7 +180,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-interactive-installation",
     prizeLabel: "best interactive physical installation",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/display.png",
+    image: "/handbook/display.webp",
     tagline: "For projects meant to be experienced in a physical room.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -194,7 +194,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-fashion-tech-wearables",
     prizeLabel: "best fashion tech & wearables",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/fashion.png",
+    image: "/handbook/fashion.webp",
     tagline: "Merging electronics seamlessly into style.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -208,7 +208,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-superhero-sci-fi-gadget",
     prizeLabel: "best superhero / sci-fi gadget",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/superhero.png",
+    image: "/handbook/superhero.webp",
     tagline: "Bring comic book logic into the real world.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -222,7 +222,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-custom-input-device",
     prizeLabel: "best custom input device / alternative controller",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/gaem.png",
+    image: "/handbook/gaem.webp",
     tagline: "Toss out the standard mouse and keyboard.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -236,7 +236,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-game-interactive-media",
     prizeLabel: "best game / interactive media",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/game-interactive.png",
+    image: "/handbook/game-interactive.webp",
     tagline: "Awarded to standout digital games or narrative software.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -249,7 +249,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-retro-futurism-hack",
     prizeLabel: "best retro-futurism / analog hack",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/retro-futurism.png",
+    image: "/handbook/retro-futurism.webp",
     tagline: "Old tech meets new code.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -263,7 +263,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-system-integration",
     prizeLabel: "best system integration",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/finished-project.png",
+    image: "/handbook/finished-project.webp",
     tagline: "Rewarding complex communication pipelines.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -277,7 +277,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "best-bio-materials-tech",
     prizeLabel: "best bio / materials tech",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/bio-materials.png",
+    image: "/handbook/bio-materials.webp",
     tagline: "Experimenting with non-standard physical materials.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
@@ -291,7 +291,7 @@ export const COMPETITIONS: Competition[] = [
     slug: "most-over-engineered-solution",
     prizeLabel: "most over-engineered solution to a non-problem",
     prizeText: "₹2,000 worth of prizes.",
-    image: "/handbook/hardware.png",
+    image: "/handbook/hardware.webp",
     tagline: "The ultimate trophy for unnecessary engineering.",
     howToRedeem:
       "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
