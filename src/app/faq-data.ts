@@ -74,7 +74,7 @@ export const FAQ_ITEMS = [
     tag: "(Q12)",
     question: "Are there prizes?",
     answer:
-      "Top 25 makers get a monthly scholarship worth up-to 5 lakh rupees.\nTop 50 projects will be showcased in Maker Faire, Kerala.",
+      "Top 25 makers get a 6 month fellowship worth up-to 5 lakh rupees.\nTop 50 projects will be showcased in Maker Faire, Kerala.",
   },
   {
     tag: "(Q13)",
