@@ -80,7 +80,7 @@ const SECTIONS: Section[] = [
     id: "participate",
     nav: "how to join",
     title: "how to participate",
-    lead: "Registration is a single application, open to any student from a TinkerHub campus.",
+    lead: "Registration is a single application, open to any student from a TinkerHub campus. Build solo or as a team.",
     blocks: [
       {
         kind: "steps",
@@ -90,6 +90,10 @@ const SECTIONS: Section[] = [
             text: "Registration is through useless.tinkerhub.org, which opens the TinkerHub hub app. Any student from a TinkerHub campus can apply.",
             href: "https://www.instagram.com/p/DMctgGIvWaN/",
             linkLabel: "guide: how to register for Useless Projects",
+          },
+          {
+            title: "Go solo or bring a team",
+            text: "You can participate on your own or as a team. Either way works, so pick whatever suits the idea you want to build.",
           },
           {
             title: "Prepare before the day",
