@@ -8,9 +8,24 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 // did, not like an about page. Later entries overlap earlier ones, so this order also decides the
 // stack: habeeb ends up on top.
 const MAKERS = [
-  { name: "nandana", role: "i built the design language", src: "/nandu.png" },
-  { name: "achuth", role: "i wrote code", src: "/achuth.png" },
-  { name: "habeeb", role: "i built the ui and experience", src: "/habeeb.png" },
+  {
+    name: "nandana",
+    role: "i built the design language",
+    src: "/nandu.png",
+    instagram: "https://www.instagram.com/nandna.vs/",
+  },
+  {
+    name: "achuth",
+    role: "i wrote code",
+    src: "/achuth.png",
+    instagram: "https://www.instagram.com/pisharath.dev/",
+  },
+  {
+    name: "habeeb",
+    role: "i built the ui and experience",
+    src: "/habeeb.png",
+    instagram: "https://www.instagram.com/habeei.b/",
+  },
 ] as const;
 
 // Whether this is a real pointer that can hover, read straight off the media query rather than
@@ -153,11 +168,6 @@ export default function MadeByOverlay() {
             <span
               key={maker.name}
               onMouseEnter={hoverable ? () => setFocused(maker.name) : undefined}
-              // Touch needs its own path: a tap's simulated mouseover isn't dependable, and
-              // without this the portraits would be unlabelled on phones. A tap sticks until
-              // something else is tapped. It can't reach the backdrop's close handler from here -
-              // that's a sibling, not an ancestor.
-              onClick={() => setFocused(maker.name)}
               style={{
                 // Each portrait laps the one before it, so they read as a small stack rather than
                 // a row. Whoever is picked out comes to the front - underlapped, the enlarged
@@ -193,13 +203,33 @@ export default function MadeByOverlay() {
                   gives for keeping the creature-sticker transforms in custom properties. No
                   border or ring on purpose: colour-against-greyscale and the scale-up are what
                   mark out whoever is picked, so the photos sit bare against the blur. */}
-              <span
+              <a
+                href={maker.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${maker.name} on instagram`}
+                // The first press introduces whoever was pressed, and only a second press on the
+                // same portrait follows the link. On a mouse the hover has already done the
+                // introducing, so one click goes straight through; on touch, where the tap is the
+                // only way to see a name, that name gets a press of its own before anyone leaves
+                // the page. Cancelling the default is what holds the navigation back - it stays a
+                // real link, so middle-click and open-in-new-tab still behave.
+                onClick={(event) => {
+                  if (isFocused) return;
+                  event.preventDefault();
+                  setFocused(maker.name);
+                }}
+                // Reachable by keyboard only while the overlay is up - three invisible links in
+                // the tab order would be a trap the rest of the time. Focusing one introduces
+                // them, same as a hover.
+                tabIndex={open ? 0 : -1}
+                onFocus={() => setFocused(maker.name)}
                 style={{
                   opacity: dimmed ? 0.5 : 1,
                   filter: dimmed ? "grayscale(1)" : "grayscale(0)",
                   transform: isFocused ? "scale(1.12)" : "scale(1)",
                 }}
-                className="relative block size-[42px] overflow-hidden rounded-full transition-[opacity,filter,transform] duration-300 ease-out lg:size-[52px]"
+                className="relative block size-[42px] cursor-pointer overflow-hidden rounded-full transition-[opacity,filter,transform] duration-300 ease-out lg:size-[52px]"
               >
                 {/* `sizes` deliberately overstates the box (which is 42-52px) so next/image
                     fetches the 128px-wide variant rather than the 64px one. At the real layout
@@ -208,7 +238,7 @@ export default function MadeByOverlay() {
                     what buys the sharpness back. Bumping `quality` instead would do nothing -
                     Next 16 defaults `images.qualities` to [75] and snaps anything else to it. */}
                 <Image src={maker.src} alt={maker.name} fill sizes="128px" className="object-cover" />
-              </span>
+              </a>
             </span>
           );
         })}
