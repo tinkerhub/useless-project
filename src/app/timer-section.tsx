@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import AnimatedElephant from "./animated-elephant";
 import CuriosityReveal from "./curiosity-reveal";
 import { HoverDot } from "./hover-dot";
+import SiteFooter from "./site-footer";
 
 // The same fire-breathing creature (and frames) the hero's tetris field perches on the skyline
 // (see ELE3_FRAMES in tetris-field.tsx) - reused here at rest beside the reveal button instead of
@@ -342,6 +343,10 @@ export default function TimerSection() {
           label={live ? "know where?" : "know when?"}
         />
       </div>
+
+      {/* Carried on this last panel rather than getting a screen of its own, on a deck that is
+          already one screen per section. */}
+      <SiteFooter />
 
       {/* Outside both scaled canvases so the board fills the real section rather than the design's
           reference box - the same placement the hero gives its own field. */}
