@@ -63,6 +63,12 @@ export default function MadeByOverlay() {
   // travel from the word up to the portraits, so closing is deferred and cancelled if it gets
   // there.
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Who has already been introduced, and so whose portrait is allowed to follow its link on the
+  // next press. Deliberately not `focused`: tapping an anchor focuses it *before* the click
+  // lands, so a `focused` check saw the very first tap as a second one and jumped straight to
+  // Instagram. A hover counts as an introduction too (see the portrait's onMouseEnter), which is
+  // what keeps a mouse to a single click.
+  const introduced = useRef<string | null>(null);
 
   const cancelClose = useCallback(() => {
     if (closeTimer.current) {
@@ -74,6 +80,9 @@ export default function MadeByOverlay() {
   const close = useCallback(() => {
     setOpen(false);
     setFocused(null);
+    // A fresh open asks for a fresh introduction rather than carrying a stale one that would let
+    // the first press of the next visit leave the page.
+    introduced.current = null;
   }, []);
 
   const scheduleClose = useCallback(() => {
@@ -167,7 +176,14 @@ export default function MadeByOverlay() {
           return (
             <span
               key={maker.name}
-              onMouseEnter={hoverable ? () => setFocused(maker.name) : undefined}
+              onMouseEnter={
+                hoverable
+                  ? () => {
+                      setFocused(maker.name);
+                      introduced.current = maker.name;
+                    }
+                  : undefined
+              }
               style={{
                 // Each portrait laps the one before it, so they read as a small stack rather than
                 // a row. Whoever is picked out comes to the front - underlapped, the enlarged
@@ -215,13 +231,16 @@ export default function MadeByOverlay() {
                 // the page. Cancelling the default is what holds the navigation back - it stays a
                 // real link, so middle-click and open-in-new-tab still behave.
                 onClick={(event) => {
-                  if (isFocused) return;
+                  if (introduced.current === maker.name) return;
                   event.preventDefault();
                   setFocused(maker.name);
+                  introduced.current = maker.name;
                 }}
                 // Reachable by keyboard only while the overlay is up - three invisible links in
-                // the tab order would be a trap the rest of the time. Focusing one introduces
-                // them, same as a hover.
+                // the tab order would be a trap the rest of the time. Focus shows the name but
+                // pointedly does not count as an introduction: a tap focuses the anchor before
+                // its click arrives, and letting that count is what used to send the first tap
+                // straight to Instagram.
                 tabIndex={open ? 0 : -1}
                 onFocus={() => setFocused(maker.name)}
                 style={{
