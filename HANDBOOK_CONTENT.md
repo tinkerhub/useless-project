@@ -1,7 +1,7 @@
 # Handbook content (draft 2)
 
 Rewritten to your outline. Still plain text — keep editing this file directly. Anything marked
-"PLACEHOLDER" is a value you said you'd send later (scholarship count, side quest list) or a detail
+"PLACEHOLDER" is a value you said you'd send later (fellowship count, side quest list) or a detail
 I need from you to write properly — flagged inline, not guessed.
 
 Structure note: same as before — `## Section:` = one entry in SECTIONS, `### block:` = one Block
@@ -142,12 +142,12 @@ title: prizes
 lead: PLACEHOLDER — exact numbers pending, structure below is confirmed.
 
 ### block: list
-- Scholarships — count PLACEHOLDER, you said you'd confirm and send the number later.
+- Fellowships — count PLACEHOLDER, you said you'd confirm and send the number later.
 - Side quests — extra small prizes for things like "best documented video," etc. PLACEHOLDER — full
   list to come from you.
 
 ### block: note
-Remember to send me: final scholarship count, and the full side-quest list with what each rewards.
+Remember to send me: final fellowship count, and the full side-quest list with what each rewards.
 
 ---
 
@@ -181,4 +181,4 @@ the venue and host are the point of contact for anything happening live on-site.
 - Code of conduct / privacy policy / best-practices links (old "resources" section) — cut per your
   rules note, or keep as a short links block somewhere?
 - Old prize badges (grand prize / judges' pick / crowd favourite / best build) — superseded by
-  scholarships + side quests, or do both exist?
+  fellowships + side quests, or do both exist?
