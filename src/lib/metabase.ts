@@ -6,6 +6,52 @@ const DATABASE_ID = 33; // "TheHubDB" - the Hub app's Postgres database, in Meta
 // submitting team was actually at.
 const EVENT_ID = 3763;
 
+// Both headline numbers in one round trip. Attendees carrying any other registration_status
+// ("applied" - not yet through the campus lead's approval - or "rejected") are deliberately
+// excluded: the counter labels this number "registered", so it has to mean exactly that.
+const EVENT_COUNTS_QUERY = `
+  select
+    (select count(*) from attendees
+      where event_id = ${EVENT_ID} and registration_status = 'registered') as registered,
+    (select count(*) from event_venue where event_id = ${EVENT_ID}) as venues
+`;
+
+export type EventCounts = { registered: number; venues: number };
+
+// Backs the pair of counters in the timer section. Returns null rather than zeroes on any
+// failure - the section drops the counters entirely in that case, since a confident "0
+// registered" is worse than showing no number at all.
+export async function getEventCounts(): Promise<EventCounts | null> {
+  const key = process.env.METABASE_API_KEY;
+  const baseUrl = process.env.METABASE_BASE_URL;
+  if (!key || !baseUrl) return null;
+
+  try {
+    const res = await fetch(`${baseUrl}/api/dataset`, {
+      method: "POST",
+      headers: { "x-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        database: DATABASE_ID,
+        type: "native",
+        native: { query: EVENT_COUNTS_QUERY },
+      }),
+      // Shorter than the projects window below - these are sold as live numbers - but still off
+      // the per-request path. Registrations only trickle in, so a minute of staleness is invisible.
+      next: { revalidate: 60, tags: ["metabase-event-counts"] },
+    });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const [registered, venues] = json?.data?.rows?.[0] ?? [];
+    if (typeof registered !== "number" || typeof venues !== "number") return null;
+    if (registered <= 0 || venues <= 0) return null;
+    return { registered, venues };
+  } catch (error) {
+    console.error("Fetching the event counts from Metabase failed:", error);
+    return null;
+  }
+}
+
 export type Project = {
   id: number;
   name: string;

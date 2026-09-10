@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import AnimatedElephant from "./animated-elephant";
 import CuriosityReveal from "./curiosity-reveal";
+import LiveHeadline, { LIVE_HEADLINE_HEIGHT_RATIO } from "./live-headline";
 import { HoverDot } from "./hover-dot";
 import SiteFooter from "./site-footer";
+import type { EventCounts } from "@/lib/metabase";
 
 // The same fire-breathing creature (and frames) the hero's tetris field perches on the skyline
 // (see ELE3_FRAMES in tetris-field.tsx) - reused here at rest beside the reveal button instead of
@@ -47,8 +49,8 @@ const REF_WIDTH = 1280;
 const REF_HEIGHT = 832;
 
 // The Figma file has no mobile frame for this section, so it is rebuilt for the 402px artboard the
-// other mobile frames use rather than inferred: same elements in the same arrangement (dot
-// top-right, countdown centred), sized for a phone.
+// other mobile frames use rather than inferred: same elements in the same arrangement (dots
+// spread left and top-right, countdown centred), sized for a phone.
 const MOBILE_WIDTH = 402;
 const MOBILE_HEIGHT = 470;
 // "999 hour" measures 361px at 100px Drowner, so the widest the countdown can ever get still
@@ -62,6 +64,31 @@ const MOBILE_DOT_SIZE = 34.52;
 // top, not laid out in flow, so the button below has to pick its own top based on which of these
 // the text is actually showing rather than assuming a box height will push it down.
 const MOBILE_COUNTDOWN_LINE_HEIGHT = MOBILE_COUNTDOWN_SIZE * 1.05;
+// The fixed height the desktop countdown's text box already carries - reused as the reel window
+// so the spinning digits occupy exactly the slot the countdown does.
+const DESKTOP_COUNTDOWN_HEIGHT = 130;
+// The live lockup is three tilted rows, so it is driven off its own base size rather than the
+// countdown's 118px single line - at that size the three rows would overrun the slot and collide
+// with the button under it.
+const DESKTOP_LOCKUP_SIZE = 165;
+// A little bigger than the desktop ratio would give it straight - the lockup reads small next to
+// how much of the mobile frame it has to fill, so it gets its own boost independent of desktop's.
+const MOBILE_LOCKUP_SIZE = 90;
+// The live lockup now positions its own rows off the Figma reference's exact coordinates (see
+// LIVE_HEADLINE_HEIGHT_RATIO in live-headline.tsx) rather than flowing them with margins, so its
+// rendered height is this exact ratio - not a screenshot-measured guess that needed re-tuning
+// every time the lockup's content changed shape.
+const LOCKUP_HEIGHT_RATIO = LIVE_HEADLINE_HEIGHT_RATIO;
+
+// The countdown's own slot - top and height - on each breakpoint, kept as the vertical centre the
+// live lockup re-centres itself on. Before the lockup grew to four rows, the two shared one box
+// (same top, same height) and so were centred on each other for free; sharing only the top once
+// the lockup's height diverged from the countdown's left the live state anchored at the old top
+// and growing downward only, off-centre from where the countdown itself sat.
+const DESKTOP_COUNTDOWN_CENTER = 310 + DESKTOP_COUNTDOWN_HEIGHT / 2;
+const MOBILE_COUNTDOWN_CENTER = 115 + MOBILE_COUNTDOWN_LINE_HEIGHT;
+const desktopLockupTop = (size: number) => DESKTOP_COUNTDOWN_CENTER - (size * LOCKUP_HEIGHT_RATIO) / 2;
+const mobileLockupTop = (size: number) => MOBILE_COUNTDOWN_CENTER - (size * LOCKUP_HEIGHT_RATIO) / 2;
 
 const DOT_ASSETS = ["/why-dot.svg", "/hero-dot-1.svg", "/hero-dot-2.svg", "/hero-dot-3.svg", "/hero-dot-4.svg"] as const;
 
@@ -185,7 +212,7 @@ function CuriosityButton({
   );
 }
 
-export default function TimerSection() {
+export default function TimerSection({ counts }: { counts: EventCounts | null }) {
   // Left null through the initial (server-matching) render so hydration never has to reconcile
   // a server-computed countdown against a client one computed moments later.
   const [remaining, setRemaining] = useState<{ hours: number; minutes: number } | null>(null);
@@ -195,19 +222,8 @@ export default function TimerSection() {
 
   useEffect(() => {
     if (!revealed) return;
-    // Once the event is live, "know where?" has nothing to say about dates anymore - jump
-    // straight to the venue roster instead of running it through the dates stage first.
-    if (live) {
-      const toVenues = setTimeout(() => setStage("venues"), CARDS_IN_MS);
-      const toClose = setTimeout(() => {
-        setRevealed(false);
-        setStage(null);
-      }, CARDS_IN_MS + VENUES_HOLD_MS);
-      return () => {
-        clearTimeout(toVenues);
-        clearTimeout(toClose);
-      };
-    }
+    // Dates always show before venues, live event or not - the slot release is its own beat
+    // in the reveal, not something to skip past once there's a venue roster to jump to.
     const toDates = setTimeout(() => setStage("dates"), CARDS_IN_MS);
     const toVenues = setTimeout(() => setStage("venues"), CARDS_IN_MS + DATES_HOLD_MS);
     const toClose = setTimeout(() => {
@@ -219,7 +235,7 @@ export default function TimerSection() {
       clearTimeout(toVenues);
       clearTimeout(toClose);
     };
-  }, [revealed, live]);
+  }, [revealed]);
 
   useEffect(() => {
     setRemaining(remainingUntilEvent());
@@ -230,6 +246,36 @@ export default function TimerSection() {
     }, UPDATE_INTERVAL_MS);
     return () => clearInterval(id);
   }, []);
+
+  // Once live the headline slot carries the registration count, with the venue total folded into
+  // the line above it rather than shown as a second figure - stating "N venues" there and again
+  // as its own counter said the same thing twice. Both numbers are interpolated, never written
+  // into the copy: a hardcoded venue count is what left the old line claiming 8 of them.
+  // Empty once live: the lockup below says "N makers across N campuses" in one breath, so a
+  // subheading here would only repeat it.
+  const subheading = live ? "" : "making starts in";
+  // One lockup at two sizes rather than two layouts (see live-headline.tsx). The reels still
+  // spin the maker count inside it; a live event whose counts didn't load falls back to wording
+  // instead of an empty slot.
+  const mobileHeadline = (
+    <LiveHeadline
+      registered={counts?.registered ?? null}
+      fontSize={MOBILE_LOCKUP_SIZE}
+    />
+  );
+  const desktopHeadline = (
+    <LiveHeadline
+      registered={counts?.registered ?? null}
+      fontSize={DESKTOP_LOCKUP_SIZE}
+    />
+  );
+
+  // 115 (slot top) + however many lines it's actually showing right now + 12px breathing room -
+  // stays close under the text whether that's one line (the count) or the two-line hour/min
+  // stack, instead of always leaving room for both.
+  const mobileButtonTop = live
+    ? mobileLockupTop(MOBILE_LOCKUP_SIZE) + MOBILE_LOCKUP_SIZE * LOCKUP_HEIGHT_RATIO + 12
+    : 115 + MOBILE_COUNTDOWN_LINE_HEIGHT * 2 + 12;
 
   return (
     <section id="timer-section" className="relative flex h-screen w-full snap-start snap-always items-center justify-center overflow-hidden bg-white">
@@ -242,8 +288,23 @@ export default function TimerSection() {
           transformOrigin: "center center",
         }}
       >
-        <div className="animate-timer-dot-pulse absolute" style={{ left: "337px", top: "44px" }}>
+        {/* Spread apart from the yellow/green dot below rather than stacked on top of it - this
+            one moves into the otherwise-empty left side, echoing where Figma places its own
+            desktop equivalent (node 445:845, left of centre) rather than sharing this dot's old
+            top-right corner. */}
+        <div className="animate-timer-dot-pulse absolute" style={{ left: "55px", top: "115px" }}>
           <HoverDot assets={DOT_ASSETS} baseIndex={0} size={MOBILE_DOT_SIZE} />
+        </div>
+
+        {/* The pale-yellow/green dot from the Figma reference (node 445:839, "Decor Container") -
+            baseIndex 1 is DOT_ASSETS[1], hero-dot-1.svg, the exact asset that node exports (same
+            two circles, same colors, to the pixel). Figma only places it on the desktop canvas;
+            this position is that one scaled by MOBILE_WIDTH/REF_WIDTH so it still turns up on
+            mobile rather than being desktop-only. Peeking a little past the canvas's own top edge
+            is Figma's own placement, not a mistake - the section around it still clips at its own
+            edge, well below this. */}
+        <div className="animate-timer-dot-pulse absolute" style={{ left: "361px", top: "-4px" }}>
+          <HoverDot assets={DOT_ASSETS} baseIndex={1} size={20.3} />
         </div>
 
         {/* Subheading in cursive font (font-nanum-pen) - Centered */}
@@ -256,15 +317,17 @@ export default function TimerSection() {
             lineHeight: "32px",
           }}
         >
-          {live ? "happening across 8 venues today" : "making starts in"}
+          {subheading}
         </p>
 
-        {/* Hours stacked over minutes, or (once live) "it's live" - same primary font and size
-            either way, just swapping what fills the slot. */}
+        {/* Hours stacked over minutes, or (once live) the registration count - same primary font
+            and size either way, just swapping what fills the slot. */}
         <p
           className="font-drowner absolute left-1/2 -translate-x-1/2 text-center text-black"
           style={{
-            top: "115px",
+            // Live re-centres the taller lockup on the same point the two-line countdown itself
+            // was centred on, rather than sharing its top and only growing downward from it.
+            top: `${live ? mobileLockupTop(MOBILE_LOCKUP_SIZE) : 115}px`,
             width: `${MOBILE_WIDTH}px`,
             fontSize: `${MOBILE_COUNTDOWN_SIZE}px`,
             lineHeight: 1.05,
@@ -272,7 +335,7 @@ export default function TimerSection() {
           }}
         >
           {live ? (
-            "it's live"
+            mobileHeadline
           ) : remaining ? (
             <>
               {remaining.hours} hour
@@ -285,14 +348,12 @@ export default function TimerSection() {
         </p>
 
         <CuriosityButton
-          // 115 (countdown top) + however many lines it's actually showing right now + 32px
-          // breathing room - stays close under the text whether that's one line ("it's live")
-          // or the two-line hour/min stack, instead of always leaving room for both.
-          top={115 + MOBILE_COUNTDOWN_LINE_HEIGHT * (live ? 1 : 2) + 32}
+          top={mobileButtonTop}
           revealed={revealed}
           onReveal={() => setRevealed(true)}
           label={live ? "know where?" : "know when?"}
         />
+
       </div>
 
       <div
@@ -304,8 +365,19 @@ export default function TimerSection() {
           transformOrigin: "center center",
         }}
       >
-        <div className="animate-timer-dot-pulse absolute" style={{ left: "1120px", top: "89px" }}>
+        {/* Figma's own coordinates for this dot (node 445:845, "Ellipse Container") - moves it
+            off the yellow/green dot's corner and into the panel's otherwise-empty left side. */}
+        <div className="animate-timer-dot-pulse absolute" style={{ left: "196px", top: "209px" }}>
           <HoverDot assets={DOT_ASSETS} baseIndex={0} size={63.73} />
+        </div>
+
+        {/* The pale-yellow/green dot from the Figma reference (node 445:839, "Decor Container"),
+            at its exact coordinates - baseIndex 1 is DOT_ASSETS[1], hero-dot-1.svg, the very
+            asset that node exports (same two circles, same colors, to the pixel). Peeking a
+            little past the canvas's own top edge is Figma's own placement, not a mistake - the
+            section around it still clips at its own edge, well below this. */}
+        <div className="animate-timer-dot-pulse absolute" style={{ left: "1149px", top: "-14px" }}>
+          <HoverDot assets={DOT_ASSETS} baseIndex={1} size={64.672} />
         </div>
 
         {/* Desktop subheading in cursive font (font-nanum-pen) - Centered */}
@@ -317,39 +389,46 @@ export default function TimerSection() {
             lineHeight: "42px",
           }}
         >
-          {live ? "happening across 8 venues today" : "making starts in"}
+          {subheading}
         </p>
 
-        {/* Desktop timer digits, or (once live) "it's live" - same primary font and size either
-            way, just swapping what fills the slot. */}
+        {/* Desktop timer digits, or (once live) the registration count - same primary font and
+            size either way, just swapping what fills the slot. */}
         <p
           className="font-drowner absolute left-1/2 -translate-x-1/2 text-center text-black"
           style={{
-            top: "310px",
+            // Live re-centres the taller lockup on the same point the single-line countdown
+            // itself was centred on, rather than sharing its top and only growing downward.
+            top: `${live ? desktopLockupTop(DESKTOP_LOCKUP_SIZE) : 310}px`,
             width: `${REF_WIDTH}px`,
-            height: "130px",
+            height: `${DESKTOP_COUNTDOWN_HEIGHT}px`,
             fontSize: "118.163px",
             lineHeight: "normal",
             letterSpacing: "4.7265px",
           }}
         >
-          {live ? "it's live" : remaining ? `${remaining.hours} hour ${remaining.minutes} min` : " "}
+          {live ? desktopHeadline : remaining ? `${remaining.hours} hour ${remaining.minutes} min` : " "}
         </p>
 
         <CuriosityButton
-          top={490}
+          // Tucked up under whatever fills the slot at 310: the countdown's text box ends at 440
+          // (310 + 130), while the live lockup runs a good deal further down than that.
+          top={
+            live ? desktopLockupTop(DESKTOP_LOCKUP_SIZE) + DESKTOP_LOCKUP_SIZE * LOCKUP_HEIGHT_RATIO + 12 : 462
+          }
           revealed={revealed}
           onReveal={() => setRevealed(true)}
           label={live ? "know where?" : "know when?"}
         />
-      </div>
 
-      {/* Carried on this last panel rather than getting a screen of its own, on a deck that is
-          already one screen per section. */}
-      <SiteFooter />
+      </div>
 
       {/* Outside both scaled canvases so the board fills the real section rather than the design's
           reference box - the same placement the hero gives its own field. */}
+      {/* The site's closing credit, carried on this last panel rather than getting a screen of
+          its own. */}
+      <SiteFooter />
+
       {revealed && (
         <>
           {/* Mobile's cells are a third the size of desktop's, so its cards take a proportionally

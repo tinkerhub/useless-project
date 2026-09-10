@@ -24,10 +24,32 @@ export default function RevealButton({
       style={{ top: `${top}px`, width: `${width}px`, height: `${height}px` }}
     >
       <span
-        className="font-nanum-pen text-center whitespace-nowrap text-white transition-transform duration-200 group-hover:scale-105"
-        style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px` }}
+        className="flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
+        style={{ gap: `${fontSize * 0.24}px` }}
       >
-        register here
+        <span
+          className="font-nanum-pen text-center whitespace-nowrap text-white"
+          style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px` }}
+        >
+          register here
+        </span>
+        {/* Drawn rather than typed: Nanum Pen is subset to `latin` (see layout.tsx), which has no
+            arrow glyph, so a "→" would silently fall back to another face and sit next to the
+            handwriting as a mismatched mark. Round caps/joins keep it in the same marker voice. */}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="shrink-0 text-white transition-transform duration-200 ease-out group-hover:translate-x-1"
+          style={{ width: `${fontSize * 0.58}px`, height: `${fontSize * 0.58}px` }}
+          aria-hidden="true"
+        >
+          <path d="M4 12h14" />
+          <path d="M12.5 6.5 18 12l-5.5 5.5" />
+        </svg>
       </span>
     </a>
   );
