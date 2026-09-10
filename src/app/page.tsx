@@ -14,6 +14,7 @@ import Title from "./title";
 import TetrisField from "./tetris-field";
 import VanishingElephant from "./vanishing-elephant";
 import WhySection from "./why-section";
+import { getEventCounts } from "@/lib/metabase";
 
 import FloatingPet from "./floating-pet";
 
@@ -52,7 +53,11 @@ const FAQ_JSON_LD = {
   })),
 };
 
-export default function Home() {
+export default async function Home() {
+  // Fetched here rather than in TimerSection because that one is a client component - this keeps
+  // the number server-rendered instead of popping in after hydration.
+  const counts = await getEventCounts();
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(EVENT_JSON_LD) }} />
@@ -107,7 +112,7 @@ export default function Home() {
       <AppamSection />
       <SeeAllSection />
       <FaqSection />
-      <TimerSection />
+      <TimerSection counts={counts} />
       <FloatingPet />
     </>
   );

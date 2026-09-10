@@ -171,7 +171,15 @@ function VenueCard({
           active ? "scale-[2.1] lg:scale-[1.8]" : ""
         }`}
       >
-        <Image src={image} alt="" fill sizes={`${Math.ceil(width)}px`} className="object-cover" />
+        {/* `sizes` deliberately overstates the tile's resting width by the pop's own scale
+            (2.1x mobile, 1.8x desktop - the larger of the two covers both) - the same fix the
+            "made by" portraits needed. `fill`'s layout box never changes size, since the pop is a
+            CSS `scale` transform rather than a real resize, so Next has no way to know a tap or
+            hover is about to blow this image up to more than double its resting footprint. Asking
+            for the box's true rendered size understated it, and the enlarged tile - exactly the
+            moment someone's looking closely at it - showed a small image stretched past its own
+            resolution. */}
+        <Image src={image} alt="" fill sizes={`${Math.ceil(width * 2.1)}px`} className="object-cover" />
         <div
           className={`pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-black/75 to-transparent px-0.5 pt-3 pb-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100 lg:px-1 lg:pt-5 lg:pb-1 ${
             active ? "opacity-100" : ""
