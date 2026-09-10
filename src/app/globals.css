@@ -127,6 +127,36 @@ html:has([data-page="handbook"]) {
   animation: lego-pop 200ms ease-out both;
 }
 
+/* Venue tiles drop in like a roller blind let go of: they unroll from their top edge, overshoot
+   the bottom, and snap back. Scaling on Y alone (rather than lego-pop's uniform scale) is what
+   sells it - the photo squashes as it comes down, the way a blind's print does. The overshoot
+   lives in the keyframes rather than in a springy timing function so the two don't compound into
+   a wobble. Staggered per tile by VenueCards, which sets each one's animation-delay. */
+@keyframes venue-shutter {
+  0% {
+    transform: scaleY(0);
+  }
+  55% {
+    transform: scaleY(1.12);
+  }
+  72% {
+    transform: scaleY(0.92);
+  }
+  86% {
+    transform: scaleY(1.04);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+.animate-venue-shutter {
+  transform-origin: top center;
+  /* `both` so a tile waiting its turn holds the 0% frame - without it every tile would sit at
+     full height until its delay elapsed, which is the wall of photos this replaced. */
+  animation: venue-shutter 340ms ease-out both;
+}
+
 @keyframes timer-dot-pulse {
   0% {
     transform: scale(1.2);
