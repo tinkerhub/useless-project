@@ -163,22 +163,36 @@ function VenueCard({
           to beat the *other* tiles, which are that wrapper's siblings. The lift lives on the
           wrapper in VenueCards for that reason. */}
       <div
-        className={`relative size-full origin-center bg-white shadow-md transition-transform duration-200 ease-out group-hover:scale-[1.6] ${
-          active ? "scale-[1.6]" : ""
+        // overflow-hidden keeps the name clipped to the photo: the label is sized in tile pixels
+        // and then scaled up with everything else, so on a ~44px mobile tile a long venue name
+        // was spilling out past the image. (The patch *around* the tile is still unclipped - see
+        // VenueCards - so the pop itself can spill over its neighbours.)
+        className={`relative size-full origin-center overflow-hidden bg-white shadow-md transition-transform duration-200 ease-out group-hover:scale-[2.1] lg:group-hover:scale-[1.8] ${
+          active ? "scale-[2.1] lg:scale-[1.8]" : ""
         }`}
       >
         <Image src={image} alt="" fill sizes={`${Math.ceil(width)}px`} className="object-cover" />
         <div
-          className={`pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-black/75 to-transparent px-1 pt-6 pb-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 ${
+          className={`pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-black/75 to-transparent px-0.5 pt-3 pb-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100 lg:px-1 lg:pt-5 lg:pb-1 ${
             active ? "opacity-100" : ""
           }`}
         >
-          <span className="font-nanum-pen text-center text-[13px] leading-tight text-white">{name}</span>
+          {/* Sized against the tile, not the screen - it rides the same scale as the photo, so
+              what looks tiny at rest is what reads once popped. */}
+          <span className="font-nanum-pen text-center text-[7px] leading-tight text-white lg:text-[11px]">
+            {name}
+          </span>
         </div>
       </div>
     </div>
   );
 }
+
+// How long the whole roster takes to land, rather than a per-tile delay: the roster grows every
+// slot, and a fixed delay each would eventually run past the time the venue stage is held on
+// screen for (VENUES_HOLD_MS in timer-section.tsx). Spreading a fixed window over however many
+// venues there are keeps the cascade the same length whether there are 3 of them or 300.
+const VENUE_POP_WINDOW_MS = 1800;
 
 /**
  * The venue roster scattered the same way DateCards are (see scatterPlacements), but over its own
@@ -213,9 +227,11 @@ function VenueCards({
   // Which tile a tap has popped. One at a time, so tapping another puts the last one back.
   const [activeImage, setActiveImage] = useState<string | null>(null);
 
+  const stagger = VENUE_POP_WINDOW_MS / Math.max(placed.length, 1);
+
   return (
     <>
-      {placed.map((venue) => {
+      {placed.map((venue, index) => {
         const active = activeImage === venue.image;
         return (
           <div
@@ -230,6 +246,10 @@ function VenueCards({
               bottom: venue.row * cell,
               width,
               height,
+              // They land one after another rather than all at once, so the roster reads as
+              // something filling up. lego-pop already runs `both`, so each tile holds its
+              // scaled-down, transparent first frame until its turn comes round.
+              animationDelay: `${Math.round(index * stagger)}ms`,
               ...(active ? { zIndex: 20 } : {}),
             }}
           >
