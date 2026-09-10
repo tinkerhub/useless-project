@@ -240,7 +240,7 @@ function VenueCards({
             // against each other, and at z-index auto they went in DOM order, so a hovered tile
             // kept getting covered by whichever venues happen to come after it in the roster.
             // The tapped one is lifted inline for the same reason.
-            className="animate-lego-pop absolute hover:z-20"
+            className="animate-venue-shutter absolute hover:z-20"
             style={{
               left: venue.col * cell,
               bottom: venue.row * cell,
