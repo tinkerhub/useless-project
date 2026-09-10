@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { scatterPlacements } from "./scatter-placement";
 import TetrisField from "./tetris-field";
 import { VENUES } from "./venues";
@@ -136,17 +136,43 @@ function DateCards({
 
 /**
  * One venue tile: a real photo (unlike the date card's drawn type), so it gets next/image's
- * automatic resizing/format negotiation rather than a plain <img> - with 17 of these sitting in
- * public/venues at up to ~1MB each, shipping them unoptimized would be the actual performance
- * cost here. Sits at rest exactly filling its scattered cell patch; hovering scales the tile up
+ * automatic resizing/format negotiation rather than a plain <img> - with 72 of these sitting in
+ * public/venues, shipping them unoptimized would be the actual performance cost here. Sits at rest exactly filling its scattered cell patch; hovering scales the tile up
  * and fades in the name over it, both driven by the group so the whole patch is the hit target.
  */
-function VenueCard({ name, image, width }: { name: string; image: string; width: number }) {
+function VenueCard({
+  name,
+  image,
+  width,
+  active,
+  onActivate,
+}: {
+  name: string;
+  image: string;
+  width: number;
+  active: boolean;
+  onActivate: () => void;
+}) {
   return (
-    <div className="group absolute inset-0">
-      <div className="relative size-full origin-center bg-white shadow-md transition-transform duration-200 ease-out group-hover:z-20 group-hover:scale-[1.35]">
+    // `active` is the tap equivalent of the hover below - a touch device never fires :hover on
+    // its own, and Tailwind's hover variants are gated behind (hover: hover), so without this the
+    // tiles would be inert on a phone. Same JS-drives-tap, CSS-drives-hover split the creature
+    // stickers use (see creature-swarm.tsx and globals.css).
+    <div className="group absolute inset-0" onClick={onActivate}>
+      {/* No z-index here: this div only stacks against its own wrapper, and the scaled tile has
+          to beat the *other* tiles, which are that wrapper's siblings. The lift lives on the
+          wrapper in VenueCards for that reason. */}
+      <div
+        className={`relative size-full origin-center bg-white shadow-md transition-transform duration-200 ease-out group-hover:scale-[1.6] ${
+          active ? "scale-[1.6]" : ""
+        }`}
+      >
         <Image src={image} alt="" fill sizes={`${Math.ceil(width)}px`} className="object-cover" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-black/75 to-transparent px-1 pt-6 pb-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div
+          className={`pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-black/75 to-transparent px-1 pt-6 pb-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 ${
+            active ? "opacity-100" : ""
+          }`}
+        >
           <span className="font-nanum-pen text-center text-[13px] leading-tight text-white">{name}</span>
         </div>
       </div>
@@ -184,17 +210,39 @@ function VenueCards({
   const width = cardCols * cell - unit;
   const height = cardRows * cell - unit;
 
+  // Which tile a tap has popped. One at a time, so tapping another puts the last one back.
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+
   return (
     <>
-      {placed.map((venue) => (
-        <div
-          key={venue.image}
-          className="animate-lego-pop absolute"
-          style={{ left: venue.col * cell, bottom: venue.row * cell, width, height }}
-        >
-          <VenueCard name={venue.name} image={venue.image} width={width} />
-        </div>
-      ))}
+      {placed.map((venue) => {
+        const active = activeImage === venue.image;
+        return (
+          <div
+            key={venue.image}
+            // `hover:z-20` rather than a group-hover further in: these wrappers are what paint
+            // against each other, and at z-index auto they went in DOM order, so a hovered tile
+            // kept getting covered by whichever venues happen to come after it in the roster.
+            // The tapped one is lifted inline for the same reason.
+            className="animate-lego-pop absolute hover:z-20"
+            style={{
+              left: venue.col * cell,
+              bottom: venue.row * cell,
+              width,
+              height,
+              ...(active ? { zIndex: 20 } : {}),
+            }}
+          >
+            <VenueCard
+              name={venue.name}
+              image={venue.image}
+              width={width}
+              active={active}
+              onActivate={() => setActiveImage(active ? null : venue.image)}
+            />
+          </div>
+        );
+      })}
     </>
   );
 }
