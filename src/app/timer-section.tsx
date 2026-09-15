@@ -95,6 +95,10 @@ const DOT_ASSETS = ["/why-dot.svg", "/hero-dot-1.svg", "/hero-dot-2.svg", "/hero
 // Event kicks off 5 PM IST (UTC+5:30) on Sep 3 - the explicit offset pins the instant regardless
 // of the visitor's own timezone, so the countdown is always correct against real IST.
 const EVENT_START = new Date("2026-09-03T17:00:00+05:30").getTime();
+// End of day Sep 14 IST - the last venue slot in the roster closes that afternoon, so the badge
+// flips from "live" to "ended" once the day itself is over rather than at that one venue's exact
+// close time.
+const EVENT_END = new Date("2026-09-14T23:59:59+05:30").getTime();
 const UPDATE_INTERVAL_MS = 30_000;
 
 function remainingUntilEvent() {
@@ -104,7 +108,12 @@ function remainingUntilEvent() {
 }
 
 function isEventLive() {
-  return Date.now() >= EVENT_START;
+  const now = Date.now();
+  return now >= EVENT_START && now < EVENT_END;
+}
+
+function isEventOver() {
+  return Date.now() >= EVENT_END;
 }
 
 // Same target cell sizes the hero's own fields use, so the reveal's blocks come out the size
@@ -217,6 +226,7 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
   // a server-computed countdown against a client one computed moments later.
   const [remaining, setRemaining] = useState<{ hours: number; minutes: number } | null>(null);
   const [live, setLive] = useState(false);
+  const [ended, setEnded] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [stage, setStage] = useState<"dates" | "venues" | null>(null);
 
@@ -240,20 +250,22 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
   useEffect(() => {
     setRemaining(remainingUntilEvent());
     setLive(isEventLive());
+    setEnded(isEventOver());
     const id = setInterval(() => {
       setRemaining(remainingUntilEvent());
       setLive(isEventLive());
+      setEnded(isEventOver());
     }, UPDATE_INTERVAL_MS);
     return () => clearInterval(id);
   }, []);
 
-  // Once live the headline slot carries the registration count, with the venue total folded into
-  // the line above it rather than shown as a second figure - stating "N venues" there and again
-  // as its own counter said the same thing twice. Both numbers are interpolated, never written
-  // into the copy: a hardcoded venue count is what left the old line claiming 8 of them.
-  // Empty once live: the lockup below says "N makers across N campuses" in one breath, so a
+  // Once live (or ended) the headline slot carries the registration count, with the venue total
+  // folded into the line above it rather than shown as a second figure - stating "N venues" there
+  // and again as its own counter said the same thing twice. Both numbers are interpolated, never
+  // written into the copy: a hardcoded venue count is what left the old line claiming 8 of them.
+  // Empty once live/ended: the lockup below says "N makers across N campuses" in one breath, so a
   // subheading here would only repeat it.
-  const subheading = live ? "" : "making starts in";
+  const subheading = live || ended ? "" : "making starts in";
   // One lockup at two sizes rather than two layouts (see live-headline.tsx). The reels still
   // spin the maker count inside it; a live event whose counts didn't load falls back to wording
   // instead of an empty slot.
@@ -261,19 +273,21 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
     <LiveHeadline
       registered={counts?.registered ?? null}
       fontSize={MOBILE_LOCKUP_SIZE}
+      ended={ended}
     />
   );
   const desktopHeadline = (
     <LiveHeadline
       registered={counts?.registered ?? null}
       fontSize={DESKTOP_LOCKUP_SIZE}
+      ended={ended}
     />
   );
 
   // 115 (slot top) + however many lines it's actually showing right now + 12px breathing room -
   // stays close under the text whether that's one line (the count) or the two-line hour/min
   // stack, instead of always leaving room for both.
-  const mobileButtonTop = live
+  const mobileButtonTop = live || ended
     ? mobileLockupTop(MOBILE_LOCKUP_SIZE) + MOBILE_LOCKUP_SIZE * LOCKUP_HEIGHT_RATIO + 12
     : 115 + MOBILE_COUNTDOWN_LINE_HEIGHT * 2 + 12;
 
@@ -327,14 +341,14 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
           style={{
             // Live re-centres the taller lockup on the same point the two-line countdown itself
             // was centred on, rather than sharing its top and only growing downward from it.
-            top: `${live ? mobileLockupTop(MOBILE_LOCKUP_SIZE) : 115}px`,
+            top: `${live || ended ? mobileLockupTop(MOBILE_LOCKUP_SIZE) : 115}px`,
             width: `${MOBILE_WIDTH}px`,
             fontSize: `${MOBILE_COUNTDOWN_SIZE}px`,
             lineHeight: 1.05,
             letterSpacing: `${MOBILE_COUNTDOWN_TRACKING}px`,
           }}
         >
-          {live ? (
+          {live || ended ? (
             mobileHeadline
           ) : remaining ? (
             <>
@@ -351,7 +365,7 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
           top={mobileButtonTop}
           revealed={revealed}
           onReveal={() => setRevealed(true)}
-          label={live ? "know where?" : "know when?"}
+          label={live || ended ? "know where?" : "know when?"}
         />
 
       </div>
@@ -399,7 +413,7 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
           style={{
             // Live re-centres the taller lockup on the same point the single-line countdown
             // itself was centred on, rather than sharing its top and only growing downward.
-            top: `${live ? desktopLockupTop(DESKTOP_LOCKUP_SIZE) : 310}px`,
+            top: `${live || ended ? desktopLockupTop(DESKTOP_LOCKUP_SIZE) : 310}px`,
             width: `${REF_WIDTH}px`,
             height: `${DESKTOP_COUNTDOWN_HEIGHT}px`,
             fontSize: "118.163px",
@@ -407,18 +421,20 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
             letterSpacing: "4.7265px",
           }}
         >
-          {live ? desktopHeadline : remaining ? `${remaining.hours} hour ${remaining.minutes} min` : " "}
+          {live || ended ? desktopHeadline : remaining ? `${remaining.hours} hour ${remaining.minutes} min` : " "}
         </p>
 
         <CuriosityButton
           // Tucked up under whatever fills the slot at 310: the countdown's text box ends at 440
-          // (310 + 130), while the live lockup runs a good deal further down than that.
+          // (310 + 130), while the live/ended lockup runs a good deal further down than that.
           top={
-            live ? desktopLockupTop(DESKTOP_LOCKUP_SIZE) + DESKTOP_LOCKUP_SIZE * LOCKUP_HEIGHT_RATIO + 12 : 462
+            live || ended
+              ? desktopLockupTop(DESKTOP_LOCKUP_SIZE) + DESKTOP_LOCKUP_SIZE * LOCKUP_HEIGHT_RATIO + 12
+              : 462
           }
           revealed={revealed}
           onReveal={() => setRevealed(true)}
-          label={live ? "know where?" : "know when?"}
+          label={live || ended ? "know where?" : "know when?"}
         />
 
       </div>

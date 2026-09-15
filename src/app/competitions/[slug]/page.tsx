@@ -7,6 +7,13 @@ import BadgeFallback from "../../badge-fallback";
 import { COMPETITIONS, getCompetition } from "@/lib/competitions";
 import SubmissionForm from "../submission-form";
 
+// These two ship as a video/footage submission rather than a write-up - visitors land here to
+// submit, not to read about it, so the form surfaces right under the intro instead of waiting
+// after the full write-up (see the matching set in ../page.tsx, which sends the "submit here"
+// card here). Still after the header and "what we mean", not literally the first thing on the
+// page - a submit button with no idea what it's submitting to reads as broken, not fast.
+const SUBMIT_FIRST_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie"]);
+
 export function generateStaticParams() {
   return COMPETITIONS.map((c) => ({ slug: c.slug }));
 }
@@ -23,6 +30,44 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
   const competition = getCompetition(slug);
   if (!competition) notFound();
+
+  const submitFirst = SUBMIT_FIRST_SLUGS.has(competition.slug);
+
+  const submitSection = competition.autoJudged ? (
+    <section className="flex flex-col gap-3">
+      <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
+        nothing to submit here
+      </h2>
+      <p className="font-helvetica max-w-[65ch] text-[16px] leading-[1.7] text-[#33322f]">
+        This one has no separate form - just submit your project through the Hub app as usual, and you&apos;re
+        automatically in the running.
+      </p>
+    </section>
+  ) : (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
+          submit
+        </h2>
+        <Link
+          href="/submissions"
+          className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
+        >
+          see submissions
+        </Link>
+      </div>
+      <SubmissionForm competition={competition} />
+    </section>
+  );
+
+  const whatWeMeanSection = (
+    <section className="flex flex-col gap-3">
+      <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
+        what we mean
+      </h2>
+      <p className="font-helvetica max-w-[65ch] text-[16px] leading-[1.7] text-[#33322f]">{competition.whatWeMean}</p>
+    </section>
+  );
 
   return (
     <main data-page="handbook" className="w-full overflow-x-hidden bg-white text-[#0e0e0d]">
@@ -69,16 +114,13 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           )}
         </header>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
-            what we mean
-          </h2>
-          <p className="font-helvetica max-w-[65ch] text-[16px] leading-[1.7] text-[#33322f]">{competition.whatWeMean}</p>
-        </section>
+        {whatWeMeanSection}
+
+        {submitFirst && submitSection}
 
         <section className="flex flex-col gap-3">
           <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
-            how to redeem
+            how to participate
           </h2>
           <p className="font-helvetica max-w-[65ch] text-[16px] leading-[1.7] text-[#33322f]">{competition.howToRedeem}</p>
           <ul className="mt-1 flex max-w-[65ch] flex-col gap-2">
@@ -123,32 +165,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           </section>
         )}
 
-        {competition.autoJudged ? (
-          <section className="flex flex-col gap-3">
-            <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
-              nothing to submit here
-            </h2>
-            <p className="font-helvetica max-w-[65ch] text-[16px] leading-[1.7] text-[#33322f]">
-              This one has no separate form - just submit your project through the Hub app as usual, and you&apos;re
-              automatically in the running.
-            </p>
-          </section>
-        ) : (
-          <section className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
-                submit
-              </h2>
-              <Link
-                href="/submissions"
-                className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
-              >
-                see submissions
-              </Link>
-            </div>
-            <SubmissionForm competition={competition} />
-          </section>
-        )}
+        {!submitFirst && submitSection}
       </div>
     </main>
   );

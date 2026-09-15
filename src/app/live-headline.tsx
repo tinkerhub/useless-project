@@ -64,9 +64,11 @@ const CAMPUS_COUNT = 71;
 export default function LiveHeadline({
   registered,
   fontSize,
+  ended = false,
 }: {
   registered: number | null;
   fontSize: number;
+  ended?: boolean;
 }) {
   const top = (ratio: number) => `${Math.round(ratio * fontSize)}px`;
   const size = (ratio: number) => `${Math.round(ratio * fontSize)}px`;
@@ -169,10 +171,12 @@ export default function LiveHeadline({
         style={{ top: top(ROW_TOP_RATIO.kicker), fontSize: size(WORD_SCALE.kicker) }}
         className="font-nanum-pen absolute left-1/2 flex -translate-x-1/2 items-center gap-[0.3em] leading-[normal] tracking-normal"
       >
-        <span className="relative inline-flex size-[0.4em] items-center justify-center rounded-full bg-[#03D330]">
-          <span className="size-[56%] rounded-full bg-[#72FF91]" />
+        <span
+          className={`relative inline-flex size-[0.4em] items-center justify-center rounded-full ${ended ? "bg-[#D30303]" : "bg-[#03D330]"}`}
+        >
+          <span className={`size-[56%] rounded-full ${ended ? "bg-[#FF7272]" : "bg-[#72FF91]"}`} />
         </span>
-        live now
+        {ended ? "ended" : "live now"}
       </span>
 
       <span
@@ -184,7 +188,7 @@ export default function LiveHeadline({
             hasn't been scrolled to yet (the plain final number, no reel machinery), and a count
             that has just scrolled into view (mounts CounterReels, which spins up to this same
             number on its own mount effect - see the hook above for why that timing matters). */}
-        {registered === null ? "it's live" : hasEnteredView ? (
+        {registered === null ? (ended ? "it's over" : "it's live") : hasEnteredView ? (
           <CounterReels value={registered} cellHeight={fontSize} />
         ) : (
           registered
@@ -204,7 +208,7 @@ export default function LiveHeadline({
         style={{ top: top(ROW_TOP_RATIO.place), fontSize: size(WORD_SCALE.place) }}
         className="font-nanum-pen absolute left-1/2 -translate-x-1/2 whitespace-nowrap leading-[normal] tracking-normal"
       >
-        happening across {CAMPUS_COUNT} campuses
+        {ended ? "happened" : "happening"} across {CAMPUS_COUNT} campuses
       </span>
     </span>
   );
