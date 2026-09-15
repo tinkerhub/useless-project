@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const NATIVE_WIDTH = 328;
 // A reasonable guess for a captioned post before Instagram tells us its real height - close
@@ -12,6 +12,15 @@ const FALLBACK_HEIGHT = 480;
 // plain link instead - a post the iframe can't render (deleted, private, blocked, flaky network)
 // would otherwise just sit there at FALLBACK_HEIGHT with nothing in it.
 const EMBED_TIMEOUT_MS = 6000;
+
+// Instagram's embed doesn't stop re-measuring once the post itself has loaded - the follow
+// button, a "more" caption toggle, and related-post chrome each shift its internal layout and
+// fire their own MEASURE message, spaced anywhere from tens of ms to a couple of seconds apart.
+// Debouncing near-simultaneous messages (below) smooths a single burst, but doesn't stop this:
+// each of those later, separately-timed messages still lands and resizes the card again. Locking
+// height changes to a window after the *first* measurement stops that follow-on drift instead of
+// reacting to it for as long as the tab stays open.
+const SETTLE_WINDOW_MS = 2500;
 
 // Instagram's own oEmbed API (api.instagram.com/oembed, which the old <blockquote class=
 // "instagram-media"> + embed.js technique calls behind the scenes) has redirected instead of
@@ -34,6 +43,15 @@ export default function InstagramEmbed({ permalink, scale = 1 }: { permalink: st
   const src = embedSrc(permalink);
   const [height, setHeight] = useState<number | null>(null);
   const [timedOut, setTimedOut] = useState(false);
+  // Instagram doesn't post one final MEASURE message - it re-measures as the embed's own images
+  // and fonts load in, each one nudging the height a few px either way. Applying every one of
+  // those directly is what reads as glitchy (the card visibly resizing several times in a row);
+  // debouncing to the last message in a burst, then only committing a change big enough to matter,
+  // cuts that down to a single settle instead of a series of jumps.
+  const settleTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Set the moment the first MEASURE arrives - not at mount - so a slow network doesn't eat into
+  // the settle window before there's even a height to refine.
+  const settleDeadline = useRef<number | null>(null);
 
   useEffect(() => {
     if (!src) return;
@@ -53,7 +71,13 @@ export default function InstagramEmbed({ permalink, scale = 1 }: { permalink: st
       const { type, details } = data as Record<string, unknown>;
       if (type === "MEASURE" && details && typeof details === "object") {
         const measuredHeight = (details as Record<string, unknown>).height;
-        if (typeof measuredHeight === "number") setHeight(measuredHeight);
+        if (typeof measuredHeight !== "number") return;
+        if (settleDeadline.current === null) settleDeadline.current = Date.now() + SETTLE_WINDOW_MS;
+        if (Date.now() > settleDeadline.current) return;
+        if (settleTimeout.current) clearTimeout(settleTimeout.current);
+        settleTimeout.current = setTimeout(() => {
+          setHeight((prev) => (prev !== null && Math.abs(prev - measuredHeight) < 4 ? prev : measuredHeight));
+        }, 120);
       }
     }
 
@@ -62,6 +86,7 @@ export default function InstagramEmbed({ permalink, scale = 1 }: { permalink: st
     return () => {
       window.removeEventListener("message", handleMessage);
       clearTimeout(timeout);
+      if (settleTimeout.current) clearTimeout(settleTimeout.current);
     };
   }, [src]);
 
@@ -82,7 +107,14 @@ export default function InstagramEmbed({ permalink, scale = 1 }: { permalink: st
   const displayHeight = height ?? FALLBACK_HEIGHT;
 
   return (
-    <div style={{ width: NATIVE_WIDTH * scale, height: displayHeight * scale, overflow: "hidden" }}>
+    <div
+      style={{
+        width: NATIVE_WIDTH * scale,
+        height: displayHeight * scale,
+        overflow: "hidden",
+        transition: "height 200ms ease-out",
+      }}
+    >
       <iframe
         src={src}
         title="Instagram post"
