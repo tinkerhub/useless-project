@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   description: "Side-quest competitions running alongside Useless Projects, and how to submit for each.",
 };
 
+// These two ship as a video/footage submission rather than a write-up, so the card sends people
+// straight to the form instead of a "know more" detour - and its own color (solid black, not the
+// pink outline every other card uses) flags that it behaves differently before they even click.
+const SUBMIT_DIRECT_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie"]);
+
 export default function CompetitionsIndexPage() {
   return (
     <main data-page="handbook" className="w-full overflow-x-hidden bg-white text-[#0e0e0d]">
@@ -89,9 +94,15 @@ export default function CompetitionsIndexPage() {
                   {competition.prizeText}
                 </span>
 
-                <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full border border-[#ea34df] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-[#ea34df] uppercase transition-colors group-hover:bg-[#ea34df] group-hover:text-white">
-                  know more
-                </span>
+                {SUBMIT_DIRECT_SLUGS.has(competition.slug) ? (
+                  <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full bg-[#0e0e0d] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-white uppercase transition-colors group-hover:bg-[#33322f]">
+                    submit here
+                  </span>
+                ) : (
+                  <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full border border-[#ea34df] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-[#ea34df] uppercase transition-colors group-hover:bg-[#ea34df] group-hover:text-white">
+                    know more
+                  </span>
+                )}
               </Link>
             </li>
           ))}
