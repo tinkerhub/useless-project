@@ -68,7 +68,7 @@ export default function Dropdown({
       {open && (
         <ul
           role="listbox"
-          className="animate-nav-pop absolute top-full left-0 z-20 mt-2 max-h-64 w-max min-w-full overflow-y-auto rounded-xl border border-black/10 bg-white py-1.5 shadow-lg"
+          className="animate-nav-pop absolute top-full left-0 z-20 mt-2 max-h-96 w-max min-w-full overflow-y-auto rounded-xl border border-black/10 bg-white py-1.5 shadow-lg"
         >
           {options.map((opt) => (
             <li key={opt.value}>
