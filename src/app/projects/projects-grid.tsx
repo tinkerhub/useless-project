@@ -31,8 +31,63 @@ function IconFilter(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+// Some submitters pasted a search-engine results link (or an otherwise malformed value) into the
+// live/source URL fields instead of their actual project link. Resolving those as-is would send
+// visitors to a Google/Bing/etc. search page rather than the project, so links to known search
+// engines are treated as absent. Anything else that was actually submitted still gets a button -
+// the button's presence tracks "was something submitted", not "is it a well-formed URL".
+const SEARCH_ENGINE_HOSTS = new Set([
+  "google.com",
+  "bing.com",
+  "duckduckgo.com",
+  "yahoo.com",
+  "baidu.com",
+  "search.brave.com",
+  "yandex.com",
+  "ecosia.org",
+  "ask.com",
+]);
+
+function safeProjectLink(url: string | null | undefined): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) return null;
+
+  // A value that's merely missing its "https://" (e.g. "myproject.vercel.app") still points
+  // somewhere real, so it gets one added rather than being treated as unusable.
+  let parsed: URL | null = null;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    try {
+      parsed = new URL(`https://${trimmed}`);
+    } catch {
+      parsed = null;
+    }
+  }
+
+  if (parsed && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    if (SEARCH_ENGINE_HOSTS.has(host)) return null;
+    return parsed.toString();
+  }
+
+  // Couldn't turn it into a normal URL at all - still show the button with whatever was
+  // submitted rather than hiding it, since something was in fact submitted.
+  return trimmed;
+}
+
+function IconSearch(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
 export default function ProjectsGrid({ projects }: { projects: Project[] }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<Sort>("latest");
   const [venue, setVenue] = useState("all");
   const [category, setCategory] = useState("all");
@@ -68,6 +123,8 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
   );
 
   const visible = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
     let list = projects.filter((p) => {
       if (venue !== "all" && (p.venueName ?? p.campusName) !== venue) return false;
       if (status !== "all" && p.status !== status) return false;
@@ -75,6 +132,10 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
       if (category !== "all") {
         const cats = p.categories ? p.categories.split(",").map((c) => c.trim()) : [];
         if (!cats.includes(category)) return false;
+      }
+      if (query) {
+        const haystack = [p.name, p.tagline, p.teamName].filter(Boolean).join(" ").toLowerCase();
+        if (!haystack.includes(query)) return false;
       }
       return true;
     });
@@ -84,7 +145,7 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
     else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
     return list;
-  }, [projects, sort, venue, category, status, type]);
+  }, [projects, search, sort, venue, category, status, type]);
 
   const activeFilterCount = [venue, category, status, type].filter((v) => v !== "all").length;
 
@@ -108,6 +169,18 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
             <IconFilter className="size-3 sm:size-3.5" />
             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </button>
+
+          <label className="font-helvetica flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-[10px] tracking-[0.06em] text-[#33322f] shadow-xs transition-colors focus-within:border-[#ea34df] sm:px-4 sm:py-2 sm:text-[12px]">
+            <IconSearch className="size-3 text-[#33322f]/50 sm:size-3.5" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search projects"
+              aria-label="Search projects"
+              className="w-32 bg-transparent uppercase tracking-[0.06em] placeholder:text-[#33322f]/40 focus:outline-none sm:w-48"
+            />
+          </label>
 
           <span className="font-helvetica text-[10px] tracking-[0.04em] text-[#33322f]/60 uppercase sm:text-[12px]">
             {visible.length} of {projects.length}
@@ -163,7 +236,7 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
         // stale page size for one extra render) or reading a ref during render (which this
         // project's stricter React Compiler lint rules disallow, since the compiler needs to
         // assume a component with the same key is safe to treat as unchanged across renders).
-        <PaginatedGrid key={`${sort}|${venue}|${category}|${status}|${type}`} projects={visible} />
+        <PaginatedGrid key={`${search}|${sort}|${venue}|${category}|${status}|${type}`} projects={visible} />
       )}
     </>
   );
@@ -206,6 +279,8 @@ function PaginatedGrid({ projects }: { projects: Project[] }) {
       <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {projects.slice(0, visibleCount).map((project) => {
           const categoryList = project.categories ? project.categories.split(",").map((c) => c.trim()).filter(Boolean) : [];
+          const liveUrl = safeProjectLink(project.projectUrl);
+          const codeUrl = safeProjectLink(project.sourceCodeUrl);
 
           return (
             <li key={project.id} className="flex h-full flex-col gap-3 rounded-2xl border border-black/10 p-3">
@@ -253,11 +328,11 @@ function PaginatedGrid({ projects }: { projects: Project[] }) {
                 )}
               </div>
 
-              {(project.projectUrl || project.sourceCodeUrl) && (
+              {(liveUrl || codeUrl) && (
                 <div className="flex flex-wrap gap-2 px-1">
-                  {project.projectUrl && (
+                  {liveUrl && (
                     <a
-                      href={project.projectUrl}
+                      href={liveUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="font-helvetica rounded-full bg-[#0e0e0d] px-3 py-1.5 text-[11px] tracking-[0.06em] text-white uppercase transition-transform hover:scale-105"
@@ -265,9 +340,9 @@ function PaginatedGrid({ projects }: { projects: Project[] }) {
                       live
                     </a>
                   )}
-                  {project.sourceCodeUrl && (
+                  {codeUrl && (
                     <a
-                      href={project.sourceCodeUrl}
+                      href={codeUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="font-helvetica rounded-full border border-black/10 px-3 py-1.5 text-[11px] tracking-[0.06em] text-[#33322f] uppercase transition-transform hover:scale-105"
