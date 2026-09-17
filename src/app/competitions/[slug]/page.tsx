@@ -103,8 +103,11 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
             </h1>
             <Link
               href="/competitions"
-              className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
+              className="font-helvetica inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
             >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               all competitions
             </Link>
           </div>

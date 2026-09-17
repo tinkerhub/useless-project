@@ -121,7 +121,7 @@ export default function SubmissionForm({ competition }: { competition: Competiti
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="font-helvetica mt-1 rounded-full bg-[#0e0e0d] px-5 py-3 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-[1.02] disabled:opacity-50"
+        className="font-helvetica mt-1 rounded-full bg-[#ea34df] px-5 py-3 text-[13px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-[1.02] disabled:opacity-50"
       >
         {status === "submitting" ? "Submitting..." : "Submit"}
       </button>

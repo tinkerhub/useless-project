@@ -85,7 +85,7 @@ export default function CompetitionsIndexPage() {
                 </span>
 
                 {competition.submitVia ? (
-                  <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full bg-[#0e0e0d] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-white uppercase transition-colors group-hover:bg-[#33322f]">
+                  <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full bg-[#ea34df] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-white uppercase transition-colors group-hover:brightness-90">
                     submit entry
                   </span>
                 ) : (
