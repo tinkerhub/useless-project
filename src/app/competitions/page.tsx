@@ -9,10 +9,11 @@ export const metadata: Metadata = {
   description: "Side-quest competitions running alongside Useless Projects, and how to submit for each.",
 };
 
-// These two ship as a video/footage submission rather than a write-up, so the card sends people
-// straight to the form instead of a "know more" detour - and its own color (solid black, not the
-// pink outline every other card uses) flags that it behaves differently before they even click.
-const SUBMIT_DIRECT_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie"]);
+// These ship as a direct link submission (video/reel or GitHub Pages URL) rather than a write-up,
+// so the card sends people straight to the form instead of a "know more" detour - and its own
+// color (solid black, not the pink outline every other card uses) flags that it behaves
+// differently before they even click.
+const SUBMIT_DIRECT_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie", "journal-repo"]);
 
 export default function CompetitionsIndexPage() {
   return (

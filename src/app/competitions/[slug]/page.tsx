@@ -7,12 +7,12 @@ import BadgeFallback from "../../badge-fallback";
 import { COMPETITIONS, getCompetition } from "@/lib/competitions";
 import SubmissionForm from "../submission-form";
 
-// These two ship as a video/footage submission rather than a write-up - visitors land here to
-// submit, not to read about it, so the form surfaces right under the intro instead of waiting
-// after the full write-up (see the matching set in ../page.tsx, which sends the "submit here"
-// card here). Still after the header and "what we mean", not literally the first thing on the
-// page - a submit button with no idea what it's submitting to reads as broken, not fast.
-const SUBMIT_FIRST_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie"]);
+// These ship as a direct link submission (video/reel or GitHub Pages URL) rather than a write-up -
+// visitors land here to submit, not to read about it, so the form surfaces right under the intro
+// instead of waiting after the full write-up (see the matching set in ../page.tsx, which sends the
+// "submit here" card here). Still after the header and "what we mean", not literally the first
+// thing on the page - a submit button with no idea what it's submitting to reads as broken, not fast.
+const SUBMIT_FIRST_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie", "journal-repo"]);
 
 export function generateStaticParams() {
   return COMPETITIONS.map((c) => ({ slug: c.slug }));

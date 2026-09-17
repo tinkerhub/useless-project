@@ -20,8 +20,10 @@ export default function SubmissionForm({ competition }: { competition: Competiti
       slug: competition.slug,
       name: form.get("name"),
       campus: form.get("campus"),
+      ...(competition.extraFields?.teamName ? { teamName: form.get("teamName") || undefined } : {}),
+      ...(competition.extraFields?.projectName ? { projectName: form.get("projectName") } : {}),
       link: form.get("link"),
-      notes: form.get("notes") || undefined,
+      notes: competition.hideNotes ? undefined : form.get("notes") || undefined,
     };
 
     try {
@@ -75,6 +77,25 @@ export default function SubmissionForm({ competition }: { competition: Competiti
         </select>
       </label>
 
+      {competition.extraFields?.teamName && (
+        <label className="flex flex-col gap-1.5">
+          <span className="font-helvetica text-[13px] tracking-[0.04em] text-[#33322f] uppercase">
+            Team name <span className="normal-case text-[#33322f]/50">(optional)</span>
+          </span>
+          <input name="teamName" maxLength={100} className={INPUT_CLASS} placeholder="Team name, if applicable" />
+          <span className="font-helvetica text-[12px] font-bold text-[#ea34df]">
+            Only one teammate needs to submit this form on the team&apos;s behalf.
+          </span>
+        </label>
+      )}
+
+      {competition.extraFields?.projectName && (
+        <label className="flex flex-col gap-1.5">
+          <span className="font-helvetica text-[13px] tracking-[0.04em] text-[#33322f] uppercase">Project name</span>
+          <input name="projectName" required minLength={2} maxLength={150} className={INPUT_CLASS} placeholder="Project name" />
+        </label>
+      )}
+
       <label className="flex flex-col gap-1.5">
         <span className="font-helvetica text-[13px] tracking-[0.04em] text-[#33322f] uppercase">{competition.linkLabel}</span>
         <input
@@ -86,12 +107,14 @@ export default function SubmissionForm({ competition }: { competition: Competiti
         />
       </label>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="font-helvetica text-[13px] tracking-[0.04em] text-[#33322f] uppercase">
-          Notes <span className="normal-case text-[#33322f]/50">(optional)</span>
-        </span>
-        <textarea name="notes" maxLength={500} rows={3} className={INPUT_CLASS} placeholder="Project name, team, anything we should know" />
-      </label>
+      {!competition.hideNotes && (
+        <label className="flex flex-col gap-1.5">
+          <span className="font-helvetica text-[13px] tracking-[0.04em] text-[#33322f] uppercase">
+            Notes <span className="normal-case text-[#33322f]/50">(optional)</span>
+          </span>
+          <textarea name="notes" maxLength={500} rows={3} className={INPUT_CLASS} placeholder="Project name, team, anything we should know" />
+        </label>
+      )}
 
       {status === "error" && <p className="font-helvetica text-[14px] text-[#c0326b]">{error}</p>}
 
