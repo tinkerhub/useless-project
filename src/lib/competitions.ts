@@ -106,7 +106,7 @@ export const COMPETITIONS: Competition[] = [
   },
   {
     slug: "journal-repo",
-    airtableTableId: "REPLACE_WITH_JOURNAL_TABLE_ID",
+    airtableTableId: "tbl4gDRw4vXj4K4uA",
     prizeLabel: "project journal",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
     image: "/handbook/journal.webp",
