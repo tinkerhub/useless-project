@@ -23,13 +23,21 @@ export function submissionsTag(tableId: string) {
   return `airtable-submissions-${tableId}`;
 }
 
+// Shared across two kinds of tables: the per-competition link tables (Name, Campus, Submission
+// Link required) and the single shared "Competition Entries" table used by every project-pick
+// competition (Project Name, Campus, Competition required instead - see submit-project/route.ts).
+// Everything is optional here since which fields are actually required depends on which table a
+// given write targets, not on this shared type.
 export type SubmissionFields = {
-  Name: string;
+  Name?: string;
   Campus: string;
-  "Submission Link": string;
+  "Submission Link"?: string;
   Notes?: string;
   "Team Name"?: string;
   "Project Name"?: string;
+  Competition?: string;
+  "Project Link"?: string;
+  "Project ID"?: number;
 };
 
 // Airtable's 5 requests/second-per-base throttle returns 429 on a burst (e.g. several people

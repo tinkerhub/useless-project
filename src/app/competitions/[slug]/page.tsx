@@ -6,13 +6,7 @@ import InstagramEmbed from "../../handbook/instagram-embed";
 import BadgeFallback from "../../badge-fallback";
 import { COMPETITIONS, getCompetition } from "@/lib/competitions";
 import SubmissionForm from "../submission-form";
-
-// These ship as a direct link submission (video/reel or GitHub Pages URL) rather than a write-up -
-// visitors land here to submit, not to read about it, so the form surfaces right under the intro
-// instead of waiting after the full write-up (see the matching set in ../page.tsx, which sends the
-// "submit here" card here). Still after the header and "what we mean", not literally the first
-// thing on the page - a submit button with no idea what it's submitting to reads as broken, not fast.
-const SUBMIT_FIRST_SLUGS = new Set(["best-build-video-documentary", "venue-aftermovie", "journal-repo"]);
+import ProjectSubmissionForm from "../project-submission-form";
 
 export function generateStaticParams() {
   return COMPETITIONS.map((c) => ({ slug: c.slug }));
@@ -31,9 +25,14 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
   const competition = getCompetition(slug);
   if (!competition) notFound();
 
-  const submitFirst = SUBMIT_FIRST_SLUGS.has(competition.slug);
+  // The picker (project-pick competitions) and the link form (link-submission competitions) are
+  // both real calls to action, not a write-up - visitors land here to submit, not to read about
+  // it, so either surfaces right under the intro instead of waiting after the full write-up. Still
+  // after the header and "what we mean", not literally the first thing on the page - a submit
+  // control with no idea what it's submitting to reads as broken, not fast.
+  const submitFirst = Boolean(competition.submitVia);
 
-  const submitSection = competition.autoJudged ? (
+  const submitSection = !competition.submitVia ? (
     <section className="flex flex-col gap-3">
       <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
         nothing to submit here
@@ -49,14 +48,20 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
         <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
           submit
         </h2>
-        <Link
-          href="/submissions"
-          className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
-        >
-          see submissions
-        </Link>
+        {competition.submitVia === "link" && (
+          <Link
+            href="/submissions"
+            className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
+          >
+            see submissions
+          </Link>
+        )}
       </div>
-      <SubmissionForm competition={competition} />
+      {competition.submitVia === "project" ? (
+        <ProjectSubmissionForm competition={competition} />
+      ) : (
+        <SubmissionForm competition={competition} />
+      )}
     </section>
   );
 
@@ -89,7 +94,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
               </span>
             )}
             <span className="font-helvetica rounded-full bg-[#ea34df]/10 px-2.5 py-1 text-[10px] tracking-[0.06em] text-[#ea34df] uppercase">
-              {competition.autoJudged ? "auto-judged" : "submit entry"}
+              {competition.submitVia ? "submit entry" : "auto-judged"}
             </span>
           </span>
           <div className="flex flex-wrap items-center justify-between gap-4">
