@@ -44,22 +44,17 @@ export default function CompetitionsIndexPage() {
               >
                 {/* Fixed slot whether it's a real badge image or the fallback seal, so a
                     competition without art yet doesn't sit at a different height than its
-                    neighbours. Tags overlay the top of it as small chips rather than taking up
-                    their own row below - constrained to the column's own width (inset-x-0, not
-                    just left-0) so a long tag wraps instead of overflowing into the next column. */}
+                    neighbours. The venue-exclusive tag overlays the top of it as a small chip
+                    rather than taking up its own row below - constrained to the column's own
+                    width (inset-x-0, not just left-0) so a long tag wraps instead of overflowing
+                    into the next column. Submittability is already called out by the pill under
+                    the card, so it doesn't need a second badge up here too. */}
                 <div className="relative flex w-full items-center justify-center" style={{ height: 150 }}>
-                  {(competition.venueExclusive || competition.submitVia) && (
+                  {competition.venueExclusive && (
                     <span className="absolute inset-x-0 top-0 flex flex-col items-start gap-1">
-                      {competition.venueExclusive && (
-                        <span className="font-helvetica rounded-full bg-[#244638] px-2 py-0.5 text-[9px] tracking-[0.05em] text-white uppercase">
-                          venue exclusive
-                        </span>
-                      )}
-                      {competition.submitVia && (
-                        <span className="font-helvetica rounded-full bg-[#ea34df] px-2 py-0.5 text-[9px] tracking-[0.05em] text-white uppercase">
-                          submit entry
-                        </span>
-                      )}
+                      <span className="font-helvetica rounded-full bg-[#244638] px-2 py-0.5 text-[9px] tracking-[0.05em] text-white uppercase">
+                        venue exclusive
+                      </span>
                     </span>
                   )}
                   {competition.image ? (
@@ -91,7 +86,7 @@ export default function CompetitionsIndexPage() {
 
                 {competition.submitVia ? (
                   <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full bg-[#0e0e0d] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-white uppercase transition-colors group-hover:bg-[#33322f]">
-                    {competition.submitVia === "project" ? "enter project" : "submit here"}
+                    submit entry
                   </span>
                 ) : (
                   <span className="font-helvetica mt-1 inline-flex items-center gap-1 rounded-full border border-[#ea34df] px-3 py-1 text-[10px] font-bold tracking-[0.05em] text-[#ea34df] uppercase transition-colors group-hover:bg-[#ea34df] group-hover:text-white">
