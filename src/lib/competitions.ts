@@ -22,7 +22,9 @@ export type Competition = {
   samples: { title: string; permalink?: string; youtubeId?: string }[];
   // Hostnames (no "www.") the submission link must belong to, and the label/placeholder shown
   // on the form's link field - a video competition wants Instagram/YouTube, a repo-based one
-  // wants GitHub, etc. Not needed when `autoJudged` is set, since there's no link field to submit.
+  // wants GitHub, etc. An empty array means any host is accepted (e.g. a journal page could be
+  // hosted anywhere, not just GitHub Pages). Not needed when `autoJudged` is set, since there's
+  // no link field to submit.
   linkHosts?: string[];
   linkLabel?: string;
   linkPlaceholder?: string;
@@ -123,7 +125,7 @@ export const COMPETITIONS: Competition[] = [
       "Judged on storytelling style, visual documentation (photos/GIFs), depth of technical learning, and creative web layout/design.",
     ],
     samples: [],
-    linkHosts: ["github.io"],
+    linkHosts: [],
     linkLabel: "Live link",
     linkPlaceholder: "https://username.github.io/repo/journal/",
     extraFields: { teamName: true, projectName: true },

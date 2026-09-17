@@ -11,6 +11,9 @@ function isValidSubmissionLink(link: string, allowedHosts: string[]) {
   try {
     const url = new URL(link);
     if (url.protocol !== "https:" && url.protocol !== "http:") return false;
+    // An empty allow-list means any host is fine (e.g. a journal page can live on GitHub Pages,
+    // Vercel, Netlify, or a custom domain) - just require a well-formed http(s) URL.
+    if (allowedHosts.length === 0) return true;
     const host = url.hostname.replace(/^www\./, "");
     // Exact match for fixed hosts (instagram.com), or a subdomain match for hosts that vary per
     // submitter (e.g. github.io - each entry lives at a different <username>.github.io).
