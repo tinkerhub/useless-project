@@ -36,7 +36,13 @@ export async function POST(request: Request) {
   const { slug, name, campus, link, notes, teamName, projectName } = body as Record<string, unknown>;
 
   const competition = typeof slug === "string" ? getCompetition(slug) : undefined;
-  if (!competition || competition.autoJudged || !competition.airtableTableId || !competition.linkHosts || !competition.linkLabel) {
+  if (
+    !competition ||
+    competition.submitVia !== "link" ||
+    !competition.airtableTableId ||
+    !competition.linkHosts ||
+    !competition.linkLabel
+  ) {
     return NextResponse.json({ error: "Unknown competition." }, { status: 400 });
   }
 

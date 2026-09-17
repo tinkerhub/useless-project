@@ -3,11 +3,13 @@
 // /competitions index, and the detail page all render straight off this array.
 export type Competition = {
   slug: string;
-  // Each competition writes to its own table in the "Useless Projects - Competitions" Airtable
-  // base, rather than sharing one table filtered by a "Competition" field - Airtable wouldn't let
-  // this token add new options to a shared singleSelect field, and a table per competition sidesteps
-  // that entirely. IDs come from src/lib/airtable.ts's TABLE_IDS map. Omitted for an `autoJudged`
-  // competition, which has no separate submission to store.
+  // Link-submission competitions (submitVia: "link") each write to their own table in the
+  // "Useless Projects - Competitions" Airtable base - a shared table with a "Competition" field
+  // wasn't an option there, because Airtable wouldn't let this token add new options to a shared
+  // singleSelect field at write time. Project-pick competitions (submitVia: "project") don't hit
+  // that problem, since every competition that will ever pick from that table is known upfront -
+  // so they all point at the same "Competition Entries" table, tagged by the Competition field
+  // (whose choices were all created once, up front, rather than added on the fly).
   airtableTableId?: string;
   prizeLabel: string;
   prizeText: string;
@@ -23,21 +25,24 @@ export type Competition = {
   // Hostnames (no "www.") the submission link must belong to, and the label/placeholder shown
   // on the form's link field - a video competition wants Instagram/YouTube, a repo-based one
   // wants GitHub, etc. An empty array means any host is accepted (e.g. a journal page could be
-  // hosted anywhere, not just GitHub Pages). Not needed when `autoJudged` is set, since there's
-  // no link field to submit.
+  // hosted anywhere, not just GitHub Pages). Only used when `submitVia` is "link".
   linkHosts?: string[];
   linkLabel?: string;
   linkPlaceholder?: string;
   // Extra named fields the form should collect beyond name/campus/link - "team name" is optional
   // since a journal entry can be a solo effort, "project name" is required so judges looking at a
-  // pile of links (often under a generic personal name) can tell entries apart.
+  // pile of links (often under a generic personal name) can tell entries apart. Only used when
+  // `submitVia` is "link" (a "project" competition already gets both from the picked project).
   extraFields?: { teamName?: boolean; projectName?: boolean };
   // Skips the generic "notes" textarea for competitions whose form already has dedicated fields
   // covering what notes would otherwise be used for (team/project name).
   hideNotes?: boolean;
-  // True for a prize judged straight off the normal Hub app project submission - no separate
-  // entry to fill in, so the detail page skips the "submit" section entirely.
-  autoJudged?: boolean;
+  // How this competition's entry is collected. "link" is the name/campus/link form
+  // (SubmissionForm). "project" is a search-and-pick flow over projects already submitted through
+  // the Hub app (ProjectSubmissionForm) - the entrant searches their own project, picks it, and
+  // its name/team/campus are submitted as-is, tagged with this competition in the shared
+  // "Competition Entries" table. Omitted means there's genuinely nothing to submit for this prize.
+  submitVia?: "link" | "project";
   // True when this is entered per venue (by the venue host, on behalf of everyone there) rather
   // than per individual participant/team - venue aftermovie is the only one of these right now.
   venueExclusive?: boolean;
@@ -71,6 +76,7 @@ export const COMPETITIONS: Competition[] = [
       "Judged on pacing, storytelling energy, clarity of team contribution, and how well the technical journey is explained in a short time.",
     ],
     samples: [],
+    submitVia: "link",
     linkHosts: ["instagram.com"],
     linkLabel: "Instagram link",
     linkPlaceholder: "https://instagram.com/reel/...",
@@ -100,6 +106,7 @@ export const COMPETITIONS: Competition[] = [
     ],
     samples: [],
     venueExclusive: true,
+    submitVia: "link",
     linkHosts: ["instagram.com"],
     linkLabel: "Instagram link",
     linkPlaceholder: "https://instagram.com/reel/...",
@@ -126,6 +133,7 @@ export const COMPETITIONS: Competition[] = [
       "Judged on storytelling style, visual documentation (photos/GIFs), depth of technical learning, and creative web layout/design.",
     ],
     samples: [],
+    submitVia: "link",
     linkHosts: [],
     linkLabel: "Live link",
     linkPlaceholder: "https://username.github.io/repo/journal/",
@@ -139,16 +147,17 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/llm.webp",
     tagline: "For the project that ran its AI on-device or self-hosted, not just an OpenAI API key in a .env file.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission using a local/self-hosted LLM is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission using a local/self-hosted LLM is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "A model running locally or self-hosted (Ollama, llama.cpp, a local inference server, etc.) doing real work in your project - not just calling a hosted API. This also covers lightweight AI models or computer vision running directly on microcontrollers, low-power microchips, or single-board computers (ESP32, Raspberry Pi) - smart intelligence without the cloud.",
     guidelines: [
       "The LLM actually runs locally/self-hosted, not through a third-party hosted API.",
-      "Submitted through the Hub app like every other project.",
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
       "Mention the model and how it's run in your README, so it's easy to verify.",
     ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-pcb-design",
@@ -157,12 +166,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/processor.webp",
     tagline: "Awarded for exceptional circuit design.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every hardware submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every hardware submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Clean trace routing, smart component selection, custom form factors, or artistic PCB solder-mask designs.",
-    guidelines: ["Submitted through the Hub app like every other project.", "Document the board in your README - schematics and photos help it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Document the board in your README - schematics and photos help it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-3d-printed-assembly",
@@ -171,12 +184,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/3d.webp",
     tagline: "For the physical builders pushing additive manufacturing to the limit.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Tight mechanical tolerances, print-in-place moving mechanisms, multi-material prints, or intricate geometric enclosures.",
-    guidelines: ["Submitted through the Hub app like every other project.", "Photos of the print (and the print-in-place mechanism, if any) help it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Photos of the print (and the print-in-place mechanism, if any) help it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-reverse-engineering-hack",
@@ -185,12 +202,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/revverse.webp",
     tagline: "Taking an existing commercial product or discarded e-waste and repurposing it.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Tearing down an existing commercial product or discarded e-waste and repurposing its internal parts into something completely unexpected.",
-    guidelines: ["Submitted through the Hub app like every other project.", "Before/after photos of the teardown help it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Before/after photos of the teardown help it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-interactive-installation",
@@ -199,12 +220,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/display.webp",
     tagline: "For projects meant to be experienced in a physical room.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Kinetic sculptures, audio-reactive light structures, dynamic projection mapping, or physical ambient art driven by sensors.",
-    guidelines: ["Submitted through the Hub app like every other project.", "A video of the installation in action helps it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "A video of the installation in action helps it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-fashion-tech-wearables",
@@ -213,12 +238,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/fashion.webp",
     tagline: "Merging electronics seamlessly into style.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Textiles, soft circuits, flexible displays, smart materials, or biometrics, incorporated into wearable clothing, jewelry, or accessories.",
-    guidelines: ["Submitted through the Hub app like every other project.", "Photos of it worn help it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Photos of it worn help it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-superhero-sci-fi-gadget",
@@ -227,12 +256,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/superhero.webp",
     tagline: "Bring comic book logic into the real world.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "A working physical replica or adaptation of an iconic superhero or sci-fi tool - wrist-mounted launchers, mechanical helmets, grappling hooks, or exoskeleton arms.",
-    guidelines: ["Submitted through the Hub app like every other project.", "A demo video of it working helps it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "A demo video of it working helps it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-custom-input-device",
@@ -241,12 +274,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/gaem.webp",
     tagline: "Toss out the standard mouse and keyboard.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "A unique, physical hardware controller designed specifically to control a game or digital software experience in an unusual way.",
-    guidelines: ["Submitted through the Hub app like every other project.", "A demo video of it controlling something helps it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "A demo video of it controlling something helps it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-game-interactive-media",
@@ -255,11 +292,15 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/game-interactive.webp",
     tagline: "Awarded to standout digital games or narrative software.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean: "Evaluated on core gameplay mechanics, artwork, sound design, and interactive storytelling.",
-    guidelines: ["Submitted through the Hub app like every other project.", "A playable build or gameplay video helps it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "A playable build or gameplay video helps it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-retro-futurism-hack",
@@ -268,12 +309,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/retro-futurism.webp",
     tagline: "Old tech meets new code.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Hacking vintage or legacy technology (CRT televisions, cassette players, dial phones, floppy drives) to interface with modern microcontrollers and digital systems.",
-    guidelines: ["Submitted through the Hub app like every other project.", "Show the vintage piece and the modern side talking to each other."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Show the vintage piece and the modern side talking to each other.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-system-integration",
@@ -282,12 +327,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/finished-project.webp",
     tagline: "Rewarding complex communication pipelines.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "How seamlessly you can stitch together mismatched APIs, custom hardware protocols, databases, and microservices into one cohesive system.",
-    guidelines: ["Submitted through the Hub app like every other project.", "A system/architecture diagram in your README helps it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "A system/architecture diagram in your README helps it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "best-bio-materials-tech",
@@ -296,12 +345,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/bio-materials.webp",
     tagline: "Experimenting with non-standard physical materials.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "Hydroponics, bio-sensors, living organisms, or custom sustainable biomaterials (mycelium, algae) incorporated into your build.",
-    guidelines: ["Submitted through the Hub app like every other project.", "Photos documenting the material/organism over time help it get judged well."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Photos documenting the material/organism over time help it get judged well.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
   {
     slug: "most-over-engineered-solution",
@@ -310,12 +363,16 @@ export const COMPETITIONS: Competition[] = [
     image: "/handbook/hardware.webp",
     tagline: "The ultimate trophy for unnecessary engineering.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from the project you submit in the Hub app. Every submission is automatically in the running.",
+      "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
     whatWeMean:
       "An overly complex, multi-stage, absurdly complicated machine or system to accomplish a completely trivial task (say, 48 hours to automate turning a light switch on).",
-    guidelines: ["Submitted through the Hub app like every other project.", "Document every unnecessary stage - that's the whole point."],
+    guidelines: [
+      "Submitted through the Hub app like every other project, then entered for this prize below.",
+      "Document every unnecessary stage - that's the whole point.",
+    ],
     samples: [],
-    autoJudged: true,
+    submitVia: "project",
+    airtableTableId: "tblwey1rsPOPExkTX",
   },
 ];
 

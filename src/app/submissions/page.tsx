@@ -10,10 +10,13 @@ export const metadata: Metadata = {
 };
 
 export default async function SubmissionsPage() {
-  // Auto-judged prizes (best hardware/finished project, local LLMs) have no separate submission
-  // table - they're judged straight off the normal project submission, so there's nothing here to list.
+  // Only the link-submission competitions (reels, the journal) get their own section here - each
+  // has its own table of Name/Campus/Submission Link records. Project-pick competitions all share
+  // one "Competition Entries" table tagged by Competition, which listVisibleSubmissions doesn't
+  // know how to split back out per competition, and whose records don't have a "Name"/"Submission
+  // Link" shape anyway - those entries live in Airtable, not on this public page.
   const sections = await Promise.all(
-    COMPETITIONS.filter((competition) => competition.airtableTableId).map(async (competition) => ({
+    COMPETITIONS.filter((competition) => competition.submitVia === "link" && competition.airtableTableId).map(async (competition) => ({
       competition,
       submissions: await listVisibleSubmissions(competition.airtableTableId!),
     }))
