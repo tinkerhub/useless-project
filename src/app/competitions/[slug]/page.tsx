@@ -27,9 +27,8 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
 
   // The picker (project-pick competitions) and the link form (link-submission competitions) are
   // both real calls to action, not a write-up - visitors land here to submit, not to read about
-  // it, so either surfaces right under the intro instead of waiting after the full write-up. Still
-  // after the header and "what we mean", not literally the first thing on the page - a submit
-  // control with no idea what it's submitting to reads as broken, not fast.
+  // it, so either surfaces right under the header, before any of the write-up (including "what we
+  // mean"), rather than making someone scroll past prose to find the actual thing to do.
   const submitFirst = Boolean(competition.submitVia);
 
   const submitSection = !competition.submitVia ? (
@@ -122,9 +121,9 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           )}
         </header>
 
-        {whatWeMeanSection}
-
         {submitFirst && submitSection}
+
+        {whatWeMeanSection}
 
         <section className="flex flex-col gap-3">
           <h2 className="font-drowner leading-[1] text-[#0e0e0d]" style={{ fontSize: "clamp(22px, 3vw, 28px)" }}>
