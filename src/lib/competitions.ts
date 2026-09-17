@@ -109,6 +109,7 @@ export const COMPETITIONS: Competition[] = [
     airtableTableId: "tbl4gDRw4vXj4K4uA",
     prizeLabel: "project journal",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
+    deadline: "September 20, 2026",
     image: "/handbook/journal.webp",
     tagline: "Document your entire project-building process in a fun, engaging, creative narrative - hosted as its own page on GitHub Pages, not just a README.",
     howToRedeem:
