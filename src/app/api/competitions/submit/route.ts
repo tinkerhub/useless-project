@@ -12,7 +12,9 @@ function isValidSubmissionLink(link: string, allowedHosts: string[]) {
     const url = new URL(link);
     if (url.protocol !== "https:" && url.protocol !== "http:") return false;
     const host = url.hostname.replace(/^www\./, "");
-    return allowedHosts.includes(host);
+    // Exact match for fixed hosts (instagram.com), or a subdomain match for hosts that vary per
+    // submitter (e.g. github.io - each entry lives at a different <username>.github.io).
+    return allowedHosts.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
   } catch {
     return false;
   }
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { slug, name, campus, link, notes } = body as Record<string, unknown>;
+  const { slug, name, campus, link, notes, teamName, projectName } = body as Record<string, unknown>;
 
   const competition = typeof slug === "string" ? getCompetition(slug) : undefined;
   if (!competition || competition.autoJudged || !competition.airtableTableId || !competition.linkHosts || !competition.linkLabel) {
@@ -47,6 +49,12 @@ export async function POST(request: Request) {
   if (notes !== undefined && (typeof notes !== "string" || notes.length > 500)) {
     return NextResponse.json({ error: "Notes are too long." }, { status: 400 });
   }
+  if (competition.extraFields?.teamName && teamName !== undefined && (typeof teamName !== "string" || teamName.length > 100)) {
+    return NextResponse.json({ error: "Team name is too long." }, { status: 400 });
+  }
+  if (competition.extraFields?.projectName && (typeof projectName !== "string" || projectName.trim().length < 2 || projectName.trim().length > 150)) {
+    return NextResponse.json({ error: "Enter the project name." }, { status: 400 });
+  }
 
   try {
     await createSubmission(competition.airtableTableId, {
@@ -54,6 +62,8 @@ export async function POST(request: Request) {
       Campus: campus,
       "Submission Link": link,
       ...(notes ? { Notes: notes } : {}),
+      ...(competition.extraFields?.teamName && typeof teamName === "string" && teamName.trim() ? { "Team Name": teamName.trim() } : {}),
+      ...(competition.extraFields?.projectName ? { "Project Name": (projectName as string).trim() } : {}),
     });
   } catch (error) {
     console.error("Competition submission failed:", error);

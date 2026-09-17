@@ -26,6 +26,13 @@ export type Competition = {
   linkHosts?: string[];
   linkLabel?: string;
   linkPlaceholder?: string;
+  // Extra named fields the form should collect beyond name/campus/link - "team name" is optional
+  // since a journal entry can be a solo effort, "project name" is required so judges looking at a
+  // pile of links (often under a generic personal name) can tell entries apart.
+  extraFields?: { teamName?: boolean; projectName?: boolean };
+  // Skips the generic "notes" textarea for competitions whose form already has dedicated fields
+  // covering what notes would otherwise be used for (team/project name).
+  hideNotes?: boolean;
   // True for a prize judged straight off the normal Hub app project submission - no separate
   // entry to fill in, so the detail page skips the "submit" section entirely.
   autoJudged?: boolean;
@@ -97,15 +104,17 @@ export const COMPETITIONS: Competition[] = [
   },
   {
     slug: "journal-repo",
+    airtableTableId: "REPLACE_WITH_JOURNAL_TABLE_ID",
     prizeLabel: "project journal",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
     image: "/handbook/journal.webp",
     tagline: "Document your entire project-building process in a fun, engaging, creative narrative - hosted as its own page on GitHub Pages, not just a README.",
     howToRedeem:
-      "Nothing extra to fill in - this is judged straight from your repo, submitted through the Hub app as usual. Create a new branch (e.g. journal or docs) in your project repo and deploy it via GitHub Pages, and every submission is automatically in the running.",
+      "Create a new branch (e.g. journal or docs) in your project repo and deploy it via GitHub Pages, then submit the link below with your name, campus, and project name. Submitting here is mandatory: having the page live on GitHub Pages alone doesn't enter you, only links submitted through this form are considered for judging. If you're on a team, only one member needs to submit on the team's behalf - not everyone individually. We review submissions after the hackathon and announce the winner alongside the other results.",
     whatWeMean:
       "Not a changelog - a story. The high points, the bugs that broke your spirit, and how you eventually fixed them, told day-by-day or hour-by-hour with text, photos, GIFs, and short clips.",
     guidelines: [
+      "Team entry: only one member needs to submit the form on the team's behalf, not every teammate.",
       "Markdown/HTML web page, hosted directly on GitHub Pages (a journal or docs branch of your project repo).",
       "The journey: a day-by-day or hour-by-hour build story with text, photos, GIFs, and short clips.",
       "Learnings & discoveries: new tools, concepts, or hardware you tried for the first time.",
@@ -114,7 +123,11 @@ export const COMPETITIONS: Competition[] = [
       "Judged on storytelling style, visual documentation (photos/GIFs), depth of technical learning, and creative web layout/design.",
     ],
     samples: [],
-    autoJudged: true,
+    linkHosts: ["github.io"],
+    linkLabel: "Live link",
+    linkPlaceholder: "https://username.github.io/repo/journal/",
+    extraFields: { teamName: true, projectName: true },
+    hideNotes: true,
   },
   {
     slug: "best-use-of-local-llms",

@@ -28,6 +28,8 @@ export type SubmissionFields = {
   Campus: string;
   "Submission Link": string;
   Notes?: string;
+  "Team Name"?: string;
+  "Project Name"?: string;
 };
 
 // Airtable's 5 requests/second-per-base throttle returns 429 on a burst (e.g. several people
