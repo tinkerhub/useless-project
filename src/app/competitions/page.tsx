@@ -3,6 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import BadgeFallback from "../badge-fallback";
 import { COMPETITIONS } from "@/lib/competitions";
+import DeadlineBanner from "./deadline-banner";
+
+// Earliest deadline across every competition on this page - if they ever diverge again, the
+// banner should still warn about whichever one is coming up soonest rather than the last one in
+// the array.
+const nextDeadline = COMPETITIONS.map((c) => c.deadline)
+  .filter((d): d is string => Boolean(d))
+  .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
 
 export const metadata: Metadata = {
   title: "Competitions · Useless Projects",
@@ -13,6 +21,8 @@ export default function CompetitionsIndexPage() {
   return (
     <main data-page="handbook" className="w-full overflow-x-hidden bg-white text-[#0e0e0d]">
       <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-8 px-5 py-14 sm:px-8 sm:py-20">
+        {nextDeadline && <DeadlineBanner deadline={nextDeadline} />}
+
         <header className="flex flex-col gap-3">
           {/* Column on mobile, row from sm: up - see the matching comment in submissions/page.tsx
               for why (a same-line button here landed right against the fixed "menu" pill). */}

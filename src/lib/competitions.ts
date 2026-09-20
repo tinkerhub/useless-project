@@ -46,8 +46,8 @@ export type Competition = {
   // True when this is entered per venue (by the venue host, on behalf of everyone there) rather
   // than per individual participant/team - venue aftermovie is the only one of these right now.
   venueExclusive?: boolean;
-  // Pre-formatted for display on the detail page, rather than an ISO string parsed at render
-  // time - there's no countdown or reminder logic reading this, just text shown as-is.
+  // Pre-formatted for display on the detail page, but still parseable as a date - the
+  // competitions index also reads this to compute how many days are left for its deadline banner.
   deadline?: string;
 };
 
@@ -57,7 +57,7 @@ export const COMPETITIONS: Competition[] = [
     airtableTableId: "tblhvFymbFDdqZsi4",
     prizeLabel: "video journal / build log",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
-    deadline: "September 20, 2026",
+    deadline: "September 21, 2026",
     image: "/handbook/build-documentary.webp",
     tagline:
       "Compress your entire hackathon experience into a fast-paced, entertaining video build log - your project coming to life from scratch in under 90 seconds.",
@@ -86,7 +86,7 @@ export const COMPETITIONS: Competition[] = [
     airtableTableId: "tbl1Ef5OIVaJ6Wa98",
     prizeLabel: "venue after-movie",
     prizeText: "Top 3 venues get a ₹5,000-worth hardware kit each.",
-    deadline: "September 20, 2026",
+    deadline: "September 21, 2026",
     image: "/handbook/aftermovie-venue.webp",
     tagline:
       "Capture the vibe, energy, and atmosphere of the entire event - the venue, the people, the late-night grinding, and the overall hackathon culture. Venue-exclusive: one entry per venue, submitted by the host, not individual participants.",
@@ -96,7 +96,7 @@ export const COMPETITIONS: Competition[] = [
       "The wide shot to the build log's close-up. Not one team's build process - the whole room: the energy, the food breaks, the late-night moments, what your venue actually felt like that night.",
     guidelines: [
       "Venue-exclusive: one submission per venue, from the host - not something individual teams enter separately.",
-      "Strictly under 2 minutes (≤ 2:00).",
+      "Under 5 minutes (≤ 5:00).",
       "Cinematic reel/video, posted on Instagram.",
       "Invite @tinkerhub as a collaborator, or tag @tinkerhub in the post.",
       "Venue & atmosphere: the hacking space, hardware tables, food breaks, late-night moments.",
@@ -116,7 +116,7 @@ export const COMPETITIONS: Competition[] = [
     airtableTableId: "tbl4gDRw4vXj4K4uA",
     prizeLabel: "project journal",
     prizeText: "Top 3 get a ₹3,000-worth hardware kit each.",
-    deadline: "September 20, 2026",
+    deadline: "September 21, 2026",
     image: "/handbook/journal.webp",
     tagline: "Document your entire project-building process in a fun, engaging, creative narrative - hosted as its own page on GitHub Pages, not just a README.",
     howToRedeem:
@@ -145,6 +145,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best use of local LLMs",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/llm.webp",
+    deadline: "September 21, 2026",
     tagline: "For the project that ran its AI on-device or self-hosted, not just an OpenAI API key in a .env file.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission using a local/self-hosted LLM is eligible - entering here is what puts it in the running for judging.",
@@ -164,6 +165,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best pcb design / custom hardware",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/processor.webp",
+    deadline: "September 21, 2026",
     tagline: "Awarded for exceptional circuit design.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every hardware submission is eligible - entering here is what puts it in the running for judging.",
@@ -182,6 +184,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "most complex 3d printed assembly",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/3d.webp",
+    deadline: "September 21, 2026",
     tagline: "For the physical builders pushing additive manufacturing to the limit.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -200,6 +203,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best reverse engineering / hardware hack",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/revverse.webp",
+    deadline: "September 21, 2026",
     tagline: "Taking an existing commercial product or discarded e-waste and repurposing it.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -218,6 +222,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best interactive physical installation",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/display.webp",
+    deadline: "September 21, 2026",
     tagline: "For projects meant to be experienced in a physical room.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -236,6 +241,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best fashion tech & wearables",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/fashion.webp",
+    deadline: "September 21, 2026",
     tagline: "Merging electronics seamlessly into style.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -254,6 +260,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best superhero / sci-fi gadget",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/superhero.webp",
+    deadline: "September 21, 2026",
     tagline: "Bring comic book logic into the real world.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -272,6 +279,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best custom input device / alternative controller",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/gaem.webp",
+    deadline: "September 21, 2026",
     tagline: "Toss out the standard mouse and keyboard.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -290,6 +298,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best game / interactive media",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/game-interactive.webp",
+    deadline: "September 21, 2026",
     tagline: "Awarded to standout digital games or narrative software.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -307,6 +316,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best retro-futurism / analog hack",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/retro-futurism.webp",
+    deadline: "September 21, 2026",
     tagline: "Old tech meets new code.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -325,6 +335,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best system integration",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/finished-project.webp",
+    deadline: "September 21, 2026",
     tagline: "Rewarding complex communication pipelines.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -343,6 +354,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "best bio / materials tech",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/bio-materials.webp",
+    deadline: "September 21, 2026",
     tagline: "Experimenting with non-standard physical materials.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -361,6 +373,7 @@ export const COMPETITIONS: Competition[] = [
     prizeLabel: "most over-engineered solution to a non-problem",
     prizeText: "₹2,000 worth of prizes.",
     image: "/handbook/hardware.webp",
+    deadline: "September 21, 2026",
     tagline: "The ultimate trophy for unnecessary engineering.",
     howToRedeem:
       "Submit your project through the Hub app as usual, then come back here, search for it below, and enter it for this prize. Every submission is eligible - entering here is what puts it in the running for judging.",
@@ -415,6 +428,7 @@ export const CAMPUSES = [
   "Jain University",
   "Jawaharlal College of Engineering and Technology, Lakkidi",
   "Jyothi Engineering College, Cheruthuruthy",
+  "KMEA College of Engineering, Edathala",
   "LBS College of Engineering, Povval",
   "LBS Institute of Technology for Women, Poojappura",
   "Lourdes Matha College of Science & Technology, Kutttichal",
