@@ -46,8 +46,8 @@ export type Competition = {
   // True when this is entered per venue (by the venue host, on behalf of everyone there) rather
   // than per individual participant/team - venue aftermovie is the only one of these right now.
   venueExclusive?: boolean;
-  // Pre-formatted for display on the detail page, rather than an ISO string parsed at render
-  // time - there's no countdown or reminder logic reading this, just text shown as-is.
+  // Pre-formatted for display on the detail page, but still parseable as a date - the
+  // competitions index also reads this to compute how many days are left for its deadline banner.
   deadline?: string;
 };
 
