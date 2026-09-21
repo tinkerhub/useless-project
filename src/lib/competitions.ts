@@ -393,6 +393,18 @@ export function getCompetition(slug: string) {
   return COMPETITIONS.find((c) => c.slug === slug);
 }
 
+// True once the server's clock has moved past the whole deadline day - a competition with no
+// deadline never closes on its own. Checked both when rendering the submit form (so the closed
+// state shows up server-side, no client flicker) and in the submit API routes themselves, since
+// the form being hidden doesn't stop a request being sent straight to the endpoint.
+export function isSubmissionClosed(competition: Competition) {
+  if (!competition.deadline) return false;
+  const deadlineDay = new Date(competition.deadline);
+  deadlineDay.setHours(0, 0, 0, 0);
+  deadlineDay.setDate(deadlineDay.getDate() + 1);
+  return Date.now() >= deadlineDay.getTime();
+}
+
 // The official list of venues eligible to submit for prizes across all competitions.
 export const CAMPUSES = [
   "Adi Shankara Institute of Engineering and Technology, Mattoor",

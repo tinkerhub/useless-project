@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import InstagramEmbed from "../../handbook/instagram-embed";
 import BadgeFallback from "../../badge-fallback";
-import { COMPETITIONS, getCompetition } from "@/lib/competitions";
+import { COMPETITIONS, getCompetition, isSubmissionClosed } from "@/lib/competitions";
 import SubmissionForm from "../submission-form";
 import ProjectSubmissionForm from "../project-submission-form";
 
@@ -30,6 +30,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
   // it, so either surfaces right under the header, before any of the write-up (including "what we
   // mean"), rather than making someone scroll past prose to find the actual thing to do.
   const submitFirst = Boolean(competition.submitVia);
+  const closed = isSubmissionClosed(competition);
 
   const submitSection = !competition.submitVia ? (
     <section className="flex flex-col gap-3">
@@ -56,7 +57,14 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
           </Link>
         )}
       </div>
-      {competition.submitVia === "project" ? (
+      {closed ? (
+        <div className="rounded-2xl border border-black/5 bg-[#33322f]/5 p-6">
+          <p className="font-nanum-pen text-[22px] leading-[1.3] text-[#33322f]">Submissions are closed.</p>
+          <p className="font-helvetica mt-1 text-[14px] text-[#33322f]">
+            The deadline for this competition has passed - we&apos;re no longer accepting entries.
+          </p>
+        </div>
+      ) : competition.submitVia === "project" ? (
         <ProjectSubmissionForm competition={competition} />
       ) : (
         <SubmissionForm competition={competition} />

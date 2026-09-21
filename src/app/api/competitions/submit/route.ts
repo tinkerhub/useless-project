@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { createSubmission, submissionsTag } from "@/lib/airtable";
-import { CAMPUSES, getCompetition } from "@/lib/competitions";
+import { CAMPUSES, getCompetition, isSubmissionClosed } from "@/lib/competitions";
 import { isRequestTooLarge } from "@/lib/request-guards";
 
 // A real payload here (a name, campus, link, and short notes) runs well under 1KB.
@@ -44,6 +44,10 @@ export async function POST(request: Request) {
     !competition.linkLabel
   ) {
     return NextResponse.json({ error: "Unknown competition." }, { status: 400 });
+  }
+
+  if (isSubmissionClosed(competition)) {
+    return NextResponse.json({ error: "Submissions for this competition are closed." }, { status: 403 });
   }
 
   if (typeof name !== "string" || name.trim().length < 2 || name.trim().length > 100) {
