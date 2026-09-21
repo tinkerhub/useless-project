@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { createSubmission, submissionsTag } from "@/lib/airtable";
-import { getCompetition } from "@/lib/competitions";
+import { getCompetition, isSubmissionClosed } from "@/lib/competitions";
 import { isRequestTooLarge } from "@/lib/request-guards";
 
 // A real payload here (a project id/name/team/campus and an optional link) runs well under 1KB.
@@ -22,6 +22,10 @@ export async function POST(request: Request) {
   const competition = typeof slug === "string" ? getCompetition(slug) : undefined;
   if (!competition || competition.submitVia !== "project" || !competition.airtableTableId) {
     return NextResponse.json({ error: "Unknown competition." }, { status: 400 });
+  }
+
+  if (isSubmissionClosed(competition)) {
+    return NextResponse.json({ error: "Submissions for this competition are closed." }, { status: 403 });
   }
 
   // The picker only ever offers projects Metabase already returned, so these come from that data
