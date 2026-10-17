@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listProjects } from "@/lib/metabase";
+import { TOP_PROJECT_IDS } from "@/lib/top-projects";
 import ProjectsGrid from "./projects-grid";
 
 export const metadata: Metadata = {
@@ -7,8 +8,13 @@ export const metadata: Metadata = {
   description: "Every project submitted for Useless Projects 3.0.",
 };
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const projects = await listProjects();
+  // /projects?filter=top (the results page's "view top projects" button) opens with only the top
+  // projects showing; the toggle on the page still turns it off.
+  const topOnly = (await searchParams).filter === "top";
+  // Only the ids that are actually in this list - the set itself never ships to the browser.
+  const topProjectIds = projects.filter((p) => TOP_PROJECT_IDS.has(p.id)).map((p) => p.id);
   const venueCount = new Set(projects.map((p) => p.venueName ?? p.campusName).filter(Boolean)).size;
 
   return (
@@ -49,7 +55,7 @@ export default async function ProjectsPage() {
             Nothing here yet - check back once teams start submitting.
           </p>
         ) : (
-          <ProjectsGrid projects={projects} />
+          <ProjectsGrid projects={projects} topProjectIds={topProjectIds} initialTopOnly={topOnly} />
         )}
       </div>
     </main>

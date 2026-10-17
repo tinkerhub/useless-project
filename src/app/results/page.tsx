@@ -60,6 +60,33 @@ export default function ResultsPage() {
     <main data-page="handbook" className="w-full overflow-x-clip bg-white text-[#0e0e0d]">
       <MainQuest />
 
+      {/* Once the last winner has scrolled past: the way on to every top project, which opens the
+          projects page with its "top projects" filter already on. Same black button and drawn
+          arrow as the hero's "see results". */}
+      <section className="flex w-full flex-col items-center gap-4 px-4 pt-10 pb-24 text-center">
+        <p className="font-nanum-pen text-[20px] text-black/60 uppercase sm:text-[22px]">and many more brilliantly useless builds</p>
+        <a
+          href="/projects?filter=top"
+          className="group inline-flex items-center gap-[0.3em] bg-black px-[0.7em] py-[0.35em] text-white shadow-md transition-all duration-200 ease-out hover:-translate-y-1 hover:scale-[1.04] hover:shadow-xl hover:shadow-black/25 active:translate-y-0.5 active:scale-[0.97]"
+          style={{ fontSize: "clamp(30px, 5vw, 56px)" }}
+        >
+          <span className="font-nanum-pen leading-none whitespace-nowrap">view top projects</span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-[0.62em] shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+            aria-hidden="true"
+          >
+            <path d="M4 12h14" />
+            <path d="M12.5 6.5 18 12l-5.5 5.5" />
+          </svg>
+        </a>
+      </section>
+
       <SideQuests />
 
       {SHOW_PEOPLE && (
