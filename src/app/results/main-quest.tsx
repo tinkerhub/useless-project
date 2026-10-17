@@ -103,7 +103,8 @@ export default function MainQuest() {
           <h1 className="font-drowner text-[#0e0e0d] leading-[0.85]" style={{ fontSize: "clamp(84px, 17vw, 260px)" }}>
             {/* The handbook's main quest prizes as two stickers hugging the title: the 5L+ fellowship
                 and goodies bag left of "quest", Maker Faire Kochi and mentorship right of "winners".
-                Sized in em so they scale with the title. */}
+                Sized in em so they scale with the title. Unoptimized so the browser downscales the 3x
+                source itself; the optimizer's small resize left the pixel art soft. */}
             <span className="relative inline-block">
               <span className="absolute top-[0.05em] right-full mr-[0.06em] block aspect-[364/274] h-[0.66em]">
                 <Image
@@ -111,6 +112,7 @@ export default function MainQuest() {
                   alt="Main quest prizes: a 5 lakh fellowship and a goodies bag"
                   fill
                   sizes="220px"
+                  unoptimized
                   className="object-contain"
                 />
               </span>
@@ -125,6 +127,7 @@ export default function MainQuest() {
                   alt="Main quest prizes: a Maker Faire Kochi showcase and mentorship"
                   fill
                   sizes="200px"
+                  unoptimized
                   className="object-contain"
                 />
               </span>
