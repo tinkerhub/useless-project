@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import ClaimHint from "./claim-hint";
 import LoopingVideo from "./looping-video";
+import FloatingPet from "../floating-pet";
+import { HoverDot } from "../hover-dot";
 import MainQuest from "./main-quest";
+import { RESULTS_PET_LINES, RESULTS_PET_TAP } from "./pet-lines";
 import { CLOSING_VIDEO, NOTE, PEOPLE } from "./data";
 import SideQuests from "./side-quests";
 
@@ -48,29 +52,43 @@ const HEADS = scatterHeads(PEOPLE.length);
 // on to show it between the side quests and the note.
 const SHOW_PEOPLE = false;
 
+// The same breathing, colour-swapping dots the home page and side quests are sprinkled with.
+const DOT_ASSETS = ["/why-dot.svg", "/hero-dot-1.svg", "/hero-dot-2.svg", "/hero-dot-3.svg", "/hero-dot-4.svg"] as const;
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="font-nanum-pen text-[22px] text-black uppercase sm:text-[26px]">{children}</p>;
 }
 
 export default function ResultsPage() {
   return (
-    // data-page opts out of the home page's scroll snapping (see globals.css). overflow-x-clip
+    // data-page swaps the home page's scroll snapping for this page's gentler kind (see globals.css). overflow-x-clip
     // rather than -hidden: hidden would make <main> a scroll container and break the sticky stage
     // the main quest section scrolls its winners through.
-    <main data-page="handbook" className="w-full overflow-x-clip bg-white text-[#0e0e0d]">
+    <main data-page="results" className="w-full overflow-x-clip bg-white text-[#0e0e0d]">
+      {/* Fixed to the bottom-left corner for the whole page. */}
+      <ClaimHint />
+      {/* The home page's elephant, riding along in the bottom-right corner with a line for each
+          section; tapping it answers "how to claim?" (the only way to ask on a phone). */}
+      <FloatingPet sections={RESULTS_PET_LINES} startId="main-quest" tapDialogue={RESULTS_PET_TAP} />
+
       <MainQuest />
 
       {/* Once the last winner has scrolled past: the way on to every top project, which opens the
           projects page with its "top projects" filter already on. Same black button and drawn
-          arrow as the hero's "see results". */}
-      <section className="flex w-full flex-col items-center gap-4 px-4 pt-10 pb-24 text-center">
-        <p className="font-nanum-pen text-[20px] text-black/60 uppercase sm:text-[22px]">and many more brilliantly useless builds</p>
+          arrow as the hero's "see results". A full screen of its own, centred, so it never sits
+          squeezed between the quest title scrolling away and the side quests coming in. */}
+      {/* A snap point one scroll can't skip past (snap-always): coming off the last card the page
+          settles here, and the next scroll settles on the side quests. */}
+      <section id="top-projects" className="relative flex min-h-[70svh] w-full snap-center snap-always flex-col items-center justify-center gap-5 px-4 py-16 text-center">
+        <HoverDot assets={DOT_ASSETS} baseIndex={1} size={26} className="absolute top-[22%] left-[14%]" />
+        <HoverDot assets={DOT_ASSETS} baseIndex={4} size={16} className="absolute right-[18%] bottom-[26%]" />
+        <p className="font-nanum-pen text-[20px] text-black/60 uppercase sm:text-[22px]">and many more brilliant builds</p>
         <a
           href="/projects?filter=top"
           className="group inline-flex items-center gap-[0.3em] bg-black px-[0.7em] py-[0.35em] text-white shadow-md transition-all duration-200 ease-out hover:-translate-y-1 hover:scale-[1.04] hover:shadow-xl hover:shadow-black/25 active:translate-y-0.5 active:scale-[0.97]"
           style={{ fontSize: "clamp(30px, 5vw, 56px)" }}
         >
-          <span className="font-nanum-pen leading-none whitespace-nowrap">view top projects</span>
+          <span className="font-nanum-pen leading-none whitespace-nowrap">view top 250 projects</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -127,7 +145,9 @@ export default function ResultsPage() {
       </section>
       )}
 
-      <section id="note" className="flex w-full items-center justify-center px-8 pt-40 pb-24 sm:px-16 sm:pt-48 sm:pb-28">
+      <section id="note" className="relative flex w-full items-center justify-center px-8 pt-40 pb-24 sm:px-16 sm:pt-48 sm:pb-28">
+          <HoverDot assets={DOT_ASSETS} baseIndex={2} size={22} className="absolute top-32 right-[12%] hidden sm:block" />
+          <HoverDot assets={DOT_ASSETS} baseIndex={0} size={14} className="absolute bottom-16 left-[10%]" />
         <div className="w-full max-w-[720px]">
           <SectionLabel>{NOTE.title}</SectionLabel>
           <div className="mt-10 flex flex-col gap-8">

@@ -29,6 +29,13 @@ html:has([data-page="handbook"]) {
   scroll-snap-type: none;
 }
 
+/* The results page snaps gently instead: only its marked sections (the "view top 250 projects"
+   screen and the side quests) are snap points, and "proximity" only pulls toward one when a scroll
+   ends near it - so the long main quest stretch, which has none, still scrolls freely. */
+html:has([data-page="results"]) {
+  scroll-snap-type: y proximity;
+}
+
 /* Instagram's oEmbed script hardcodes a 326px min-width on the processed iframe's own inline
    style, overriding whatever width the blockquote asked for. Forcing anything narrower than that
    (an earlier version of this rule tried 260px) doesn't shrink the embed - it just clips Instagram's

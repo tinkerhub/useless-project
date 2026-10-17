@@ -3,7 +3,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
-import ClaimHint from "./claim-hint";
 import { MAIN_QUEST_WINNERS, type Winner } from "./data";
 
 // Vertical gap between one card's top and the next, in viewport heights. The cards climb past the
@@ -33,7 +32,7 @@ function WinnerCard({ winner, rank }: { winner: Winner; rank: number }) {
     <article className="@container overflow-hidden bg-white shadow-[0_10px_30px_rgba(0,0,0,0.14)]">
       <div className="relative aspect-[1532/1060] w-full overflow-hidden bg-[#d9d9d9]">
         {winner.photo ? (
-          <Image src={winner.photo} alt={winner.project} fill sizes="340px" className="object-cover" />
+          <Image src={winner.photo} alt={winner.project} fill sizes="(max-width: 640px) 45vw, 340px" className="object-cover" />
         ) : (
           <span className="font-drowner absolute inset-0 flex items-center justify-center text-[64px] text-[#0e0e0d]/25">
             {rank}
@@ -62,8 +61,15 @@ function WinnerCard({ winner, rank }: { winner: Winner; rank: number }) {
         <h3 className="font-helvetica text-[clamp(16px,7.4cqw,32px)] leading-none font-medium tracking-[-0.07em] text-[#0e0e0d] group-hover:underline">
           {winner.project}
         </h3>
+        {winner.college && (
+          <p className="font-nanum-pen mt-[2cqw] text-[clamp(11px,4.2cqw,18px)] leading-[1.15] text-[#244638]">{winner.college.toLowerCase()}</p>
+        )}
         {winner.description && (
-          <p className="font-nanum-pen mt-[4cqw] text-[clamp(12px,4.6cqw,20px)] leading-[1.5] text-black">{winner.description}</p>
+          // Phones get a smaller face and only the first three lines - the cards are narrow there and the
+          // full blurb made each one a wall of text. The whole blurb is back from sm up.
+          <p className="font-nanum-pen mt-[4cqw] line-clamp-3 text-[clamp(10px,4.6cqw,20px)] leading-[1.4] text-black sm:line-clamp-none sm:text-[clamp(12px,4.6cqw,20px)] sm:leading-[1.5]">
+            {winner.description}
+          </p>
         )}
       </div>
     </article>
@@ -130,6 +136,8 @@ export default function MainQuest() {
                   alt="Main quest prizes: a 5 lakh fellowship and a goodies bag"
                   fill
                   sizes="220px"
+                  // First thing on screen - fetch it with the page rather than after it.
+                  preload
                   unoptimized
                   className="object-contain"
                 />
@@ -145,6 +153,7 @@ export default function MainQuest() {
                   alt="Main quest prizes: a Maker Faire Kochi showcase and mentorship"
                   fill
                   sizes="200px"
+                  preload
                   unoptimized
                   className="object-contain"
                 />
@@ -152,7 +161,6 @@ export default function MainQuest() {
             </span>
           </h1>
           <p className="font-nanum-pen mt-4 text-[20px] text-black/60 uppercase">scroll to meet all {MAIN_QUEST_WINNERS.length}</p>
-          <ClaimHint className="mt-4" />
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10" style={{ transform: trackTransform, willChange: "transform" }}>

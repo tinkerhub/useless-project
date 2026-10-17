@@ -11,7 +11,7 @@ const ELE5_SECONDARY_FRAMES = [
   "/ele5j.webp",
 ];
 
-interface DialogueItem {
+export interface DialogueItem {
   bubbleSrc: string;
   bubbleWidth: number;
   bubbleHeight: number;
@@ -25,7 +25,7 @@ interface DialogueItem {
   href?: string;
 }
 
-interface SectionConfig {
+export interface SectionConfig {
   id: string;
   dialogue: DialogueItem;
 }
@@ -109,9 +109,22 @@ const SECTION_CONFIGS: SectionConfig[] = [
   },
 ];
 
-export default function FloatingPet() {
+// `sections` and `startId` default to the home page's; other pages (the results page) pass their own
+// section ids and lines. The pet appears once `startId`'s section scrolls into view. `tapDialogue`,
+// when given, is what the pet says when it's clicked or tapped, instead of repeating the section's
+// line - the results page uses it to answer "how to claim?".
+export default function FloatingPet({
+  sections = SECTION_CONFIGS,
+  startId = "why-section",
+  tapDialogue,
+}: {
+  sections?: SectionConfig[];
+  startId?: string;
+  tapDialogue?: DialogueItem;
+} = {}) {
+  const [showTapDialogue, setShowTapDialogue] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [activeSectionId, setActiveSectionId] = useState<string>("why-section");
+  const [activeSectionId, setActiveSectionId] = useState<string>(startId);
   const [isDialogueOpen, setIsDialogueOpen] = useState(false);
   const isHoveredRef = useRef(false);
   const prevSectionRef = useRef<string | null>(null);
@@ -119,7 +132,7 @@ export default function FloatingPet() {
   // Monitor scroll position and detect which section is currently active
   useEffect(() => {
     const handleScroll = () => {
-      const whyEl = document.getElementById("why-section");
+      const whyEl = document.getElementById(startId);
       if (!whyEl) return;
 
       const whyRect = whyEl.getBoundingClientRect();
@@ -129,10 +142,10 @@ export default function FloatingPet() {
       if (!reachedWhy) return;
 
       // Find the section that is currently most visible in viewport
-      let currentActiveId = "why-section";
+      let currentActiveId = startId;
       let minDistance = Infinity;
 
-      for (const config of SECTION_CONFIGS) {
+      for (const config of sections) {
         const el = document.getElementById(config.id);
         if (el) {
           const rect = el.getBoundingClientRect();
@@ -142,6 +155,20 @@ export default function FloatingPet() {
               minDistance = centerDist;
               currentActiveId = config.id;
             }
+          }
+        }
+      }
+
+      // At the very bottom of the page the last section can be too short to ever reach the top of
+      // the screen (the results page's closing video on a phone), so it would never win above -
+      // there, the last section that's on screen speaks instead.
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if (atBottom) {
+        for (const config of [...sections].reverse()) {
+          const rect = document.getElementById(config.id)?.getBoundingClientRect();
+          if (rect && rect.top < window.innerHeight && rect.bottom > 0) {
+            currentActiveId = config.id;
+            break;
           }
         }
       }
@@ -157,7 +184,7 @@ export default function FloatingPet() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [sections, startId]);
 
   // Pop up dialogue when entering a new section
   useEffect(() => {
@@ -168,6 +195,7 @@ export default function FloatingPet() {
 
     if (prevSectionRef.current !== activeSectionId) {
       prevSectionRef.current = activeSectionId;
+      setShowTapDialogue(false);
       if (!isHoveredRef.current) {
         setIsDialogueOpen(true);
         const timer = setTimeout(() => {
@@ -193,12 +221,21 @@ export default function FloatingPet() {
   };
 
   const handleClick = () => {
+    if (tapDialogue) {
+      // A tap shows the tap line; tapping again while it's showing puts the bubble away.
+      if (isDialogueOpen && showTapDialogue) {
+        setIsDialogueOpen(false);
+      } else {
+        setShowTapDialogue(true);
+        setIsDialogueOpen(true);
+      }
+      return;
+    }
     setIsDialogueOpen((prev) => !prev);
   };
 
-  const currentConfig =
-    SECTION_CONFIGS.find((c) => c.id === activeSectionId) || SECTION_CONFIGS[0];
-  const currentDialogue = currentConfig.dialogue;
+  const currentConfig = sections.find((c) => c.id === activeSectionId) || sections[0];
+  const currentDialogue = showTapDialogue && tapDialogue ? tapDialogue : currentConfig.dialogue;
 
   return (
     <div

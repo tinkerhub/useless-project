@@ -318,7 +318,7 @@ function PaginatedGrid({ projects, topIds }: { projects: Project[]; topIds: Read
                   src="/top-project-badge.webp"
                   alt="Top project"
                   title="Top project"
-                  className="pointer-events-none absolute -top-3 -right-3 z-10 h-[68px] w-auto rotate-[8deg] drop-shadow-[0_4px_6px_rgba(0,0,0,0.18)]"
+                  className="pointer-events-none absolute -top-2 -right-2 z-10 h-[44px] w-auto rotate-[8deg] drop-shadow-[0_3px_4px_rgba(0,0,0,0.18)] sm:h-[50px]"
                 />
               )}
               <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-[#f5f4f0]">
