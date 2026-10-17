@@ -85,7 +85,17 @@ function IconSearch(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export default function ProjectsGrid({ projects }: { projects: Project[] }) {
+export default function ProjectsGrid({
+  projects,
+  topProjectIds,
+  initialTopOnly = false,
+}: {
+  projects: Project[];
+  topProjectIds: number[];
+  initialTopOnly?: boolean;
+}) {
+  const topIds = useMemo(() => new Set(topProjectIds), [topProjectIds]);
+  const [topOnly, setTopOnly] = useState(initialTopOnly);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<Sort>("latest");
@@ -126,6 +136,7 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
     const query = search.trim().toLowerCase();
 
     let list = projects.filter((p) => {
+      if (topOnly && !topIds.has(p.id)) return false;
       if (venue !== "all" && (p.venueName ?? p.campusName) !== venue) return false;
       if (status !== "all" && p.status !== status) return false;
       if (type !== "all" && p.type !== type) return false;
@@ -145,7 +156,7 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
     else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
     return list;
-  }, [projects, search, sort, venue, category, status, type]);
+  }, [projects, search, sort, venue, category, status, type, topOnly, topIds]);
 
   const activeFilterCount = [venue, category, status, type].filter((v) => v !== "all").length;
 
@@ -169,6 +180,21 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
             <IconFilter className="size-3 sm:size-3.5" />
             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </button>
+
+          {topIds.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setTopOnly((v) => !v)}
+              aria-pressed={topOnly}
+              className={`font-helvetica flex cursor-pointer items-center gap-1.5 rounded-full border py-1 pr-3 pl-1.5 text-[10px] tracking-[0.06em] uppercase shadow-xs transition-colors sm:py-1.5 sm:pr-4 sm:text-[12px] ${
+                topOnly ? "border-[#3d5ae0] bg-[#3d5ae0] text-white" : "border-black/10 bg-white text-[#33322f] hover:border-[#3d5ae0]/50"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/top-project-badge.webp" alt="" aria-hidden="true" className="h-5 w-auto sm:h-6" />
+              Top projects ({topIds.size})
+            </button>
+          )}
 
           <label className="font-helvetica flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-[10px] tracking-[0.06em] text-[#33322f] shadow-xs transition-colors focus-within:border-[#ea34df] sm:px-4 sm:py-2 sm:text-[12px]">
             <IconSearch className="size-3 text-[#33322f]/50 sm:size-3.5" />
@@ -236,13 +262,13 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
         // stale page size for one extra render) or reading a ref during render (which this
         // project's stricter React Compiler lint rules disallow, since the compiler needs to
         // assume a component with the same key is safe to treat as unchanged across renders).
-        <PaginatedGrid key={`${search}|${sort}|${venue}|${category}|${status}|${type}`} projects={visible} />
+        <PaginatedGrid key={`${search}|${sort}|${venue}|${category}|${status}|${type}|${topOnly}`} projects={visible} topIds={topIds} />
       )}
     </>
   );
 }
 
-function PaginatedGrid({ projects }: { projects: Project[] }) {
+function PaginatedGrid({ projects, topIds }: { projects: Project[]; topIds: ReadonlySet<number> }) {
   // Both start at the desktop size, matching what the server rendered - there's no window to
   // measure yet on that first pass, and starting client and server apart here would show up as a
   // hydration mismatch (a different number of <li>s, and the "load more" count text disagreeing).
@@ -281,9 +307,20 @@ function PaginatedGrid({ projects }: { projects: Project[] }) {
           const categoryList = project.categories ? project.categories.split(",").map((c) => c.trim()).filter(Boolean) : [];
           const liveUrl = safeProjectLink(project.projectUrl);
           const codeUrl = safeProjectLink(project.sourceCodeUrl);
+          const isTop = topIds.has(project.id);
 
           return (
-            <li key={project.id} className="flex h-full flex-col gap-3 rounded-2xl border border-black/10 p-3">
+            <li key={project.id} className="relative flex h-full flex-col gap-3 rounded-2xl border border-black/10 p-3">
+              {isTop && (
+                // Pinned to the card's top-right corner, hanging just off it like a sticker.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src="/top-project-badge.webp"
+                  alt="Top project"
+                  title="Top project"
+                  className="pointer-events-none absolute -top-3 -right-3 z-10 h-[68px] w-auto rotate-[8deg] drop-shadow-[0_4px_6px_rgba(0,0,0,0.18)]"
+                />
+              )}
               <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-[#f5f4f0]">
                 {project.coverImage ? (
                   // Cover images are user-submitted, hosted on whatever bucket the Hub app's
@@ -297,7 +334,7 @@ function PaginatedGrid({ projects }: { projects: Project[] }) {
                 )}
                 {project.status && (
                   <span
-                    className={`font-helvetica absolute top-2 right-2 rounded-full px-2 py-0.5 text-[9px] tracking-[0.05em] uppercase ${
+                    className={`font-helvetica absolute top-2 ${isTop ? "left-2" : "right-2"} rounded-full px-2 py-0.5 text-[9px] tracking-[0.05em] uppercase ${
                       STATUS_STYLE[project.status] ?? "bg-black/5 text-[#33322f]/70"
                     }`}
                   >

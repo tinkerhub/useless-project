@@ -40,7 +40,25 @@ function WinnerCard({ winner, rank }: { winner: Winner; rank: number }) {
           </span>
         )}
       </div>
-      <div className="px-[5.5cqw] pt-[6cqw] pb-[7cqw]">
+      <div className="relative px-[5.5cqw] pt-[9cqw] pb-[7cqw]">
+        {/* The team's faces, stuck over the seam between photo and card like stickers. Each name
+            shows in a small label on hover. */}
+        <ul className="absolute top-0 left-[5.5cqw] flex -translate-y-1/2">
+          {winner.members.map((member, i) => (
+            <li key={member.name} className={`group/face relative hover:z-10 ${i > 0 ? "-ml-[3cqw]" : ""}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={member.photo}
+                alt={member.name}
+                loading="lazy"
+                className="block size-[13cqw] rounded-full object-cover ring-[0.8cqw] ring-white transition-transform duration-200 group-hover/face:scale-110"
+              />
+              <span className="font-nanum-pen pointer-events-none absolute bottom-[calc(100%+1.5cqw)] left-1/2 -translate-x-1/2 translate-y-1 rounded-full bg-[#0e0e0d] px-[3cqw] py-[1cqw] text-[clamp(11px,4cqw,17px)] leading-none whitespace-nowrap text-white opacity-0 transition-[opacity,translate] duration-150 group-hover/face:translate-y-0 group-hover/face:opacity-100">
+                {member.name}
+              </span>
+            </li>
+          ))}
+        </ul>
         <h3 className="font-helvetica text-[clamp(16px,7.4cqw,32px)] leading-none font-medium tracking-[-0.07em] text-[#0e0e0d] group-hover:underline">
           {winner.project}
         </h3>
@@ -103,7 +121,8 @@ export default function MainQuest() {
           <h1 className="font-drowner text-[#0e0e0d] leading-[0.85]" style={{ fontSize: "clamp(84px, 17vw, 260px)" }}>
             {/* The handbook's main quest prizes as two stickers hugging the title: the 5L+ fellowship
                 and goodies bag left of "quest", Maker Faire Kochi and mentorship right of "winners".
-                Sized in em so they scale with the title. */}
+                Sized in em so they scale with the title. Unoptimized so the browser downscales the 3x
+                source itself; the optimizer's small resize left the pixel art soft. */}
             <span className="relative inline-block">
               <span className="absolute top-[0.05em] right-full mr-[0.06em] block aspect-[364/274] h-[0.66em]">
                 <Image
@@ -111,6 +130,7 @@ export default function MainQuest() {
                   alt="Main quest prizes: a 5 lakh fellowship and a goodies bag"
                   fill
                   sizes="220px"
+                  unoptimized
                   className="object-contain"
                 />
               </span>
@@ -125,6 +145,7 @@ export default function MainQuest() {
                   alt="Main quest prizes: a Maker Faire Kochi showcase and mentorship"
                   fill
                   sizes="200px"
+                  unoptimized
                   className="object-contain"
                 />
               </span>
