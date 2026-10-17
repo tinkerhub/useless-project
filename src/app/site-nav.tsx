@@ -68,8 +68,20 @@ function IconPixel(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+// A ribbon medal, for the results page - competitions already has the trophy.
+function IconMedal(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M8 3h3l1.5 5M16 3h-3l-1.5 5" />
+      <circle cx={12} cy={15} r={6} />
+      <path d="m12 12.5.8 1.6 1.7.2-1.25 1.2.3 1.7-1.55-.8-1.55.8.3-1.7-1.25-1.2 1.7-.2Z" />
+    </svg>
+  );
+}
+
 const ROUTES = [
   { href: "/", label: "home", Icon: IconHome },
+  { href: "/results", label: "results", Icon: IconMedal },
   { href: "/handbook", label: "handbook", Icon: IconBook },
   { href: "/competitions", label: "competitions", Icon: IconTrophy },
   { href: "/projects", label: "projects", Icon: IconGrid },
