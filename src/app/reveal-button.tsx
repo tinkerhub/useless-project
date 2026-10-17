@@ -1,8 +1,7 @@
-// The event's over, so the hero button no longer sends visitors to registration - it points at
-// the site's own builds gallery instead.
-const BUILDS_URL = "/projects";
+// The event's over and judged, so the hero button points at the results page.
+const RESULTS_URL = "/results";
 
-// The "see builds from ulp 3.0" button - centered under the title in the hero.
+// The "see results" button - centered under the title in the hero.
 export default function RevealButton({
   top = 676.5,
   width = 296,
@@ -18,7 +17,7 @@ export default function RevealButton({
 }) {
   return (
     <a
-      href={BUILDS_URL}
+      href={RESULTS_URL}
       className="group absolute left-1/2 flex -translate-x-1/2 cursor-pointer items-center justify-center whitespace-nowrap bg-black text-white shadow-md transition-all duration-200 ease-out hover:-translate-y-1 hover:scale-[1.04] hover:bg-[#1a1a1a] hover:shadow-xl hover:shadow-black/25 active:translate-y-0.5 active:scale-[0.97] active:shadow-inner select-none"
       style={{ top: `${top}px`, minWidth: `${width}px`, height: `${height}px`, paddingLeft: `${fontSize * 0.5}px`, paddingRight: `${fontSize * 0.5}px` }}
     >
@@ -30,7 +29,7 @@ export default function RevealButton({
           className="font-nanum-pen text-center whitespace-nowrap text-white"
           style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px` }}
         >
-          see builds from ulp 3.0
+          see results
         </span>
         {/* Drawn rather than typed: Nanum Pen is subset to `latin` (see layout.tsx), which has no
             arrow glyph, so a "→" would silently fall back to another face and sit next to the
