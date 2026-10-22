@@ -29,10 +29,9 @@ import CounterReels from "./counter-reels";
  * as the digit count changes, or as different browsers/platforms render the handwritten font's
  * glyphs at very slightly different widths.
  *
- * The campus count is a fixed 71, not derived from the venue roster (which currently holds 72 -
- * one entry in there is wrong, not yet tracked down) or from Metabase (also 71, but the live
- * count is deliberately not wired to this word for its own sake - a number that could silently
- * drift with a database value shouldn't back a headline stat without a decision to make it live).
+ * The campus count is a fixed 67, the confirmed final number of venues - not derived from the
+ * venue roster (which holds a few more entries than actually ran) or from Metabase (a number that
+ * could silently drift with a database value shouldn't back a headline stat).
  */
 // Added on top of the Figma-matched number/makers/place offsets below, pushing all three of them
 // (and the container's own height) down together by the same amount - so the extra room lands
@@ -59,7 +58,7 @@ const WORD_SCALE = {
   place: 0.17654,
 } as const;
 
-const CAMPUS_COUNT = 71;
+const CAMPUS_COUNT = 67;
 
 export default function LiveHeadline({
   registered,
