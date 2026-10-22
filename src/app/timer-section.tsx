@@ -45,6 +45,10 @@ function ironColor(heat: number) {
   return IRON_STOPS[IRON_STOPS.length - 1][1];
 }
 
+// The confirmed final head count. Once the event has ended the headline shows this rather than the
+// live Metabase registration count, which kept moving (and counted more than actually took part).
+const FINAL_MAKER_COUNT = 3419;
+
 const REF_WIDTH = 1280;
 const REF_HEIGHT = 832;
 
@@ -269,16 +273,17 @@ export default function TimerSection({ counts }: { counts: EventCounts | null })
   // One lockup at two sizes rather than two layouts (see live-headline.tsx). The reels still
   // spin the maker count inside it; a live event whose counts didn't load falls back to wording
   // instead of an empty slot.
+  const makerCount = ended ? FINAL_MAKER_COUNT : (counts?.registered ?? null);
   const mobileHeadline = (
     <LiveHeadline
-      registered={counts?.registered ?? null}
+      registered={makerCount}
       fontSize={MOBILE_LOCKUP_SIZE}
       ended={ended}
     />
   );
   const desktopHeadline = (
     <LiveHeadline
-      registered={counts?.registered ?? null}
+      registered={makerCount}
       fontSize={DESKTOP_LOCKUP_SIZE}
       ended={ended}
     />
