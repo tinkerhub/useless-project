@@ -1,4 +1,4 @@
-import type { DialogueItem, SectionConfig } from "../floating-pet";
+import type { DialogueItem, SectionConfig } from "@/app/floating-pet";
 
 // What the home page's floating elephant says on the results page, one line pair per section - it
 // pops the bubble as each section scrolls into view, and a click or hover brings it back.

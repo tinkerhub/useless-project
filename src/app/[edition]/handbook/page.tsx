@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import InstagramEmbed from "./instagram-embed";
 import ChecklistWidget from "./checklist";
 import HoverFrames from "./hover-frames";
-import LegoBlock, { CELL, LEGO_SHAPES, shapeWidth, shapeHeight, type LegoColor, type LegoShapeName } from "../lego-block";
-import { HoverDot } from "../hover-dot";
+import LegoBlock, { CELL, LEGO_SHAPES, shapeWidth, shapeHeight, type LegoColor, type LegoShapeName } from "@/app/lego-block";
+import { HoverDot } from "@/app/hover-dot";
+import { editionPath, resolveEdition, type EditionSlug } from "@/lib/editions";
 
 // Same brick colors the tetris field drops, minus cream (too low-contrast on white here). Cycled
 // by index so studs/bullets read as a deliberate little rainbow rather than one flat accent color.
@@ -486,6 +488,7 @@ function PrizeMedal({
   image,
   imageScale = 1.2,
   slug,
+  edition,
 }: {
   label: string;
   text?: string;
@@ -494,6 +497,7 @@ function PrizeMedal({
   image?: string;
   imageScale?: number;
   slug?: string;
+  edition: EditionSlug;
 }) {
   const svgSize = size === "lg" ? 112 : 92;
   const boxWidth = 140;
@@ -566,7 +570,7 @@ function PrizeMedal({
     <li className={`relative flex flex-col ${stackAlign} ${stackGap}`} style={{ width: `${boxWidth}px` }}>
       {slug && !locked ? (
         <Link
-          href={`/competitions/${slug}`}
+          href={editionPath(edition, "competitions", slug)}
           className={`group flex flex-col ${stackAlign} ${stackGap} transition-transform hover:scale-[1.04]`}
         >
           {medal}
@@ -585,7 +589,7 @@ function PrizeMedal({
   );
 }
 
-function Blocks({ blocks }: { blocks: Block[] }) {
+function Blocks({ blocks, edition }: { blocks: Block[]; edition: EditionSlug }) {
   return (
     <div className="flex flex-col gap-6">
       {blocks.map((block, i) => {
@@ -625,7 +629,7 @@ function Blocks({ blocks }: { blocks: Block[] }) {
           return (
             <ul key={i} className="flex flex-wrap justify-center gap-x-6 gap-y-8 py-2 sm:justify-start">
               {block.items.map((item, itemIndex) => (
-                <PrizeMedal key={`${item.label}-${itemIndex}`} label={item.label} text={item.text} size={block.size} locked={item.locked} image={item.image} imageScale={item.imageScale} slug={item.slug} />
+                <PrizeMedal key={`${item.label}-${itemIndex}`} label={item.label} text={item.text} size={block.size} locked={item.locked} image={item.image} imageScale={item.imageScale} slug={item.slug} edition={edition} />
               ))}
             </ul>
           );
@@ -937,7 +941,10 @@ const CHECKLIST_GROUPS = [
   },
 ];
 
-export default function HandbookPage() {
+export default async function HandbookPage({ params }: PageProps<"/[edition]/handbook">) {
+  const edition = resolveEdition((await params).edition, "handbook");
+  if (!edition) notFound();
+
   return (
     // data-page is what turns the root layout's mandatory scroll snapping off for this route - see
     // globals.css. The home page is a deck of full-screen panels; this is a document.
@@ -1009,7 +1016,7 @@ export default function HandbookPage() {
                 <p className="font-nanum-pen max-w-[52ch] text-[20px] leading-[1.4] text-[#244638] sm:text-[22px]">
                   {section.lead}
                 </p>
-                <Blocks blocks={section.blocks} />
+                <Blocks blocks={section.blocks} edition={edition.slug} />
               </section>
             ))}
           </div>

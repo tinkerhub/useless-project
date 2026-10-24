@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import { HoverDot } from "../hover-dot";
+import { HoverDot } from "@/app/hover-dot";
 import { getCompetition } from "@/lib/competitions";
 import {
   AFTERMOVIE_WINNERS,

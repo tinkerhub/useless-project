@@ -1,4 +1,4 @@
-import { MAIN_QUEST_WINNERS } from "@/app/results/data";
+import { MAIN_QUEST_WINNERS } from "@/app/[edition]/results/data";
 
 // Projects tagged "top project" across the site - the /projects badge and filter, and the results
 // page's "view top projects" button. The list is the "T shirt" view of the projects table in the

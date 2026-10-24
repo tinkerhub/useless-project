@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import AppamSection from "./appam-section";
 import CelebratingSection from "./celebrating-section";
 import DesktopOnly from "./desktop-only";
@@ -17,6 +18,12 @@ import WhySection from "./why-section";
 import { getEventCounts } from "@/lib/metabase";
 
 import FloatingPet from "./floating-pet";
+
+// The root layout no longer sets a site-wide canonical (it made every page claim to be a copy of
+// this one), so the home page declares its own.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 // ele4e.webp doesn't exist in public/ - the transition skips from d straight to f.
 const ELE4_FRAMES = ["/ele4a.webp", "/ele4b.webp", "/ele4c.webp", "/ele4d.webp", "/ele4f.webp"];

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import BadgeFallback from "../badge-fallback";
+import { notFound } from "next/navigation";
+import { editionPath, resolveEdition } from "@/lib/editions";
+import BadgeFallback from "@/app/badge-fallback";
 import { COMPETITIONS } from "@/lib/competitions";
 import DeadlineBanner from "./deadline-banner";
 
@@ -17,7 +19,10 @@ export const metadata: Metadata = {
   description: "Side-quest competitions running alongside Useless Projects, and how to submit for each.",
 };
 
-export default function CompetitionsIndexPage() {
+export default async function CompetitionsIndexPage({ params }: PageProps<"/[edition]/competitions">) {
+  const edition = resolveEdition((await params).edition, "competitions");
+  if (!edition) notFound();
+
   return (
     <main data-page="handbook" className="w-full overflow-x-hidden bg-white text-[#0e0e0d]">
       <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-8 px-5 py-14 sm:px-8 sm:py-20">
@@ -31,7 +36,7 @@ export default function CompetitionsIndexPage() {
               competitions
             </h1>
             <Link
-              href="/submissions"
+              href={editionPath(edition.slug, "submissions")}
               className="font-helvetica w-fit shrink-0 rounded-lg bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
             >
               see submissions
@@ -49,7 +54,7 @@ export default function CompetitionsIndexPage() {
           {COMPETITIONS.map((competition) => (
             <li key={competition.slug} className="flex min-w-0 flex-col items-start gap-2.5 text-left">
               <Link
-                href={`/competitions/${competition.slug}`}
+                href={editionPath(edition.slug, "competitions", competition.slug)}
                 className="group flex w-full flex-col items-start gap-2.5 transition-transform hover:scale-[1.04]"
               >
                 {/* Fixed slot whether it's a real badge image or the fallback seal, so a

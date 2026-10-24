@@ -264,6 +264,10 @@ function SetupForm({ onStart }: { onStart: (endAt: number) => void }) {
   );
 }
 
+// Same square black block as the site nav's menu button, so the corner controls read as one set.
+const ICON_BUTTON =
+  "flex size-10 cursor-pointer items-center justify-center bg-black text-white shadow-md transition-all duration-200 ease-out select-none hover:-translate-y-0.5 hover:scale-[1.04] hover:bg-[#1a1a1a] hover:shadow-xl hover:shadow-black/25 active:translate-y-0.5 active:scale-[0.97] active:shadow-inner md:size-12";
+
 function MinimizedPill({
   hours,
   minutes,
@@ -440,18 +444,25 @@ export default function TimerApp() {
             <button
               type="button"
               onClick={resetTimer}
-              className="font-helvetica cursor-pointer rounded-full bg-black/80 px-4 py-2 text-[13px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5 md:px-5 md:py-2.5 md:text-[15px]"
+              className={ICON_BUTTON}
               aria-label="Reset timer"
+              title="Reset"
             >
-              reset
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="square" className="size-5 md:size-6" aria-hidden="true">
+                <path d="M4 12a8 8 0 1 0 2.3-5.7" />
+                <path d="M4 4v4.5h4.5" />
+              </svg>
             </button>
             <button
               type="button"
               onClick={() => setMinimized(true)}
-              className="font-helvetica cursor-pointer rounded-full bg-black/80 px-4 py-2 text-[13px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5 md:px-5 md:py-2.5 md:text-[15px]"
+              className={ICON_BUTTON}
               aria-label="Minimize timer"
+              title="Minimize"
             >
-              minimize
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="square" className="size-5 md:size-6" aria-hidden="true">
+                <path d="M5 12h14" />
+              </svg>
             </button>
           </div>
 

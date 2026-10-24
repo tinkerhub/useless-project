@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { notFound } from "next/navigation";
+import { resolveEdition } from "@/lib/editions";
 import ClaimHint from "./claim-hint";
 import LoopingVideo from "./looping-video";
-import FloatingPet from "../floating-pet";
-import { HoverDot } from "../hover-dot";
+import FloatingPet from "@/app/floating-pet";
+import { HoverDot } from "@/app/hover-dot";
 import MainQuest from "./main-quest";
 import { RESULTS_PET_LINES, RESULTS_PET_TAP } from "./pet-lines";
 import { CLOSING_VIDEO, NOTE, PEOPLE } from "./data";
@@ -59,7 +61,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="font-nanum-pen text-[22px] text-black uppercase sm:text-[26px]">{children}</p>;
 }
 
-export default function ResultsPage() {
+export default async function ResultsPage({ params }: PageProps<"/[edition]/results">) {
+  if (!resolveEdition((await params).edition, "results")) notFound();
+
   return (
     // data-page swaps the home page's scroll snapping for this page's gentler kind (see globals.css). overflow-x-clip
     // rather than -hidden: hidden would make <main> a scroll container and break the sticky stage
