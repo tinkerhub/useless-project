@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { EDITION_PAGES, currentEdition, editionPath, resolveEdition, type EditionPage } from "@/lib/editions";
 
 // Minimal single-stroke icons, one per route - no fill, no color of their own, so they just take
 // on whatever text color the row around them has (dark at rest, unchanged on hover/active; the
@@ -79,13 +81,21 @@ function IconMedal(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+// Two stacked chevrons, for the list of every year.
+function IconStack(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="m5 9 7-4 7 4" />
+      <path d="m5 15 7-4 7 4" />
+    </svg>
+  );
+}
+
+// Program pages only - they belong to no year. "home" is the current edition's home page.
 const ROUTES = [
   { href: "/", label: "home", Icon: IconHome },
-  { href: "/results", label: "results", Icon: IconMedal },
-  { href: "/handbook", label: "handbook", Icon: IconBook },
-  { href: "/competitions", label: "competitions", Icon: IconTrophy },
+  { href: "/editions", label: "all editions", Icon: IconStack },
   { href: "/projects", label: "projects", Icon: IconGrid },
-  { href: "/submissions", label: "submissions", Icon: IconUpload },
   // Links straight to the gallery - that's the default landing spot for "creatures," with the
   // editor (still at /creatures) reachable only from the gallery's own "draw your own" button.
   // activeMatch stays the broader /creatures so the nav row still highlights while drawing, even
@@ -94,6 +104,14 @@ const ROUTES = [
   { href: "/timer", label: "timer", Icon: IconClock },
 ];
 
+// A year's own pages, shown under the program ones only while you're inside that year.
+const EDITION_ICONS: Record<EditionPage, typeof IconHome> = {
+  results: IconMedal,
+  handbook: IconBook,
+  competitions: IconTrophy,
+  submissions: IconUpload,
+};
+
 // Lives in the root layout (not per-page like HandbookButton used to be), so it's the one
 // consistent way to get from any page to any other - the individual "back" pills that used to sit
 // on each page only ever pointed at their immediate parent, not the whole site.
@@ -101,6 +119,8 @@ export default function SiteNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
+  // "/" is the current edition's home, so it counts as being inside that year.
+  const edition = pathname === "/" ? currentEdition() : resolveEdition(pathname.split("/")[1] ?? "");
 
   // Closes on an outside click or Escape, same as any other dismissible dropdown.
   useEffect(() => {
@@ -128,36 +148,75 @@ export default function SiteNav() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? "Close menu" : "Open menu"}
-        className="font-nanum-pen flex cursor-pointer items-center justify-center rounded-full bg-black/80 px-4 py-2 text-[16px] text-white backdrop-blur transition-transform duration-200 ease-out hover:-translate-y-0.5 select-none md:px-5 md:py-2.5 md:text-[19px]"
+        className="flex size-10 cursor-pointer items-center justify-center bg-black text-white shadow-md transition-all duration-200 ease-out select-none hover:-translate-y-0.5 hover:scale-[1.04] hover:bg-[#1a1a1a] hover:shadow-xl hover:shadow-black/25 active:translate-y-0.5 active:scale-[0.97] active:shadow-inner md:size-12"
       >
-        {open ? "close" : "menu"}
+        {/* Three bars at rest, folding into an × while the menu is open. */}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="square" className="size-5 md:size-6" aria-hidden="true">
+          {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
+        </svg>
       </button>
 
       {open && (
-        // A plain list - one row per page, each row just an icon and a label and nothing else.
-        // The current page is marked by its own row's weight, not by any added dot or ring.
-        <nav
-          aria-label="Site"
-          className="animate-nav-pop absolute top-full right-0 mt-2 flex w-[190px] flex-col overflow-hidden rounded-xl border border-black/10 bg-white py-1.5 shadow-lg"
-        >
-          {ROUTES.map(({ href, activeMatch, label, Icon }) => {
-            const matchAgainst = activeMatch ?? href;
-            const active = matchAgainst === "/" ? pathname === "/" : pathname.startsWith(matchAgainst);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setOpen(false)}
-                className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
-                  active ? "text-[#0e0e0d]" : "text-[#33322f]"
-                }`}
-              >
-                <Icon className="size-[18px] shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+        // The hero badge's creature hangs upside down off the bottom edge and slowly drops, pulling
+        // the menu open behind it: the list unrolls from the top (nav-pull) while the creature,
+        // sitting just below it in normal flow, rides that edge down.
+        <div className="absolute top-full right-0 mt-2 flex w-[190px] flex-col items-center">
+          {/* A plain list - one row per page, each row just an icon and a label and nothing else.
+              The current page is marked by its own row's weight, not by any added dot or ring. */}
+          <div className="animate-nav-pull grid w-full border-2 border-[#0e0e0d] bg-white">
+            <nav aria-label="Site" className="flex min-h-0 flex-col overflow-hidden">
+              <div className="flex flex-col py-1.5">
+                {ROUTES.map(({ href, activeMatch, label, Icon }) => {
+                  const matchAgainst = activeMatch ?? href;
+                  const active = matchAgainst === "/" ? pathname === "/" : pathname.startsWith(matchAgainst);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setOpen(false)}
+                      className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
+                        active ? "text-[#0e0e0d]" : "text-[#33322f]"
+                      }`}
+                    >
+                      <Icon className="size-[18px] shrink-0" />
+                      {label}
+                    </Link>
+                  );
+                })}
+                {edition && (
+                  <>
+                    <div className="mx-4 my-1.5 border-t-2 border-dashed border-black/15" />
+                    <p className="px-4 pt-1 pb-1">
+                      <span className="font-drowner inline-block bg-[#ea34df] px-2 py-0.5 text-[14px] leading-none text-white">{edition.slug}</span>
+                    </p>
+                    {EDITION_PAGES.filter((page) => edition.pages[page]).map((page) => {
+                      const href = editionPath(edition.slug, page);
+                      const Icon = EDITION_ICONS[page];
+                      const active = pathname.startsWith(href);
+                      return (
+                        <Link
+                          key={href}
+                          href={href}
+                          onClick={() => setOpen(false)}
+                          className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
+                            active ? "text-[#0e0e0d]" : "text-[#33322f]"
+                          }`}
+                        >
+                          <Icon className="size-[18px] shrink-0" />
+                          {page}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </nav>
+          </div>
+          {/* -mt so its feet (on top, once flipped) grip the menu's bottom border. */}
+          <span className="pointer-events-none -mt-1 block">
+            <Image src="/ele1.webp" alt="" width={56} height={51} className="rotate-180" />
+          </span>
+        </div>
       )}
     </div>
   );

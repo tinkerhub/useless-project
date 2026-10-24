@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { editionPath, resolveEdition } from "@/lib/editions";
 import InstagramEmbed from "../../handbook/instagram-embed";
-import BadgeFallback from "../../badge-fallback";
+import BadgeFallback from "@/app/badge-fallback";
 import { COMPETITIONS, getCompetition, isSubmissionClosed } from "@/lib/competitions";
 import SubmissionForm from "../submission-form";
 import ProjectSubmissionForm from "../project-submission-form";
@@ -20,10 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function CompetitionPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function CompetitionPage({ params }: PageProps<"/[edition]/competitions/[slug]">) {
+  const { edition: editionParam, slug } = await params;
+  const edition = resolveEdition(editionParam, "competitions");
   const competition = getCompetition(slug);
-  if (!competition) notFound();
+  if (!edition || !competition) notFound();
 
   // The picker (project-pick competitions) and the link form (link-submission competitions) are
   // both real calls to action, not a write-up - visitors land here to submit, not to read about
@@ -50,7 +52,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
         </h2>
         {competition.submitVia === "link" && (
           <Link
-            href="/submissions"
+            href={editionPath(edition.slug, "submissions")}
             className="font-helvetica shrink-0 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
           >
             see submissions
@@ -109,7 +111,7 @@ export default async function CompetitionPage({ params }: { params: Promise<{ sl
               {competition.prizeLabel}
             </h1>
             <Link
-              href="/competitions"
+              href={editionPath(edition.slug, "competitions")}
               className="font-helvetica inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">

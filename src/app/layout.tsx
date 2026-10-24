@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Nanum_Pen_Script } from "next/font/google";
 import localFont from "next/font/local";
+import { currentEdition } from "@/lib/editions";
 import "./globals.css";
 import Splash from "./splash";
 import SiteNav from "./site-nav";
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://useless.tinkerhub.org"),
   title: {
     default: "Useless Projects 3.0 | TinkerHub",
-    template: "%s | Useless Projects 3.0",
+    template: `%s | ${currentEdition().title}`,
   },
   description:
     "TinkerHub's overnight make-a-thon — campus makers build brilliantly impractical tech, just for the joy of making.",
@@ -67,7 +68,6 @@ export const metadata: Metadata = {
   authors: [{ name: "TinkerHub" }],
   creator: "TinkerHub",
   publisher: "TinkerHub Foundation",
-  alternates: { canonical: "/" },
   openGraph: {
     title: "Useless Projects 3.0 | TinkerHub",
     description:

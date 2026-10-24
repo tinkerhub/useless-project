@@ -6,6 +6,7 @@ import CuriosityReveal from "./curiosity-reveal";
 import LiveHeadline, { LIVE_HEADLINE_HEIGHT_RATIO } from "./live-headline";
 import { HoverDot } from "./hover-dot";
 import SiteFooter from "./site-footer";
+import { currentEdition } from "@/lib/editions";
 import type { EventCounts } from "@/lib/metabase";
 
 // The same fire-breathing creature (and frames) the hero's tetris field perches on the skyline
@@ -98,11 +99,11 @@ const DOT_ASSETS = ["/why-dot.svg", "/hero-dot-1.svg", "/hero-dot-2.svg", "/hero
 
 // Event kicks off 5 PM IST (UTC+5:30) on Sep 3 - the explicit offset pins the instant regardless
 // of the visitor's own timezone, so the countdown is always correct against real IST.
-const EVENT_START = new Date("2026-09-03T17:00:00+05:30").getTime();
+const EVENT_START = new Date(currentEdition().eventStart!).getTime();
 // End of day Sep 14 IST - the last venue slot in the roster closes that afternoon, so the badge
 // flips from "live" to "ended" once the day itself is over rather than at that one venue's exact
 // close time.
-const EVENT_END = new Date("2026-09-14T23:59:59+05:30").getTime();
+const EVENT_END = new Date(currentEdition().eventEnd!).getTime();
 const UPDATE_INTERVAL_MS = 30_000;
 
 function remainingUntilEvent() {

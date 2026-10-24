@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { editionPath, resolveEdition } from "@/lib/editions";
 import { listVisibleSubmissions } from "@/lib/airtable";
 import { COMPETITIONS } from "@/lib/competitions";
 import SubmissionsList from "./submissions-list";
@@ -9,7 +11,10 @@ export const metadata: Metadata = {
   description: "Everything submitted across the Useless Projects competitions.",
 };
 
-export default async function SubmissionsPage() {
+export default async function SubmissionsPage({ params }: PageProps<"/[edition]/submissions">) {
+  const edition = resolveEdition((await params).edition, "submissions");
+  if (!edition) notFound();
+
   // Only the link-submission competitions (reels, the journal) get their own section here - each
   // has its own table of Name/Campus/Submission Link records. Project-pick competitions all share
   // one "Competition Entries" table tagged by Competition, which listVisibleSubmissions doesn't
@@ -36,7 +41,7 @@ export default async function SubmissionsPage() {
               submissions
             </h1>
             <Link
-              href="/competitions"
+              href={editionPath(edition.slug, "competitions")}
               className="font-helvetica w-fit shrink-0 rounded-lg bg-[#0e0e0d] px-4 py-1.5 text-[11px] tracking-[0.08em] text-white uppercase transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-[13px]"
             >
               submit your own

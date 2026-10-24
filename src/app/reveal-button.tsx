@@ -1,5 +1,7 @@
+import { CURRENT_EDITION, editionPath } from "@/lib/editions";
+
 // The event's over and judged, so the hero button points at the results page.
-const RESULTS_URL = "/results";
+const RESULTS_URL = editionPath(CURRENT_EDITION, "results");
 
 // The "see results" button - centered under the title in the hero.
 export default function RevealButton({
