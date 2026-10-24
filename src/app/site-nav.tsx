@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -156,56 +157,66 @@ export default function SiteNav() {
       </button>
 
       {open && (
-        // A plain list - one row per page, each row just an icon and a label and nothing else.
-        // The current page is marked by its own row's weight, not by any added dot or ring.
-        <nav
-          aria-label="Site"
-          className="animate-nav-pop absolute top-full right-0 mt-2 flex w-[190px] flex-col overflow-hidden border-2 border-[#0e0e0d] bg-white py-1.5"
-        >
-          {ROUTES.map(({ href, activeMatch, label, Icon }) => {
-            const matchAgainst = activeMatch ?? href;
-            const active = matchAgainst === "/" ? pathname === "/" : pathname.startsWith(matchAgainst);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setOpen(false)}
-                className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
-                  active ? "text-[#0e0e0d]" : "text-[#33322f]"
-                }`}
-              >
-                <Icon className="size-[18px] shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
-          {edition && (
-            <>
-              <div className="mx-4 my-1.5 border-t-2 border-dashed border-black/15" />
-              <p className="px-4 pt-1 pb-1">
-                <span className="font-drowner inline-block bg-[#ea34df] px-2 py-0.5 text-[14px] leading-none text-white">{edition.slug}</span>
-              </p>
-              {EDITION_PAGES.filter((page) => edition.pages[page]).map((page) => {
-                const href = editionPath(edition.slug, page);
-                const Icon = EDITION_ICONS[page];
-                const active = pathname.startsWith(href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
-                      active ? "text-[#0e0e0d]" : "text-[#33322f]"
-                    }`}
-                  >
-                    <Icon className="size-[18px] shrink-0" />
-                    {page}
-                  </Link>
-                );
-              })}
-            </>
-          )}
-        </nav>
+        // The hero badge's creature hangs upside down off the bottom edge and slowly drops, pulling
+        // the menu open behind it: the list unrolls from the top (nav-pull) while the creature,
+        // sitting just below it in normal flow, rides that edge down.
+        <div className="absolute top-full right-0 mt-2 flex w-[190px] flex-col items-center">
+          {/* A plain list - one row per page, each row just an icon and a label and nothing else.
+              The current page is marked by its own row's weight, not by any added dot or ring. */}
+          <div className="animate-nav-pull grid w-full border-2 border-[#0e0e0d] bg-white">
+            <nav aria-label="Site" className="flex min-h-0 flex-col overflow-hidden">
+              <div className="flex flex-col py-1.5">
+                {ROUTES.map(({ href, activeMatch, label, Icon }) => {
+                  const matchAgainst = activeMatch ?? href;
+                  const active = matchAgainst === "/" ? pathname === "/" : pathname.startsWith(matchAgainst);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setOpen(false)}
+                      className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
+                        active ? "text-[#0e0e0d]" : "text-[#33322f]"
+                      }`}
+                    >
+                      <Icon className="size-[18px] shrink-0" />
+                      {label}
+                    </Link>
+                  );
+                })}
+                {edition && (
+                  <>
+                    <div className="mx-4 my-1.5 border-t-2 border-dashed border-black/15" />
+                    <p className="px-4 pt-1 pb-1">
+                      <span className="font-drowner inline-block bg-[#ea34df] px-2 py-0.5 text-[14px] leading-none text-white">{edition.slug}</span>
+                    </p>
+                    {EDITION_PAGES.filter((page) => edition.pages[page]).map((page) => {
+                      const href = editionPath(edition.slug, page);
+                      const Icon = EDITION_ICONS[page];
+                      const active = pathname.startsWith(href);
+                      return (
+                        <Link
+                          key={href}
+                          href={href}
+                          onClick={() => setOpen(false)}
+                          className={`font-nanum-pen flex items-center gap-3 px-4 py-2.5 text-[18px] leading-none transition-colors hover:bg-black/5 ${
+                            active ? "text-[#0e0e0d]" : "text-[#33322f]"
+                          }`}
+                        >
+                          <Icon className="size-[18px] shrink-0" />
+                          {page}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </nav>
+          </div>
+          {/* -mt so its feet (on top, once flipped) grip the menu's bottom border. */}
+          <span className="pointer-events-none -mt-1 block">
+            <Image src="/ele1.webp" alt="" width={56} height={51} className="rotate-180" />
+          </span>
+        </div>
       )}
     </div>
   );

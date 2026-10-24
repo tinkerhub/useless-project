@@ -75,6 +75,29 @@ html:has([data-page="results"]) {
   animation: nav-pop 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
+/* The site menu unrolls downward as the upside-down creature under it slowly drops (see
+   site-nav.tsx). A 0fr -> 1fr grid row rather than a transform so the rows aren't squashed on the
+   way, and rather than max-height so the reveal runs over the menu's real height - with a max-height
+   guess it finished early and then sat still. The creature, below it in flow, follows the edge. */
+@keyframes nav-pull {
+  from {
+    grid-template-rows: 0fr;
+  }
+  to {
+    grid-template-rows: 1fr;
+  }
+}
+
+.animate-nav-pull {
+  animation: nav-pull 1200ms cubic-bezier(0.37, 0, 0.25, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-nav-pull {
+    animation: none;
+  }
+}
+
 @keyframes float-slow {
   0%,
   100% {
