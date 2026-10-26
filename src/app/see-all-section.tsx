@@ -75,6 +75,12 @@ export default function SeeAllSection() {
   //   2. Hit-area overlay – a transparent `<button>` whose *actual* width/height
   //      and left/top properties transition in sync with the visual layer, so
   //      its DOM hit-box is always pixel-aligned with what the user sees.
+  //
+  // Hover is tracked on a fixed, full-size zone around that overlay, not on the
+  // overlay itself. Otherwise a cursor resting near the edge loops forever: the
+  // button shrinks out from under it (leave → snap back to full size), which
+  // puts it under the cursor again (enter → shrink), and so on. The shrinking
+  // overlay only takes the click.
   // ---------------------------------------------------------------------------
 
   const easingShrink = `cubic-bezier(0.4, 0, 0.2, 1)`;
@@ -105,8 +111,9 @@ export default function SeeAllSection() {
   // Hit-overlay actual bounds in canvas coords (matches visual at every point in the animation).
   const hitW = BUTTON_WIDTH * scale;
   const hitH = BUTTON_HEIGHT * scale;
-  const hitLeft = cx - hitW / 2;
-  const hitTop = cy - hitH / 2;
+  // Relative to the fixed hover zone, which covers the full-size button.
+  const hitLeft = (BUTTON_WIDTH - hitW) / 2;
+  const hitTop = (BUTTON_HEIGHT - hitH) / 2;
 
   const bgColor =
     phase === "ready"
@@ -181,30 +188,40 @@ export default function SeeAllSection() {
         {/* ── Hit-area overlay (transparent, events only) ─────────────────
             Uses width/height/left/top transitions (not transform) so the
             DOM event area is always aligned with the visual button above.  */}
-        <button
-          type="button"
+        <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          onClick={handleClick}
-          aria-label={
-            phase === "ready"
-              ? "See all 2390 projects. Click to open the project list."
-              : "See all 2390 projects. Hover and hold until it stops shrinking, then click."
-          }
           style={{
             position: "absolute",
-            left: `${hitLeft}px`,
-            top: `${hitTop}px`,
-            width: `${hitW}px`,
-            height: `${hitH}px`,
-            borderRadius: "17.444px",
-            background: "transparent",
-            cursor: "pointer",
-            transition: hitTransition,
-            outline: "none",
-            border: "none",
+            left: `${BUTTON_LEFT}px`,
+            top: `${BUTTON_TOP}px`,
+            width: `${BUTTON_WIDTH}px`,
+            height: `${BUTTON_HEIGHT}px`,
           }}
-        />
+        >
+          <button
+            type="button"
+            onClick={handleClick}
+            aria-label={
+              phase === "ready"
+                ? "See all 2390 projects. Click to open the project list."
+                : "See all 2390 projects. Hover and hold until it stops shrinking, then click."
+            }
+            style={{
+              position: "absolute",
+              left: `${hitLeft}px`,
+              top: `${hitTop}px`,
+              width: `${hitW}px`,
+              height: `${hitH}px`,
+              borderRadius: "17.444px",
+              background: "transparent",
+              cursor: "pointer",
+              transition: hitTransition,
+              outline: "none",
+              border: "none",
+            }}
+          />
+        </div>
       </div>
     </section>
   );
