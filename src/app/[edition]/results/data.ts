@@ -355,7 +355,7 @@ export type Person = { name: string; group: PersonGroup; photo?: string; head?: 
 // keep serving whatever they cached under a name, so reused names show a mix of old and new.
 export const PEOPLE: Person[] = [
   { name: "habeeb", group: "organisers", photo: "/habeeb.png", head: "/people/heads-v2/habeeb.webp" },
-  { name: "feminia", group: "organisers", photo: "/people/feminia.webp", head: "/people/heads-v2/feminia.webp" },
+  { name: "femina", group: "organisers", photo: "/people/femina.webp", head: "/people/heads-v2/femina.webp" },
   { name: "arundathi", group: "organisers", photo: "/people/arundathi.webp", head: "/people/heads-v2/arundathi.webp" },
   { name: "kurian", group: "organisers", photo: "/people/kurian.webp", head: "/people/heads-v2/kurian.webp" },
 

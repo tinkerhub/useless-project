@@ -37,6 +37,8 @@ const CANDIDATES = 50;
 const FIRST_GAP_MS = 280;
 const MIN_GAP_MS = 45;
 const SPEED_UP = 0.93;
+// How long the ring where a guess was tapped stays (matches .animate-tap-ring in globals.css).
+const TAP_RING_MS = 450;
 // How long the full crowd stays up, with no game started, before the scroll-on hint shows.
 const SCROLL_HINT_AFTER_MS = 4000;
 // Give the site's loading splash time to clear before the first head lands.
@@ -190,6 +192,16 @@ export default function PeopleCrowd({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   const gameOver = game.phase === "won" || game.phase === "lost";
+  // A quick ring where each guess was tapped, so a tap on a small figure is clearly felt to land.
+  const [rings, setRings] = useState<{ x: number; y: number; key: number }[]>([]);
+  const ringKey = useRef(0);
+  const tapRing = (clientX: number, clientY: number) => {
+    const box = sectionRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const key = ++ringKey.current;
+    setRings((r) => [...r, { x: clientX - box.left, y: clientY - box.top, key }]);
+    setTimeout(() => setRings((r) => r.filter((ring) => ring.key !== key)), TAP_RING_MS);
+  };
   const scrollHint = filled && atTop && (gameOver || (game.phase === "idle" && lingered));
 
   useEffect(() => {
@@ -260,7 +272,10 @@ export default function PeopleCrowd({
             // Each pair of fists starts its shuffle a little apart from the others.
             ["--jig-delay" as string]: `${(i * 53) % 180}ms`,
           }}
-          onClick={() => game.guess(i)}
+          onClick={(e) => {
+            if (game.canGuess) tapRing(e.clientX, e.clientY);
+            game.guess(i);
+          }}
           onMouseEnter={game.hover}
         >
           <div className={still ? undefined : "animate-sticker-pop"}>
@@ -298,6 +313,14 @@ export default function PeopleCrowd({
         </span>
       </Heading>
       {filled && game.overlay}
+      {rings.map((ring) => (
+        <span
+          key={ring.key}
+          aria-hidden="true"
+          className="animate-tap-ring pointer-events-none absolute z-[96] size-16 rounded-full border-4 border-[#0e0e0d]"
+          style={{ left: ring.x, top: ring.y }}
+        />
+      ))}
       {/* Above the play button while it is there, at the very bottom once a game has ended. */}
       <div
         aria-hidden={!scrollHint}

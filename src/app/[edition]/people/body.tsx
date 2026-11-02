@@ -134,7 +134,9 @@ export default function Body({
       aria-hidden="true"
       viewBox={`${BOX.x} ${BOX.y} ${BOX.w} ${BOX.h}`}
       shapeRendering="crispEdges"
-      className="pointer-events-none absolute"
+      // The box itself lets clicks through; the drawn blocks catch them, so tapping a body counts as
+      // tapping that person (in the game, as much as tapping their head).
+      className="pointer-events-none absolute [&_rect]:pointer-events-auto"
       style={{
         width: BOX.w * unit,
         height: BOX.h * unit,

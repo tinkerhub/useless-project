@@ -3,17 +3,17 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import HoverFrames from "../handbook/hover-frames";
+import { LEGO_COLORS } from "@/app/lego-block";
 import { VENUES } from "@/app/venues";
 import { PEOPLE } from "../results/data";
-import { CAMPUS, HELPERS, MAKERS, NOTE, STORY_END, TEAMS, type StoryMedia, type Team } from "./story-data";
+import { CAMPUS, HELPERS, MAKERS, NOTE, STICKER, STORY_END, TEAMS, type StoryMedia, type Team } from "./story-data";
 
 // After the crowd: a note, stuck on the page like a handwritten letter, saying the most important
 // part of it all was the people - then every team on one screen (who planned, who built the site,
-// who designed the goodies...), then everyone who gave a helping hand with the packing, with the
-// packing photos and videos as a collage, the campus leads, and the makers. Everything pops in as it
-// scrolls into view. (No apostrophes in
-// the comments here: Tailwind reads an unmatched one as the start of a string and silently skips
-// the classes after it.)
+// who designed the goodies...), then the volunteers huddled together with the packing photos and
+// videos sliding sideways as you scroll, the campus leads with every venue pinned to a notice board,
+// and the makers. Everything pops in as it scrolls into view. (No apostrophes in the comments here:
+// Tailwind reads an unmatched one as the start of a string and silently skips the classes after it.)
 
 const BY_NAME = new Map(PEOPLE.map((p) => [p.name, p]));
 const VOLUNTEERS = PEOPLE.filter((p) => p.group === "volunteers");
@@ -82,24 +82,29 @@ export default function Story() {
       <div className="flex min-h-svh snap-start snap-always items-center justify-center py-16">
         <Teams />
       </div>
-      {/* The rest is one snap area, all the way to the bottom of the page, so it scrolls freely. */}
-      <div className="mx-auto max-w-4xl snap-start pt-12 pb-28 text-center md:pt-20 md:pb-40">
-        <Reveal>
+      {/* Each part below is its own snap point. Parts taller than the screen (the photo strip, the
+          notice board on a phone) are scrolled through freely, then the page snaps on. */}
+      <div className="flex min-h-svh snap-start snap-always flex-col items-center justify-center py-16 text-center">
+        <Reveal className="mx-auto w-full max-w-4xl">
           <Chapter title={HELPERS.title} text={HELPERS.text} />
-          <Crowd people={VOLUNTEERS} className="mx-auto mt-8 max-w-md md:max-w-xl" />
+          {/* Everyone huddled together. */}
+          <Crowd people={VOLUNTEERS} className="mx-auto mt-8 max-w-sm md:mt-10 md:max-w-lg" />
         </Reveal>
-        <Reveal className="mt-12 md:mt-16">
-          <Collage media={HELPERS.media} />
-        </Reveal>
-        <Reveal className="mt-24 md:mt-32">
+      </div>
+      <ScrollStrip media={HELPERS.media} />
+      <div className="flex min-h-svh snap-start flex-col items-center justify-center py-16 text-center">
+        <Reveal className="mx-auto w-full max-w-4xl">
           <Chapter title={CAMPUS.title} text={CAMPUS.text} />
-          <VenueWall className="mt-8 md:mt-10" />
         </Reveal>
-        <Reveal className="mt-24 md:mt-32">
-          <Chapter title={MAKERS.title} text={MAKERS.text} />
+        <NoticeBoard className="mt-8 mb-12 md:mt-12 md:mb-16" />
+      </div>
+      {/* The end, on a screen of its own. */}
+      <div className="flex min-h-svh snap-start snap-always flex-col items-center justify-center gap-6 text-center md:gap-10">
+        <Reveal>
+          <Chapter title={MAKERS.title} />
         </Reveal>
-        <Reveal className="mt-20 md:mt-28">
-          <p className="font-drowner leading-[0.9]" style={{ fontSize: "clamp(44px, 7vw, 104px)" }}>
+        <Reveal>
+          <p className="font-drowner leading-[0.9]" style={{ fontSize: "clamp(48px, 8vw, 120px)" }}>
             {STORY_END}
           </p>
         </Reveal>
@@ -113,7 +118,7 @@ export default function Story() {
 function Note() {
   return (
     <Reveal className="mx-auto w-full max-w-2xl">
-      <div className="relative -rotate-1 border border-[#0e0e0d]/[0.06] bg-white px-6 pt-10 pb-8 shadow-[0_12px_32px_rgba(0,0,0,0.12)] md:px-12 md:pt-10 md:pb-8">
+      <div className="relative -rotate-1 border border-[#0e0e0d]/[0.06] bg-white px-5 pt-10 pb-8 shadow-[0_12px_32px_rgba(0,0,0,0.12)] md:px-12 md:pt-10 md:pb-8">
         <span aria-hidden="true" className="absolute -top-3 right-6 h-7 w-24 rotate-2 bg-[#0e0e0d]/[0.07] md:right-auto md:left-1/2 md:w-28 md:-translate-x-1/2" />
         {/* The creature huddle stands on the top edge of the note, clear of the tape (and on phones, of the menu button). */}
         <ul className="absolute bottom-full left-5 flex items-end md:right-10 md:left-auto">
@@ -124,10 +129,10 @@ function Note() {
               style={{ zIndex: CROWD_Z[n] }}
             >
               {item.hoverFrames ? (
-                <HoverFrames frames={item.hoverFrames} className="h-14 w-14 object-contain md:h-[72px] md:w-[72px]" />
+                <HoverFrames frames={item.hoverFrames} className="h-12 w-12 object-contain md:h-[80px] md:w-[80px]" />
               ) : (
-                <span className="relative block h-14 w-14 md:h-[72px] md:w-[72px]">
-                  <Image src={item.image} alt="" aria-hidden="true" fill sizes="72px" className="object-contain" />
+                <span className="relative block h-12 w-12 md:h-[80px] md:w-[80px]">
+                  <Image src={item.image} alt="" aria-hidden="true" fill sizes="80px" className="object-contain" />
                 </span>
               )}
               <span className="font-nanum-pen pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 text-[18px] whitespace-nowrap text-[#0e0e0d] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -137,12 +142,12 @@ function Note() {
           ))}
         </ul>
         {NOTE.lines.map((line, i) => (
-          <p key={i} className="font-nanum-pen mt-4 text-[24px] leading-[1.15] text-[#244638] first:mt-0 md:text-[27px]">
+          <p key={i} className="font-nanum-pen mt-3 text-[21px] leading-[1.15] md:mt-4 text-[#244638] first:mt-0 md:text-[27px]">
             {line}
           </p>
         ))}
         {/* What it all comes down to, said last, in the same hand as the rest. */}
-        <h2 className="font-nanum-pen mt-4 text-[24px] leading-[1.15] font-bold text-[#244638] md:text-[27px]">{NOTE.closing}</h2>
+        <h2 className="font-nanum-pen mt-3 text-[21px] leading-[1.15] md:mt-4 font-bold text-[#244638] md:text-[27px]">{NOTE.closing}</h2>
       </div>
     </Reveal>
   );
@@ -217,8 +222,8 @@ function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: 
     counts.push(want);
     left -= want;
   }
-  const head = (100 / perRow) * 1.3; // % of the box width
-  const step = head * 0.42; // rows overlap by more than half a head
+  const head = (100 / perRow) * 1.5; // % of the box width; wider than a slot, so neighbours overlap
+  const step = head * 0.34; // each row hides most of the row behind it, shoulder to shoulder
   const height = step * (CROWD_ROWS - 1) + head + 8; // % of width, plus room for the front row names
   const order = crowdOrder(people.length);
   let next = 0;
@@ -260,44 +265,71 @@ function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: 
   );
 }
 
-// Every venue, as three strips of little prints sliding slowly past, each the other way from the
-// one above (hover one to stop it). Every strip holds its photos twice over and slides by exactly
-// half its length, so the loop never jumps. Venues that ran in both slots show once.
+// Every venue, pinned up like postcards on a cork notice board in a wooden frame (with the TinkerHub
+// sticker slapped across its corner): each a little print
+// with the campus name under it, tipped and nudged its own way, overlapping its neighbours a touch,
+// with a coloured pin through the top. Hover one to lift it off the board. Venues that ran in both
+// slots show once.
 const CAMPUSES = VENUES.filter((v, i) => VENUES.findIndex((w) => w.name === v.name) === i);
-const STRIPS = 3;
-const SECONDS_PER_TILE = 2.6;
+const PIN_COLORS = Object.entries(LEGO_COLORS)
+  .filter(([name]) => name !== "cream")
+  .map(([, colour]) => colour);
 
-function VenueWall({ className = "" }: { className?: string }) {
-  const strips = Array.from({ length: STRIPS }, (_, r) => CAMPUSES.filter((_, i) => i % STRIPS === r));
+function NoticeBoard({ className = "" }: { className?: string }) {
   return (
-    // Full width of the screen, past the text column, fading out at both edges.
     <div
-      className={`relative left-1/2 flex w-screen -translate-x-1/2 flex-col gap-3 overflow-hidden py-3 md:gap-5 ${className}`}
-      style={{ maskImage: "linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)" }}
+      className={`relative left-1/2 w-[calc(100vw-24px)] max-w-[1200px] -translate-x-1/2 border-[10px] border-[#8f6136] p-2 shadow-[inset_0_2px_12px_rgba(0,0,0,0.35),0_16px_36px_rgba(0,0,0,0.18)] md:border-[16px] md:p-5 ${className}`}
+      style={{
+        backgroundColor: "#c79764",
+        backgroundImage:
+          "radial-gradient(rgba(70,40,10,0.22) 1px, transparent 1.6px), radial-gradient(rgba(255,240,210,0.18) 1px, transparent 1.6px)",
+        backgroundSize: "7px 7px, 11px 11px",
+        backgroundPosition: "0 0, 3px 5px",
+      }}
     >
-      {strips.map((strip, r) => (
-        <ul
-          key={r}
-          className="animate-venue-strip flex w-max gap-3 hover:[animation-play-state:paused] md:gap-5"
-          style={{ animationDuration: `${strip.length * SECONDS_PER_TILE}s`, animationDirection: r % 2 ? "reverse" : "normal" }}
-        >
-          {[...strip, ...strip].map((venue, i) => (
-            <li
-              key={`${venue.name}-${i}`}
-              aria-hidden={i >= strip.length ? true : undefined}
-              className="w-28 shrink-0 bg-white p-1 pb-0.5 shadow-[0_4px_12px_rgba(0,0,0,0.12)] md:w-40 md:p-1.5 md:pb-1"
-              style={{ rotate: `${((i * 53 + r * 17) % 9) - 4}deg` }}
-            >
+      {/* The TinkerHub sticker, slapped across the bottom corner of the board, hanging off the frame. */}
+      <TogetherSticker className="absolute right-1 -bottom-12 z-30 w-36 rotate-[8deg] md:-right-4 md:-bottom-20 md:w-64" />
+      <ul className="flex flex-wrap justify-center">
+        {CAMPUSES.map((venue, i) => (
+          <li
+            key={venue.name}
+            className="relative w-1/5 p-0.5 transition-transform duration-200 hover:z-20 hover:scale-150 hover:rotate-0 sm:w-1/6 md:w-[12.5%] md:p-1.5 lg:w-[10%]"
+            style={{ rotate: `${((i * 53) % 13) - 6}deg`, translate: `${((i * 29) % 7) - 3}px ${((i * 41) % 9) - 4}px` }}
+          >
+            <div className="bg-[#fffdf8] p-[3px] pb-0.5 shadow-[0_3px_6px_rgba(0,0,0,0.3)] md:p-1.5 md:pb-1">
               <span className="relative block aspect-[4/3] overflow-hidden bg-[#f1f0ea]">
-                <Image src={venue.image} alt={venue.name} fill sizes="160px" className="object-cover" />
+                <Image src={venue.image} alt={venue.name} fill sizes="(min-width: 1024px) 120px, 20vw" className="object-cover" />
               </span>
-              <span className="font-nanum-pen block truncate pt-0.5 text-center text-[14px] leading-tight text-[#244638] md:text-[16px]">
+              <span className="font-nanum-pen block truncate pt-px text-center text-[11px] leading-tight text-[#244638] md:text-[14px]">
                 {venue.name}
               </span>
-            </li>
-          ))}
-        </ul>
-      ))}
+            </div>
+            <span
+              aria-hidden="true"
+              className="absolute top-0 left-1/2 size-2 -translate-x-1/2 rounded-full shadow-[0_2px_2px_rgba(0,0,0,0.45)] md:top-0.5 md:size-3"
+              style={{ background: PIN_COLORS[i % PIN_COLORS.length] }}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// The TinkerHub "Together, we make it better." sticker, slapped on as it scrolls into view - dropping
+// in big and tilted, squashing flat, and settling a little crooked. Where it goes and how big it is
+// come from `className`.
+function TogetherSticker({ className = "" }: { className?: string }) {
+  const [ref, shown] = useShown<HTMLDivElement>();
+  return (
+    <div ref={ref} className={className}>
+      <span
+        className={`relative block w-full drop-shadow-[0_10px_18px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:scale-105 ${
+          shown ? "animate-sticker-slap" : "opacity-0"
+        }`}
+      >
+        <Image src={STICKER.src} alt={STICKER.alt} width={600} height={322} sizes="(min-width: 768px) 256px, 160px" className="block h-auto w-full" />
+      </span>
     </div>
   );
 }
@@ -308,21 +340,53 @@ function Chapter({ title, text }: { title: string; text?: string }) {
       <h3 className="font-drowner leading-[0.95]" style={{ fontSize: "clamp(30px, 4.4vw, 56px)" }}>
         {title}
       </h3>
-      {text && <p className="font-helvetica mx-auto mt-3 max-w-2xl text-[17px] leading-[1.65] text-[#33322f] md:mt-4 md:text-[20px]">{text}</p>}
+      {text && <p className="font-nanum-pen mx-auto mt-3 max-w-2xl text-[22px] leading-[1.2] text-[#244638] md:mt-4 md:text-[28px]">{text}</p>}
     </>
   );
 }
 
-// Photos and videos as a loose two-column pile: every card the same wide shape, each tilted its own
-// way, the right column dropped a little so they do not line up like a grid.
-function Collage({ media }: { media: StoryMedia[] }) {
+// The packing photos and videos, side by side in one long strip that slides sideways as the page
+// scrolls down: the strip holds still on screen (sticky) while a tall box scrolls past it, and how
+// far through that box the page is decides how far along the strip is. Moved straight on the
+// element, not through React state, so it keeps up with the scroll.
+function ScrollStrip({ media }: { media: StoryMedia[] }) {
+  const outer = useRef<HTMLDivElement>(null);
+  const track = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const move = () => {
+      const box = outer.current;
+      const strip = track.current;
+      if (!box || !strip) return;
+      const travel = box.offsetHeight - window.innerHeight;
+      const along = travel > 0 ? Math.min(1, Math.max(0, -box.getBoundingClientRect().top / travel)) : 0;
+      const shift = Math.max(0, strip.scrollWidth - window.innerWidth);
+      strip.style.transform = `translate3d(${-shift * along}px, 0, 0)`;
+    };
+    move();
+    window.addEventListener("scroll", move, { passive: true });
+    window.addEventListener("resize", move);
+    return () => {
+      window.removeEventListener("scroll", move);
+      window.removeEventListener("resize", move);
+    };
+  }, []);
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:gap-x-8 md:gap-y-8">
-      {media.map((m, n) => (
-        <div key={n} className={n % 2 === 1 ? "translate-y-5 md:translate-y-10" : ""}>
-          <MediaCard media={m} tilt={TILTS[n % TILTS.length] * (n % 4 < 2 ? 1 : -1)} wide />
+    // Its own snap point: the page settles with the strip filling the screen, then scrolls freely
+    // through it (a snap area taller than the screen), sliding the photos along.
+    <div
+      ref={outer}
+      className="relative left-1/2 w-screen -translate-x-1/2 snap-start"
+      style={{ height: `calc(100svh + ${media.length * 50}svh)` }}
+    >
+      <div className="sticky top-0 flex h-svh items-center overflow-hidden">
+        <div ref={track} className="flex items-center gap-6 px-[8vw] will-change-transform md:gap-12">
+          {media.map((m, n) => (
+            <div key={n} className={`w-[82vw] shrink-0 md:w-[52vw] lg:w-[46vw] ${n % 2 ? "translate-y-6 md:translate-y-12" : "-translate-y-4 md:-translate-y-8"}`}>
+              <MediaCard media={m} tilt={TILTS[n % TILTS.length]} wide />
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

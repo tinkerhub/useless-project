@@ -10,7 +10,7 @@ export const HEAD_FIT: Record<string, { neck: [number, number]; skin: string }> 
   "arundathi": { neck: [0.5, 0.846], skin: "#b57f6c" },
   "chandrettan": { neck: [0.508, 0.873], skin: "#d3834d" },
   "elizabeth-bobby": { neck: [0.492, 0.867], skin: "#b07d6a" },
-  "feminia": { neck: [0.479, 0.877], skin: "#b97b66" },
+  "femina": { neck: [0.479, 0.877], skin: "#b97b66" },
   "habeeb": { neck: [0.517, 0.917], skin: "#875642" },
   // Side profile: the measured middle sat under his face, which put his head left of his body;
   // nudged so his body sits under the back of his head instead.

@@ -46,6 +46,11 @@ type Phase = "idle" | "shuffling" | "guessing" | "won" | "lost";
 type Tone = "info" | "bad" | "good";
 type Flash = { text: string; tone: Tone; key: number };
 
+// A short buzz on phones that support it; does nothing anywhere else.
+const buzz = (pattern: number | number[]) => {
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(pattern);
+};
+
 const headSlug = (person: Person) => person.head?.split("/").pop()?.replace(/\.webp$/, "");
 const INTRO = -1; // brickAt value for the big brick in the middle of the screen
 
@@ -211,6 +216,7 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
     setOpened(i);
     sfx.open();
     if (i === holder) {
+      buzz([30, 60, 30, 60, 90]);
       setBrickAt(i);
       setBrickShown(true);
       setPhase("won");
@@ -222,6 +228,7 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
     }
     const left = hearts - 1;
     setHearts(left);
+    buzz(left > 0 ? [70, 40, 70] : [120, 60, 120, 60, 240]);
     later(120, sfx.wrong);
     flash(left > 0 ? "nope!" : "no hearts left", "bad");
     if (!calm()) {
@@ -285,7 +292,9 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
       })
     : [];
 
-  const answer = figures[holder]?.person.name;
+  // Volunteers whose name is not in yet are listed as just "volunteer".
+  const holderName = figures[holder]?.person.name;
+  const answer = holderName === "volunteer" ? "one of our volunteers" : holderName;
   // The main message for each stage of the game (a quick flash like nope! shows over it for a moment),
   // and the one-line instruction under the hearts.
   const message: Flash = flashed ?? {
@@ -404,14 +413,27 @@ function Brick() {
 }
 
 // A chunky black sticker button, like the site menu button.
-function GameButton({ children, onClick, big, quiet }: { children: React.ReactNode; onClick: () => void; big?: boolean; quiet?: boolean }) {
+function GameButton({
+  children,
+  onClick,
+  big,
+  quiet,
+  className = "",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  big?: boolean;
+  quiet?: boolean;
+  className?: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`font-drowner animate-sticker-pop flex cursor-pointer items-center gap-3 whitespace-nowrap shadow-md transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-[1.04] active:translate-y-0.5 active:scale-[0.97] ${
-        quiet ? "bg-white text-[#0e0e0d] ring-2 ring-[#0e0e0d]" : "bg-[#0e0e0d] text-white"
-      } ${big ? "px-5 py-3 text-[26px] md:px-7 md:py-4 md:text-[34px]" : "px-4 py-2 text-[20px] md:px-5 md:py-3 md:text-[26px]"}`}
+        // The outline sits inside the button, so a quiet button is exactly the size of a solid one.
+        quiet ? "bg-white text-[#0e0e0d] ring-2 ring-[#0e0e0d] ring-inset" : "bg-[#0e0e0d] text-white"
+      } ${big ? "px-5 py-3 text-[26px] md:px-7 md:py-4 md:text-[34px]" : "px-4 py-3 text-[22px] md:px-5 md:text-[26px]"} ${className}`}
     >
       {children}
     </button>
@@ -439,34 +461,47 @@ function GameScreen({
   return (
     <div
       role="status"
-      className="pointer-events-none absolute inset-x-0 top-1/2 z-[90] flex -translate-y-1/2 flex-col items-center px-4 text-center"
+      className="pointer-events-none absolute inset-x-0 top-1/2 z-[90] flex -translate-y-1/2 justify-center px-4 text-center"
     >
-      {/* Lives on top, like any game HUD. */}
-      <Hearts hearts={hearts} />
-      {/* A new message pops in each time it changes; a white outline keeps it clear of any figure
-          it overlaps. */}
-      <span
-        key={message.key}
-        className="font-drowner animate-sticker-pop mt-3 leading-[0.9] md:mt-4"
-        style={{ fontSize: "clamp(46px, 8.5vw, 128px)", color: colour, WebkitTextStroke: "7px #fff", paintOrder: "stroke fill" }}
+      {/* While playing it is see-through, so the people behind it can still be watched and tapped.
+          Once the game is over it settles onto a white card, clear of the crowd, with the buttons. */}
+      <div
+        className={`flex flex-col items-center ${
+          finished
+            ? "pointer-events-auto w-full max-w-[360px] bg-white/95 px-5 pt-5 pb-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-sm md:max-w-[460px] md:px-8 md:pt-7 md:pb-7"
+            : ""
+        }`}
       >
-        {message.text}
-      </span>
-      {/* The instruction: the same handwritten green as the site sublines. */}
-      <span
-        className="font-nanum-pen mt-2 text-[22px] leading-tight text-[#244638] md:mt-3 md:text-[30px]"
-        style={{ WebkitTextStroke: "4px #fff", paintOrder: "stroke fill" }}
-      >
-        {hint}
-      </span>
-      {finished && (
-        <div className="pointer-events-auto mt-5 flex gap-3 md:mt-6">
-          <GameButton onClick={onAgain}>play again</GameButton>
-          <GameButton onClick={onDone} quiet>
-            done
-          </GameButton>
-        </div>
-      )}
+        {/* Lives on top, like any game HUD. */}
+        <Hearts hearts={hearts} />
+        {/* A new message pops in each time it changes; a white outline keeps it clear of any figure
+            it overlaps. */}
+        <span
+          key={message.key}
+          className="font-drowner animate-sticker-pop mt-3 leading-[0.9] md:mt-4"
+          style={{ fontSize: "clamp(46px, 8.5vw, 112px)", color: colour, WebkitTextStroke: finished ? undefined : "7px #fff", paintOrder: "stroke fill" }}
+        >
+          {message.text}
+        </span>
+        {/* The instruction: the same handwritten green as the site sublines. */}
+        <span
+          className="font-nanum-pen mt-2 text-[22px] leading-tight text-[#244638] md:mt-3 md:text-[30px]"
+          style={{ WebkitTextStroke: finished ? undefined : "4px #fff", paintOrder: "stroke fill" }}
+        >
+          {hint}
+        </span>
+        {finished && (
+          // Two buttons the same size, side by side across the card.
+          <div className="mt-5 grid w-full grid-cols-2 gap-3 md:mt-6">
+            <GameButton onClick={onAgain} className="justify-center">
+              play again
+            </GameButton>
+            <GameButton onClick={onDone} quiet className="justify-center">
+              done
+            </GameButton>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -477,7 +512,7 @@ function Hearts({ hearts }: { hearts: number }) {
   return (
     <div className="flex gap-1.5 md:gap-2" aria-label={`${hearts} of ${HEARTS} hearts left`}>
       {Array.from({ length: HEARTS }, (_, i) => (
-        <span key={i} className="relative block size-7 md:size-9">
+        <span key={i} className="relative block size-8 md:size-9">
           <PixelHeart full={false} />
           {i < hearts && (
             <span className="absolute inset-0">
