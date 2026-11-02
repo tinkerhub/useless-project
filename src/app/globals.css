@@ -251,6 +251,144 @@ html:has([data-page="people"]) {
   }
 }
 
+/* People page, group photo: walking in from their side (--from-x, over --walk), stepping as they go
+   (a bob and a little sway, --steps times), a gentle idle bob for the creatures once they have
+   arrived, the bug flying in from above and hovering about, and the camera flash. */
+@keyframes walk-in {
+  from {
+    transform: translateX(var(--from-x));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-walk-in {
+  animation: walk-in var(--walk, 1600ms) cubic-bezier(0.3, 0.15, 0.4, 1) both;
+}
+
+@keyframes step {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-8%) rotate(3deg);
+  }
+}
+
+.animate-step {
+  animation: step 340ms ease-in-out both;
+  animation-iteration-count: var(--steps, 4);
+}
+
+@keyframes idle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6%);
+  }
+}
+
+.animate-idle-bob {
+  animation: idle-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes fly-in {
+  from {
+    opacity: 0;
+    transform: translate(-60%, -260%) rotate(-20deg);
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0);
+  }
+}
+
+.animate-fly-in {
+  animation: fly-in 1800ms cubic-bezier(0.25, 0.6, 0.35, 1) both;
+}
+
+@keyframes hover-fly {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-5deg);
+  }
+  25% {
+    transform: translate(8%, -14%) rotate(4deg);
+  }
+  50% {
+    transform: translate(-4%, -22%) rotate(-3deg);
+  }
+  75% {
+    transform: translate(-10%, -8%) rotate(5deg);
+  }
+}
+
+.animate-hover-fly {
+  animation: hover-fly 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-walk-in,
+  .animate-step,
+  .animate-idle-bob,
+  .animate-fly-in,
+  .animate-hover-fly {
+    animation: none;
+  }
+}
+
+/* The group photo swinging into place on its nail once it is framed (transform-origin is the nail). */
+@keyframes frame-hang {
+  0% {
+    opacity: 0;
+    transform: translateY(-36px) rotate(-7deg) scale(1.04);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) rotate(4deg) scale(1);
+  }
+  60% {
+    transform: rotate(-2.2deg);
+  }
+  80% {
+    transform: rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0);
+  }
+}
+
+.animate-frame-hang {
+  animation: frame-hang 1400ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-frame-hang {
+    animation: none;
+  }
+}
+
+@keyframes camera-flash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-camera-flash {
+  animation: camera-flash 700ms ease-out both;
+}
+
 /* Find the brick: a ring where a guess was tapped, spreading and fading from under the finger. */
 @keyframes tap-ring {
   from {

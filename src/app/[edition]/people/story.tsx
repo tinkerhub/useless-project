@@ -1,8 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import HoverFrames from "../handbook/hover-frames";
+
 import { LEGO_COLORS } from "@/app/lego-block";
 import { VENUES } from "@/app/venues";
 import { PEOPLE } from "../results/data";
@@ -14,6 +16,10 @@ import { CAMPUS, HELPERS, MAKERS, NOTE, STICKER, STORY_END, TEAMS, type StoryMed
 // videos sliding sideways as you scroll, the campus leads with every venue pinned to a notice board,
 // and the makers. Everything pops in as it scrolls into view. (No apostrophes in the comments here:
 // Tailwind reads an unmatched one as the start of a string and silently skips the classes after it.)
+
+// The group photo at the very end only runs in the browser and is the heaviest part of the page,
+// so its code is fetched separately instead of holding up the first load.
+const GroupPhoto = dynamic(() => import("./group-photo"), { ssr: false, loading: () => <div className="min-h-[60svh] w-full" /> });
 
 const BY_NAME = new Map(PEOPLE.map((p) => [p.name, p]));
 const VOLUNTEERS = PEOPLE.filter((p) => p.group === "volunteers");
@@ -98,15 +104,10 @@ export default function Story() {
         </Reveal>
         <NoticeBoard className="mt-8 mb-12 md:mt-12 md:mb-16" />
       </div>
-      {/* The end, on a screen of its own. */}
-      <div className="flex min-h-svh snap-start snap-always flex-col items-center justify-center gap-6 text-center md:gap-10">
-        <Reveal>
-          <Chapter title={MAKERS.title} />
-        </Reveal>
-        <Reveal>
-          <p className="font-drowner leading-[0.9]" style={{ fontSize: "clamp(48px, 8vw, 120px)" }}>
-            {STORY_END}
-          </p>
+      {/* The end, on a screen of its own: a group photo of everyone (see group-photo.tsx). */}
+      <div className="flex min-h-svh snap-start snap-always flex-col items-center justify-center py-12 text-center">
+        <Reveal className="w-full">
+          <GroupPhoto title={MAKERS.title} thanks={STORY_END} />
         </Reveal>
       </div>
     </section>
@@ -129,10 +130,10 @@ function Note() {
               style={{ zIndex: CROWD_Z[n] }}
             >
               {item.hoverFrames ? (
-                <HoverFrames frames={item.hoverFrames} className="h-12 w-12 object-contain md:h-[80px] md:w-[80px]" />
+                <HoverFrames frames={item.hoverFrames} className="h-12 w-12 object-contain [image-rendering:pixelated] md:h-[80px] md:w-[80px]" />
               ) : (
                 <span className="relative block h-12 w-12 md:h-[80px] md:w-[80px]">
-                  <Image src={item.image} alt="" aria-hidden="true" fill sizes="80px" className="object-contain" />
+                  <Image src={item.image} alt="" aria-hidden="true" fill unoptimized className="object-contain [image-rendering:pixelated]" />
                 </span>
               )}
               <span className="font-nanum-pen pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 text-[18px] whitespace-nowrap text-[#0e0e0d] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -184,17 +185,32 @@ function TeamCell({ team }: { team: Team }) {
 
 // A row of cut-out heads standing close together, each with its name under it, wrapping onto more
 // rows when there are many. Heads without a name yet get an empty caption line, so rows stay level.
+// Hover (or tap) one and it hops up, grows and tips to one side, and its name turns into a label.
 function Heads({ people, className = "" }: { people: typeof PEOPLE; className?: string }) {
   return (
     <div className={`flex items-end justify-center gap-y-2 ${className.includes("flex-nowrap") ? "" : "flex-wrap"} ${className}`}>
       {people.map((person, n) => (
-        <figure key={`${person.name}-${n}`} className="flex w-14 flex-col items-center md:w-[80px] lg:w-[90px] xl:w-[104px]">
-          <span className="relative block size-[52px] md:size-[76px] lg:size-[86px] xl:size-[100px]">
+        <figure
+          key={`${person.name}-${n}`}
+          className="group relative flex w-14 flex-col items-center hover:z-10 md:w-[80px] lg:w-[90px] xl:w-[104px]"
+        >
+          <span
+            className={`relative block size-[52px] transition-transform duration-300 ease-[cubic-bezier(0.3,1.6,0.5,1)] group-hover:-translate-y-2 group-hover:scale-125 group-active:-translate-y-2 group-active:scale-125 md:size-[76px] lg:size-[86px] xl:size-[100px] ${
+              n % 2 ? "group-hover:rotate-6 group-active:rotate-6" : "group-hover:-rotate-6 group-active:-rotate-6"
+            }`}
+          >
             {person.head && (
-              <Image src={person.head} alt="" fill sizes="(min-width: 1280px) 100px, 86px" className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.2)]" />
+              <Image
+                src={person.head}
+                alt=""
+                fill
+                // The cut-out file as it is (480px, ~20 KB): the optimizer's re-encode blurs small faces.
+                unoptimized
+                className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.2)] transition-[filter] duration-300 group-hover:drop-shadow-[0_12px_10px_rgba(0,0,0,0.28)]"
+              />
             )}
           </span>
-          <figcaption className="font-nanum-pen mt-1 h-4 text-center text-[15px] leading-none whitespace-nowrap text-[#244638] md:h-5 md:text-[19px] xl:h-6 xl:text-[22px]">
+          <figcaption className="font-nanum-pen mt-1 h-4 px-1 text-center text-[15px] leading-none whitespace-nowrap text-[#244638] transition-colors duration-200 group-hover:bg-[#0e0e0d] group-hover:text-white md:h-5 md:text-[19px] xl:h-6 xl:text-[22px]">
             {person.name === UNNAMED ? "" : person.name}
           </figcaption>
         </figure>
@@ -205,7 +221,8 @@ function Heads({ people, className = "" }: { people: typeof PEOPLE; className?: 
 
 // A crowd, like a group photo: three staggered rows, the back row smaller and higher, the front row
 // biggest and lowest and drawn on top, every head overlapping its neighbours and tipped a little its
-// own way. Positions are in % of the box, so it scales with the screen. Hover a head for the name.
+// own way. Positions are in % of the box, so it scales with the screen. No names: not every
+// volunteer's name is in yet, so none are shown.
 const CROWD_ROWS = 3;
 const ROW_SCALE = [0.8, 0.9, 1];
 // A fixed shuffle (the same every load, so nobody moves between server and browser render).
@@ -246,19 +263,16 @@ function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: 
       {spots.map(({ person, r, left: x, top, tilt }, n) => (
         <figure
           key={`${person.name}-${n}`}
-          className="group absolute -translate-x-1/2 transition-transform duration-200 hover:z-40 hover:scale-110"
+          // The hover z-index is marked important so it beats the row stacking set inline below,
+          // bringing a head from the back row to the front.
+          className="group absolute -translate-x-1/2 transition-transform duration-200 hover:z-40! hover:scale-110"
           style={{ left: `${x}%`, top: `${top}%`, width: `${head * ROW_SCALE[r]}%`, zIndex: r * 10 + 1, rotate: `${tilt}deg` }}
         >
           <span className="relative block aspect-square">
             {person.head && (
-              <Image src={person.head} alt={person.name === UNNAMED ? "A volunteer" : person.name} fill sizes="96px" className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.22)]" />
+              <Image src={person.head} alt="A volunteer" fill unoptimized className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.22)]" />
             )}
           </span>
-          {person.name !== UNNAMED && (
-            <figcaption className="font-nanum-pen pointer-events-none absolute top-full left-1/2 -translate-x-1/2 bg-[#0e0e0d] px-1.5 py-0.5 text-[14px] leading-none whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 md:text-[16px]">
-              {person.name}
-            </figcaption>
-          )}
         </figure>
       ))}
     </div>
@@ -278,7 +292,7 @@ const PIN_COLORS = Object.entries(LEGO_COLORS)
 function NoticeBoard({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative left-1/2 w-[calc(100vw-24px)] max-w-[1200px] -translate-x-1/2 border-[10px] border-[#8f6136] p-2 shadow-[inset_0_2px_12px_rgba(0,0,0,0.35),0_16px_36px_rgba(0,0,0,0.18)] md:border-[16px] md:p-5 ${className}`}
+      className={`relative w-[calc(100vw-24px)] max-w-[1200px] shrink-0 border-[10px] border-[#8f6136] p-2 shadow-[inset_0_2px_12px_rgba(0,0,0,0.35),0_16px_36px_rgba(0,0,0,0.18)] md:border-[16px] md:p-5 ${className}`}
       style={{
         backgroundColor: "#c79764",
         backgroundImage:

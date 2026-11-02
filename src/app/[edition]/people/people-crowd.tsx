@@ -172,6 +172,8 @@ export default function PeopleCrowd({
   // The title waits for the last figure to land, then pops in on top of the crowd.
   const filled = spots.length > 0 && shown >= spots.length;
   // Find the brick (see brick-game.tsx), offered once everyone has landed.
+  // Whoever the pointer is over, so they can react (see Figure).
+  const [hovered, setHovered] = useState<number | null>(null);
   const game = useBrickGame(spots, () => ({
     width: sectionRef.current?.clientWidth ?? 0,
     height: sectionRef.current?.clientHeight ?? 0,
@@ -276,14 +278,18 @@ export default function PeopleCrowd({
             if (game.canGuess) tapRing(e.clientX, e.clientY);
             game.guess(i);
           }}
-          onMouseEnter={game.hover}
+          onMouseEnter={() => {
+            setHovered(i);
+            game.hover();
+          }}
+          onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
         >
           <div className={still ? undefined : "animate-sticker-pop"}>
             <div
               className={still || game.playing ? undefined : "animate-[float-slow_6s_ease-in-out_infinite]"}
               style={{ animationDuration: `${spot.floatDuration}s`, animationDelay: `${spot.floatDelay}s` }}
             >
-              <Figure spot={spot} color={HEAD_COLORS[i % HEAD_COLORS.length]} gamePose={game.poseFor(i)} laughing={game.laughing === i} />
+              <Figure spot={spot} color={HEAD_COLORS[i % HEAD_COLORS.length]} gamePose={game.poseFor(i)} laughing={game.laughing === i} hovered={hovered === i} />
             </div>
           </div>
           {/* The name, shown under the feet while the figure is hovered. */}
@@ -340,9 +346,22 @@ export default function PeopleCrowd({
 // One figure: a cut-out head on a drawn body joined at its neck, with one soft shadow under the
 // whole thing. Without a cut-out, just their photo in a circle, or a coloured placeholder silhouette.
 // `gamePose` swaps in the find-the-brick hands (closed or open) while the game is on.
-function Figure({ spot, color, gamePose, laughing }: { spot: Spot; color: string; gamePose: GamePose | null; laughing?: boolean }) {
+function Figure({
+  spot,
+  color,
+  gamePose,
+  laughing,
+  hovered,
+}: {
+  spot: Spot;
+  color: string;
+  gamePose: GamePose | null;
+  laughing?: boolean;
+  hovered?: boolean;
+}) {
   const { person, size } = spot;
-  const pose = gamePose ?? spot.pose;
+  // Hovered (outside the game), they react: arms up, or a wave if their arms were up already.
+  const pose = gamePose ?? (hovered ? (spot.pose === "hooray" ? "wave" : "hooray") : spot.pose);
   // Hidden until the head image has loaded, so a slow or failed image never leaves a headless body.
   const [headLoaded, setHeadLoaded] = useState(false);
   const fit = person.head ? HEAD_FIT[person.head.split("/").pop()!.replace(/\.webp$/, "")] : undefined;
@@ -363,7 +382,8 @@ function Figure({ spot, color, gamePose, laughing }: { spot: Spot; color: string
           src={person.head}
           alt={person.name}
           fill
-          sizes={`${Math.ceil(size)}px`}
+          // The cut-out file as it is (480px, ~20 KB): the optimizer's re-encode blurs small faces.
+          unoptimized
           // Laughing (the one who had the brick, when the player runs out of hearts): the head bobs.
           className={`object-contain ${laughing ? "animate-laugh" : ""}`}
           onLoad={() => setHeadLoaded(true)}

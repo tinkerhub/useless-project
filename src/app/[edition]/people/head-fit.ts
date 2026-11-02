@@ -3,9 +3,9 @@
 // `neck` is [x, y] as fractions of the image (x = middle of the head's lower third, y = its lowest
 // point), `skin` the median colour of the nose/cheek area. Re-measure if a cut-out changes.
 export const HEAD_FIT: Record<string, { neck: [number, number]; skin: string }> = {
-  "achuth": { neck: [0.508, 0.879], skin: "#4d3739" },
+  "achuth-2": { neck: [0.508, 0.879], skin: "#6c5557" }, // brightened copy of achuth (was too dark)
   "akhil-sam": { neck: [0.496, 0.894], skin: "#90675a" },
-  "alina": { neck: [0.458, 0.867], skin: "#d48552" },
+  "alina-2": { neck: [0.522, 0.825], skin: "#a65b44" }, // from her newer photo (the old cut-out clipped her glasses)
   "altaf": { neck: [0.429, 0.867], skin: "#a8756a" },
   "arundathi": { neck: [0.5, 0.846], skin: "#b57f6c" },
   "chandrettan": { neck: [0.508, 0.873], skin: "#d3834d" },
@@ -18,7 +18,7 @@ export const HEAD_FIT: Record<string, { neck: [number, number]; skin: string }> 
   "jazeel": { neck: [0.483, 0.848], skin: "#ca7d67" },
   "jenit": { neck: [0.498, 0.848], skin: "#955f49" },
   "kartick": { neck: [0.512, 0.885], skin: "#8f685d" },
-  "kurian": { neck: [0.469, 0.885], skin: "#bd7954" },
+  "kurian-2": { neck: [0.459, 0.873], skin: "#bd7954" }, // re-cut: whole chin, no background beside it
   "nandana": { neck: [0.477, 0.869], skin: "#b96e4b" },
   "rio": { neck: [0.492, 0.892], skin: "#af8470" },
   "rishi-2": { neck: [0.45, 0.846], skin: "#986c5a" },
