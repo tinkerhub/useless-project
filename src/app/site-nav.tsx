@@ -81,6 +81,17 @@ function IconMedal(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+// Two heads, one behind the other, for the people page.
+function IconPeople(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx={9} cy={8} r={3.5} />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+      <path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M18 14.4c1.8.9 3 2.9 3 5.6" />
+    </svg>
+  );
+}
+
 // Two stacked chevrons, for the list of every year.
 function IconStack(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -110,6 +121,7 @@ const EDITION_ICONS: Record<EditionPage, typeof IconHome> = {
   handbook: IconBook,
   competitions: IconTrophy,
   submissions: IconUpload,
+  people: IconPeople,
 };
 
 // Lives in the root layout (not per-page like HandbookButton used to be), so it's the one

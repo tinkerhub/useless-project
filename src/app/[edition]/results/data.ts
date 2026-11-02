@@ -341,15 +341,53 @@ export const AFTERMOVIE_WINNERS: VenueWinner[] = [
   { venue: "SCMS", fullName: "SCMS School of Engineering & Technology", image: "/results/venues/scms.webp", url: "https://www.instagram.com/reel/DdeR__HpqRC/" },
 ];
 
-export type Person = { name: string; photo?: string };
+// `group` is only for keeping the list organised (and matching photos up later) - the crowd itself
+// is one mixed crowd and doesn't show it.
+export type PersonGroup = "organisers" | "foundation" | "mentors" | "volunteers" | "resource people";
+// `head` is a cut-out of just their head (transparent background, no neck), drawn as a floating
+// head; `photo` is the plain square crop, shown in a circle for anyone without a cut-out yet.
+export type Person = { name: string; group: PersonGroup; photo?: string; head?: string };
 
 // The heads in the "people behind useless projects" section. Anyone without a photo is drawn as a
-// plain colored head, so the crowd can be filled in a few faces at a time.
+// plain colored head, so the crowd can be filled in a few faces at a time. Cut-outs live in
+// public/people/heads-v2/ under the same slug as their photo. When the cut-outs are remade, put them
+// in a new folder (heads-v3...) rather than over the old files - browsers and the image optimizer
+// keep serving whatever they cached under a name, so reused names show a mix of old and new.
 export const PEOPLE: Person[] = [
-  { name: "nandana", photo: "/nandu.png" },
-  { name: "achuth", photo: "/achuth.png" },
-  { name: "habeeb", photo: "/habeeb.png" },
-  ...Array.from({ length: 45 }, (_, i) => ({ name: `person ${i + 4}` })),
+  { name: "habeeb", group: "organisers", photo: "/habeeb.png", head: "/people/heads-v2/habeeb.webp" },
+  { name: "feminia", group: "organisers", photo: "/people/feminia.webp", head: "/people/heads-v2/feminia.webp" },
+  { name: "arundathi", group: "organisers", photo: "/people/arundathi.webp", head: "/people/heads-v2/arundathi.webp" },
+  { name: "kurian", group: "organisers", photo: "/people/kurian.webp", head: "/people/heads-v2/kurian.webp" },
+
+  { name: "akhil sam", group: "foundation", photo: "/people/akhil-sam.webp", head: "/people/heads-v2/akhil-sam.webp" },
+  { name: "altaf", group: "foundation", photo: "/people/altaf.webp", head: "/people/heads-v2/altaf.webp" },
+  { name: "nandana", group: "foundation", photo: "/nandu.png", head: "/people/heads-v2/nandana.webp" },
+  { name: "alina", group: "foundation", photo: "/people/alina.webp", head: "/people/heads-v2/alina.webp" },
+  { name: "achuth", group: "foundation", photo: "/achuth.png", head: "/people/heads-v2/achuth.webp" }, // helped with the website
+  { name: "chandrettan", group: "foundation", photo: "/people/chandrettan.webp", head: "/people/heads-v2/chandrettan.webp" },
+
+  { name: "rio", group: "mentors", photo: "/people/rio.webp", head: "/people/heads-v2/rio.webp" },
+  { name: "salman", group: "mentors", photo: "/people/salman.webp", head: "/people/heads-v2/salman.webp" },
+  { name: "sunith", group: "mentors", photo: "/people/sunith.webp", head: "/people/heads-v2/sunith.webp" },
+  // "-2": a newer photo under a new name, so no cache keeps serving the old one.
+  { name: "rishi", group: "mentors", photo: "/people/rishi-2.webp", head: "/people/heads-v2/rishi-2.webp" },
+  { name: "shan shoukath", group: "mentors", photo: "/people/shan-shoukath.webp", head: "/people/heads-v2/shan-shoukath.webp" }, // also from the foundation
+
+  // More volunteers to come. The numbered ones are photos still waiting on a name - replace
+  // "volunteer" with theirs.
+  { name: "jasil", group: "volunteers", photo: "/people/jasil.webp", head: "/people/heads-v2/jasil.webp" },
+  { name: "jazeel", group: "volunteers", photo: "/people/jazeel.webp", head: "/people/heads-v2/jazeel.webp" },
+  { name: "elizabeth bobby", group: "volunteers", photo: "/people/elizabeth-bobby.webp", head: "/people/heads-v2/elizabeth-bobby.webp" },
+  { name: "jenit", group: "volunteers", photo: "/people/jenit.webp", head: "/people/heads-v2/jenit.webp" },
+  { name: "kartick", group: "volunteers", photo: "/people/kartick.webp", head: "/people/heads-v2/kartick.webp" },
+  ...Array.from({ length: 11 }, (_, i) => ({
+    name: "volunteer",
+    group: "volunteers" as const,
+    photo: `/people/volunteer-${String(i + 1).padStart(2, "0")}.webp`,
+    head: `/people/heads-v2/volunteer-${String(i + 1).padStart(2, "0")}.webp`,
+  })),
+
+  // resource people: to come.
 ];
 
 // The closing note. Paragraphs render in order; the sign-off sits under the last one.

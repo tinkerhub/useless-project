@@ -36,6 +36,12 @@ html:has([data-page="results"]) {
   scroll-snap-type: y proximity;
 }
 
+/* The people page always settles on a screen: the crowd, then the note. The story under the note is
+   one tall snap area, and a snap area taller than the screen scrolls freely inside. */
+html:has([data-page="people"]) {
+  scroll-snap-type: y mandatory;
+}
+
 /* Instagram's oEmbed script hardcodes a 326px min-width on the processed iframe's own inline
    style, overriding whatever width the blockquote asked for. Forcing anything narrower than that
    (an earlier version of this rule tried 260px) doesn't shrink the embed - it just clips Instagram's
@@ -155,6 +161,289 @@ html:has([data-page="results"]) {
 
 .animate-lego-pop {
   animation: lego-pop 200ms ease-out both;
+}
+
+/* A head on the people page slapped down like a sticker: in from nothing, overshooting a little,
+   then settling. */
+@keyframes sticker-pop {
+  0% {
+    transform: scale(0) rotate(-14deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.18) rotate(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-sticker-pop {
+  animation: sticker-pop 320ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+/* The find-the-brick game on the people page: hands popping open - grown big, then settling - so
+   it is easy to see whose hands just opened. */
+@keyframes hands-open {
+  0% {
+    transform: scale(0.6);
+  }
+  55% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-hands-open {
+  animation: hands-open 380ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+/* Find the brick: right after the brick is hidden, every pair of fists shuffles for a moment (each
+   starting a little apart), so the last holder is not the only one that just moved. */
+@keyframes fist-jiggle {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-6%, -10%);
+  }
+  50% {
+    transform: translate(5%, 4%);
+  }
+  75% {
+    transform: translate(-3%, -6%);
+  }
+}
+
+/* People page: the strips of venue photos sliding past (the strip holds its photos twice, so moving
+   it by half its width lands exactly where it started). */
+@keyframes venue-strip {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -50% 0;
+  }
+}
+
+.animate-venue-strip {
+  animation: venue-strip 180s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-venue-strip {
+    animation: none;
+  }
+}
+
+/* Find the brick, game over: whoever had it laughs - the head bobs, tears squirt out in arcs on both
+   sides, and a ha ha! bounces above. */
+@keyframes laugh {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  25% {
+    transform: translateY(-6%) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(2%) rotate(0);
+  }
+  75% {
+    transform: translateY(-6%) rotate(5deg);
+  }
+}
+
+.animate-laugh {
+  animation: laugh 360ms ease-in-out infinite;
+}
+
+@keyframes tear {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(calc(-50% + var(--dx) * 0.7), calc(-50% - var(--dy) * 0.35)) scale(1);
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.animate-tear {
+  animation: tear 700ms cubic-bezier(0.3, 0.6, 0.6, 1) infinite both;
+}
+
+@keyframes ha {
+  0% {
+    transform: translateX(-50%) scale(0) rotate(-10deg);
+  }
+  20% {
+    transform: translateX(-50%) scale(1.15) rotate(4deg);
+  }
+  30%,
+  100% {
+    transform: translateX(-50%) scale(1) rotate(-3deg);
+  }
+}
+
+@keyframes ha-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -12%;
+  }
+}
+
+.animate-ha {
+  animation:
+    ha 600ms ease-out both,
+    ha-bob 360ms ease-in-out 600ms infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-laugh,
+  .animate-tear,
+  .animate-ha {
+    animation: none;
+  }
+}
+
+.fists-jiggle .game-fists {
+  animation: fist-jiggle 200ms ease-in-out var(--jig-delay, 0ms) 3;
+}
+
+/* Find the brick: the big brick spinning in at the start of a game. */
+@keyframes brick-intro {
+  0% {
+    transform: scale(0) rotate(-200deg);
+  }
+  70% {
+    transform: scale(1.15) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-brick-intro {
+  animation: brick-intro 600ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
+}
+
+/* Find the brick: a game message popping in, holding, then fading away. */
+@keyframes banner-flash {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  25%,
+  75% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95) translateY(-12px);
+    opacity: 0;
+  }
+}
+
+.animate-banner-flash {
+  animation: banner-flash 1400ms ease-out both;
+}
+
+/* Find the brick: a lost heart jumps, spins and falls away. */
+@keyframes heart-lose {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.5) rotate(-12deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(70px) rotate(70deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+.animate-heart-lose {
+  animation: heart-lose 750ms ease-in both;
+}
+
+/* Find the brick: a confetti square flying out (--dx, --dy, --rot set per square) and dropping. */
+@keyframes confetti {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 80px)) rotate(var(--rot)) scale(1);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confetti 1100ms cubic-bezier(0.2, 0.8, 0.4, 1) both;
+}
+
+/* Find the brick: the whole crowd shaking on a wrong guess. */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  15% {
+    transform: translate(-10px, 3px) rotate(-0.6deg);
+  }
+  30% {
+    transform: translate(9px, -4px) rotate(0.5deg);
+  }
+  45% {
+    transform: translate(-7px, 2px);
+  }
+  60% {
+    transform: translate(6px, -2px);
+  }
+  80% {
+    transform: translate(-3px, 1px);
+  }
+}
+
+.animate-shake {
+  animation: shake 420ms ease-in-out both;
+}
+
+/* The find-the-brick game on the people page: the brick hops up and back down on each pass from
+   one pair of hands to the next (its sideways move is a transition, timed to match). */
+@keyframes brick-hop {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -120%;
+  }
 }
 
 /* Venue tiles drop in like a roller blind let go of: they unroll from their top edge, overshoot
