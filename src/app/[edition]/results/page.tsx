@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { resolveEdition } from "@/lib/editions";
 import ClaimHint from "./claim-hint";
@@ -8,7 +7,8 @@ import FloatingPet from "@/app/floating-pet";
 import { HoverDot } from "@/app/hover-dot";
 import MainQuest from "./main-quest";
 import { RESULTS_PET_LINES, RESULTS_PET_TAP } from "./pet-lines";
-import { CLOSING_VIDEO, NOTE, PEOPLE } from "./data";
+import { CLOSING_VIDEO, NOTE } from "./data";
+import PeopleCrowd from "../people/people-crowd";
 import SideQuests from "./side-quests";
 
 export const metadata: Metadata = {
@@ -16,42 +16,8 @@ export const metadata: Metadata = {
   description: "The Useless Projects 3.0 results - main quest winners, side quest winners, and the people behind it all.",
 };
 
-// The same palette the site's dots and tetris blocks use, for heads that don't have a photo yet.
-const HEAD_COLORS = ["#ea34df", "#e82803", "#2fc5e8", "#5bd35b", "#8a5cf6", "#ffb020"];
-
-// Tiny seeded PRNG so the crowd is scattered the same way on the server and the client (and on
-// every visit) - Math.random here would be a hydration mismatch.
-function seeded(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 1664525 + 1013904223) % 4294967296;
-    return s / 4294967296;
-  };
-}
-
-// Heads go on a loose grid with each one nudged off its cell, so they read as a crowd rather than a
-// table but never pile up on top of each other.
-function scatterHeads(count: number) {
-  const rand = seeded(7);
-  const cols = 8;
-  const rows = Math.ceil(count / cols);
-  return Array.from({ length: count }, (_, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    return {
-      left: ((col + 0.5 + (rand() - 0.5) * 0.7) / cols) * 100,
-      top: ((row + 0.5 + (rand() - 0.5) * 0.6) / rows) * 100,
-      size: 0.75 + rand() * 0.55,
-      tilt: (rand() - 0.5) * 16,
-      color: HEAD_COLORS[Math.floor(rand() * HEAD_COLORS.length)],
-    };
-  });
-}
-
-const HEADS = scatterHeads(PEOPLE.length);
-
-// The "people behind useless projects" crowd is parked until the real faces are in - flip this back
-// on to show it between the side quests and the note.
+// The "people behind useless projects" crowd is parked here until the real faces are in - flip this
+// back on to show it between the side quests and the note. It has its own page meanwhile (/people).
 const SHOW_PEOPLE = false;
 
 // The same breathing, colour-swapping dots the home page and side quests are sprinkled with.
@@ -111,43 +77,7 @@ export default async function ResultsPage({ params }: PageProps<"/[edition]/resu
 
       <SideQuests />
 
-      {SHOW_PEOPLE && (
-      <section id="people" className="relative flex min-h-screen w-full items-center justify-center overflow-hidden py-24">
-        {/* Painted first so every head sits on top of it - the words peek out from behind the crowd. */}
-        <h2
-          className="font-drowner pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-4 text-center text-[#0e0e0d]/[0.18] leading-[0.85] select-none"
-          style={{ fontSize: "clamp(72px, 13vw, 220px)" }}
-        >
-          people behind
-          <br />
-          useless projects
-        </h2>
-        <div className="relative h-[80vh] w-full max-w-[1300px]">
-          {PEOPLE.map((person, i) => {
-            const head = HEADS[i];
-            return (
-              <div
-                key={i}
-                title={person.name}
-                className="group absolute -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${head.left}%`, top: `${head.top}%`, rotate: `${head.tilt}deg` }}
-              >
-                <span
-                  className="relative block overflow-hidden rounded-full shadow-sm transition-transform duration-300 group-hover:scale-125"
-                  style={{
-                    width: `calc(${head.size} * clamp(44px, 7vw, 92px))`,
-                    height: `calc(${head.size} * clamp(44px, 7vw, 92px))`,
-                    backgroundColor: person.photo ? "#d9d9d9" : head.color,
-                  }}
-                >
-                  {person.photo && <Image src={person.photo} alt={person.name} fill sizes="120px" className="object-cover" />}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-      )}
+      {SHOW_PEOPLE && <PeopleCrowd id="people" />}
 
       <section id="note" className="relative flex w-full items-center justify-center px-8 pt-40 pb-24 sm:px-16 sm:pt-48 sm:pb-28">
           <HoverDot assets={DOT_ASSETS} baseIndex={2} size={22} className="absolute top-32 right-[12%] hidden sm:block" />

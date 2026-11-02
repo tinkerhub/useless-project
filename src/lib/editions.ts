@@ -8,7 +8,7 @@
 // CURRENT_EDITION at it. The menu, the old-link redirects (next.config.ts) and the sitemap follow.
 
 export type EditionSlug = "1.0" | "2.0" | "3.0";
-export type EditionPage = "handbook" | "competitions" | "submissions" | "results";
+export type EditionPage = "handbook" | "competitions" | "submissions" | "results" | "people";
 
 export type Edition = {
   slug: EditionSlug;
@@ -26,15 +26,15 @@ export type Edition = {
 export const EDITIONS: Record<EditionSlug, Edition> = {
   "1.0": {
     slug: "1.0", year: 2024, title: "Useless Projects 1.0", live: false,
-    pages: { handbook: false, competitions: false, submissions: false, results: false },
+    pages: { handbook: false, competitions: false, submissions: false, results: false, people: false },
   },
   "2.0": {
     slug: "2.0", year: 2025, title: "Useless Projects 2.0", live: false,
-    pages: { handbook: false, competitions: false, submissions: false, results: false },
+    pages: { handbook: false, competitions: false, submissions: false, results: false, people: false },
   },
   "3.0": {
     slug: "3.0", year: 2026, title: "Useless Projects 3.0", live: true,
-    pages: { handbook: true, competitions: true, submissions: true, results: true },
+    pages: { handbook: true, competitions: true, submissions: true, results: true, people: true },
     eventStart: "2026-09-03T17:00:00+05:30",
     eventEnd: "2026-09-14T23:59:59+05:30", // end of day Sep 14: last venue slot closes that afternoon
   },
@@ -43,7 +43,7 @@ export const EDITIONS: Record<EditionSlug, Edition> = {
 // The one line to change each year.
 export const CURRENT_EDITION: EditionSlug = "3.0";
 
-export const EDITION_PAGES: EditionPage[] = ["results", "handbook", "competitions", "submissions"];
+export const EDITION_PAGES: EditionPage[] = ["results", "handbook", "competitions", "submissions", "people"];
 
 export const currentEdition = () => EDITIONS[CURRENT_EDITION];
 export const allEditions = () => Object.values(EDITIONS).sort((a, b) => b.year - a.year);
