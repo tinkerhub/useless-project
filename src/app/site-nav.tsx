@@ -116,6 +116,9 @@ const ROUTES = [
 ];
 
 // A year's own pages, shown under the program ones only while you're inside that year.
+// Pages that exist but stay out of the menu - reached by their link (e.g. /people) instead.
+const HIDDEN_FROM_MENU: EditionPage[] = ["people"];
+
 const EDITION_ICONS: Record<EditionPage, typeof IconHome> = {
   results: IconMedal,
   handbook: IconBook,
@@ -201,7 +204,7 @@ export default function SiteNav() {
                     <p className="px-4 pt-1 pb-1">
                       <span className="font-drowner inline-block bg-[#ea34df] px-2 py-0.5 text-[14px] leading-none text-white">{edition.slug}</span>
                     </p>
-                    {EDITION_PAGES.filter((page) => edition.pages[page]).map((page) => {
+                    {EDITION_PAGES.filter((page) => edition.pages[page] && !HIDDEN_FROM_MENU.includes(page)).map((page) => {
                       const href = editionPath(edition.slug, page);
                       const Icon = EDITION_ICONS[page];
                       const active = pathname.startsWith(href);

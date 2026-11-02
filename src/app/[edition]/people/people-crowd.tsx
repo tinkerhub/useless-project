@@ -37,6 +37,8 @@ const CANDIDATES = 50;
 const FIRST_GAP_MS = 280;
 const MIN_GAP_MS = 45;
 const SPEED_UP = 0.93;
+// How long the ring where a guess was tapped stays (matches .animate-tap-ring in globals.css).
+const TAP_RING_MS = 450;
 // How long the full crowd stays up, with no game started, before the scroll-on hint shows.
 const SCROLL_HINT_AFTER_MS = 4000;
 // Give the site's loading splash time to clear before the first head lands.
@@ -170,6 +172,8 @@ export default function PeopleCrowd({
   // The title waits for the last figure to land, then pops in on top of the crowd.
   const filled = spots.length > 0 && shown >= spots.length;
   // Find the brick (see brick-game.tsx), offered once everyone has landed.
+  // Whoever the pointer is over, so they can react (see Figure).
+  const [hovered, setHovered] = useState<number | null>(null);
   const game = useBrickGame(spots, () => ({
     width: sectionRef.current?.clientWidth ?? 0,
     height: sectionRef.current?.clientHeight ?? 0,
@@ -190,6 +194,16 @@ export default function PeopleCrowd({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   const gameOver = game.phase === "won" || game.phase === "lost";
+  // A quick ring where each guess was tapped, so a tap on a small figure is clearly felt to land.
+  const [rings, setRings] = useState<{ x: number; y: number; key: number }[]>([]);
+  const ringKey = useRef(0);
+  const tapRing = (clientX: number, clientY: number) => {
+    const box = sectionRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const key = ++ringKey.current;
+    setRings((r) => [...r, { x: clientX - box.left, y: clientY - box.top, key }]);
+    setTimeout(() => setRings((r) => r.filter((ring) => ring.key !== key)), TAP_RING_MS);
+  };
   const scrollHint = filled && atTop && (gameOver || (game.phase === "idle" && lingered));
 
   useEffect(() => {
@@ -260,15 +274,22 @@ export default function PeopleCrowd({
             // Each pair of fists starts its shuffle a little apart from the others.
             ["--jig-delay" as string]: `${(i * 53) % 180}ms`,
           }}
-          onClick={() => game.guess(i)}
-          onMouseEnter={game.hover}
+          onClick={(e) => {
+            if (game.canGuess) tapRing(e.clientX, e.clientY);
+            game.guess(i);
+          }}
+          onMouseEnter={() => {
+            setHovered(i);
+            game.hover();
+          }}
+          onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
         >
           <div className={still ? undefined : "animate-sticker-pop"}>
             <div
               className={still || game.playing ? undefined : "animate-[float-slow_6s_ease-in-out_infinite]"}
               style={{ animationDuration: `${spot.floatDuration}s`, animationDelay: `${spot.floatDelay}s` }}
             >
-              <Figure spot={spot} color={HEAD_COLORS[i % HEAD_COLORS.length]} gamePose={game.poseFor(i)} laughing={game.laughing === i} />
+              <Figure spot={spot} color={HEAD_COLORS[i % HEAD_COLORS.length]} gamePose={game.poseFor(i)} laughing={game.laughing === i} hovered={hovered === i} />
             </div>
           </div>
           {/* The name, shown under the feet while the figure is hovered. */}
@@ -298,6 +319,14 @@ export default function PeopleCrowd({
         </span>
       </Heading>
       {filled && game.overlay}
+      {rings.map((ring) => (
+        <span
+          key={ring.key}
+          aria-hidden="true"
+          className="animate-tap-ring pointer-events-none absolute z-[96] size-16 rounded-full border-4 border-[#0e0e0d]"
+          style={{ left: ring.x, top: ring.y }}
+        />
+      ))}
       {/* Above the play button while it is there, at the very bottom once a game has ended. */}
       <div
         aria-hidden={!scrollHint}
@@ -317,9 +346,22 @@ export default function PeopleCrowd({
 // One figure: a cut-out head on a drawn body joined at its neck, with one soft shadow under the
 // whole thing. Without a cut-out, just their photo in a circle, or a coloured placeholder silhouette.
 // `gamePose` swaps in the find-the-brick hands (closed or open) while the game is on.
-function Figure({ spot, color, gamePose, laughing }: { spot: Spot; color: string; gamePose: GamePose | null; laughing?: boolean }) {
+function Figure({
+  spot,
+  color,
+  gamePose,
+  laughing,
+  hovered,
+}: {
+  spot: Spot;
+  color: string;
+  gamePose: GamePose | null;
+  laughing?: boolean;
+  hovered?: boolean;
+}) {
   const { person, size } = spot;
-  const pose = gamePose ?? spot.pose;
+  // Hovered (outside the game), they react: arms up, or a wave if their arms were up already.
+  const pose = gamePose ?? (hovered ? (spot.pose === "hooray" ? "wave" : "hooray") : spot.pose);
   // Hidden until the head image has loaded, so a slow or failed image never leaves a headless body.
   const [headLoaded, setHeadLoaded] = useState(false);
   const fit = person.head ? HEAD_FIT[person.head.split("/").pop()!.replace(/\.webp$/, "")] : undefined;
@@ -340,7 +382,8 @@ function Figure({ spot, color, gamePose, laughing }: { spot: Spot; color: string
           src={person.head}
           alt={person.name}
           fill
-          sizes={`${Math.ceil(size)}px`}
+          // The cut-out file as it is (480px, ~20 KB): the optimizer's re-encode blurs small faces.
+          unoptimized
           // Laughing (the one who had the brick, when the player runs out of hearts): the head bobs.
           className={`object-contain ${laughing ? "animate-laugh" : ""}`}
           onLoad={() => setHeadLoaded(true)}

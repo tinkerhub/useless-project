@@ -3,7 +3,9 @@ import { CURRENT_EDITION } from "./src/lib/editions";
 
 // Exact page paths only: redirects run before /public, and /handbook/*.webp and /results/* are
 // real files. Temporary (307) because "current" moves every year.
-const YEAR_PAGES = ["/handbook", "/competitions", "/submissions", "/results"];
+// (/people too: it is left out of the menu, but /people still opens the current year's page. Only
+// the exact path redirects, so the photos under /people/... are served as before.)
+const YEAR_PAGES = ["/handbook", "/competitions", "/submissions", "/results", "/people"];
 
 const nextConfig: NextConfig = {
   async redirects() {

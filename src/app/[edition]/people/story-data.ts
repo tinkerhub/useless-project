@@ -29,7 +29,7 @@ export const NOTE = {
 export type Team = { title: string; people: string[]; more?: string };
 
 export const TEAMS: Team[] = [
-  { title: "we planned", people: ["habeeb", "feminia", "arundathi", "kurian"] },
+  { title: "we planned", people: ["habeeb", "femina", "arundathi", "kurian"] },
   { title: "we designed", people: ["nandana", "alina"] },
   { title: "we made the website", people: ["achuth", "habeeb"] },
   { title: "we sent things out", people: ["altaf", "habeeb"], more: "+ the volunteers" },
@@ -38,26 +38,28 @@ export const TEAMS: Team[] = [
 
 // Everyone who gave a helping hand: every volunteer in PEOPLE, then the packing photos and videos.
 export const HELPERS: { title: string; text: string; media: StoryMedia[] } = {
-  title: "and everyone gave a hand.",
-  text: "Stickers to count, books to bundle, rolls to tape and boxes to fill. The volunteers turned up, sat around whatever table was free, and packed every last bit of it, often well into the night.",
+  title: "and everyone who gave a hand.",
+  text: "They showed up, gave everyone a hand wherever it was needed, and helped bring the whole Useless Projects experience to life.",
   media: [
-    { kind: "video", src: "/people/story/packing-stickers.mp4", caption: "packing the stickers" },
-    { kind: "image", src: "/people/story/packing-table.webp", alt: "Volunteers sitting around a table, packing goodies", caption: "packing" },
-    { kind: "video", src: "/people/story/late-night.mp4", caption: "late nights" },
-    { kind: "video", src: "/people/story/packing-all-hands.mp4", caption: "all hands", crop: [0.082, 0.371, 0.84, 0.262] },
+    { kind: "video", src: "/people/story/packing-stickers-hq.mp4" },
+    { kind: "image", src: "/people/story/packing-table-hq.webp", alt: "Volunteers sitting around a table, packing goodies" },
+    { kind: "video", src: "/people/story/late-night-hq.mp4" },
+    // The same time-lapse the results page plays, at full quality (the WhatsApp copy was tiny).
+    { kind: "video", src: "/results/goodies-loop.mp4" },
   ],
 };
 
-// The campus leads and core teams, shown with a wall of every venue (the photos from VENUES in
-// app/venues.ts, the same ones the know-when countdown flips through).
+// The campus leads and core teams, shown with every venue (the photos from VENUES in app/venues.ts,
+// the same ones the know-when countdown flips through) pinned up on a notice board.
 export const CAMPUS = {
   title: "the campus leads and their core teams.",
   text: "Useless Projects happened on campuses across Kerala because someone on each one took it on: found a room, rallied their friends, and ran the show on the day.",
 };
 
-export const MAKERS = {
-  title: "and you, who showed up to build.",
-  text: "3419 makers across 67 campuses spent their days building things nobody asked for, and had the best time doing it. None of this means anything without you.",
-};
+// The line over the group photo at the end: it is everyone who made 3.0 happen, not the makers.
+export const MAKERS = { title: "everyone who made it happen." };
+
+// Slapped across the corner of the campus notice board: TinkerHub saying what the page is about.
+export const STICKER = { src: "/people/story/together-sticker.webp", alt: "Together, we make it better. - TinkerHub" };
 
 export const STORY_END = "thank you, people.";

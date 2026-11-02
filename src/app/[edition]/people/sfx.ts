@@ -81,6 +81,44 @@ export const sfx = {
   laugh() {
     [620, 580, 540, 500, 470].forEach((f, i) => tone(f, { at: i * 0.13, length: 0.1, wave: "triangle", volume: 0.13, to: f * 0.75 }));
   },
+  // A camera shutter: a sharp click and a short burst of noise.
+  shutter() {
+    noise({ length: 0.05, from: 4000, to: 2500, volume: 0.16, type: "highpass" });
+    tone(1800, { length: 0.03, wave: "square", volume: 0.05 });
+    noise({ at: 0.07, length: 0.09, from: 3000, to: 1200, volume: 0.1, type: "bandpass" });
+  },
+  // A crowd going "yaaay!" for the group photo: a handful of voices (buzzy tones through a moving
+  // vowel filter, so they sound sung rather than beeped), each its own pitch, rising and then falling
+  // away, starting a touch apart - with a patter of claps underneath.
+  cheer() {
+    if (!ctx || muted) return;
+    const now = ctx.currentTime;
+    for (let v = 0; v < 9; v++) {
+      const at = now + Math.random() * 0.12;
+      const base = 220 + Math.random() * 260;
+      const length = 0.9 + Math.random() * 0.4;
+      const osc = ctx.createOscillator();
+      const vowel = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(base * 0.85, at);
+      osc.frequency.exponentialRampToValueAtTime(base * 1.35, at + 0.25);
+      osc.frequency.exponentialRampToValueAtTime(base * 0.9, at + length);
+      // "y" sliding into "aa": the vowel filter opens from about 500Hz to 1100Hz.
+      vowel.type = "bandpass";
+      vowel.Q.value = 4;
+      vowel.frequency.setValueAtTime(500, at);
+      vowel.frequency.exponentialRampToValueAtTime(1100, at + 0.18);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.05, at + 0.06);
+      gain.gain.setValueAtTime(0.05, at + length * 0.55);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + length);
+      osc.connect(vowel).connect(gain).connect(ctx.destination);
+      osc.start(at);
+      osc.stop(at + length + 0.05);
+    }
+    for (let c = 0; c < 26; c++) noise({ at: 0.1 + Math.random() * 1.3, length: 0.03, from: 2500, to: 1500, volume: 0.06 });
+  },
   // Hovering over someone while guessing.
   tick() {
     tone(1200, { length: 0.04, wave: "square", volume: 0.025 });

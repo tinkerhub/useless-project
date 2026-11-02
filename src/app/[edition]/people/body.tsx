@@ -22,9 +22,9 @@ export const PANTS_COLORS = SHIRT_COLORS.filter((c) => c !== "cream");
 
 const SHOES = "#0e0e0d";
 // The drawing's extent in those units: wide enough for elbows out, tall enough for a hand up.
-const BOX = { x: -40, y: -42, w: 80, h: 140 };
+export const BOX = { x: -40, y: -42, w: 80, h: 140 };
 
-type Block = [x: number, y: number, w: number, h: number, fill: string];
+export type Block = [x: number, y: number, w: number, h: number, fill: string];
 
 // One arm, for the image-right side; the left one is mirrored.
 function arm(pose: BodyPose, up: boolean, sleeve: string, skin: string): Block[] {
@@ -87,6 +87,25 @@ function gameHands(pose: GamePose, skin: string): Block[] {
   return [...hand, ...hand.map(mirror)];
 }
 
+// The blocks of one layer of an everyday (not game) body, in body units from the neck point - shared
+// with the group photo download, which paints the same bodies onto a canvas.
+export function bodyBlocks(part: "body" | "arms", pose: BodyPose, shirt: LegoColor, pants: LegoColor, skin: string): Block[] {
+  const sleeve = LEGO_COLORS[shirt];
+  return part === "arms"
+    ? [...arm(pose, pose === "wave" || pose === "hooray", sleeve, skin), ...arm(pose, pose === "hooray", sleeve, skin).map(mirror)]
+    : [
+        // Neck (its top is hidden under the head).
+        [-6, -12, 12, 20, skin],
+        // Legs and shoes.
+        [-17, 44, 15, 42, LEGO_COLORS[pants]],
+        [2, 44, 15, 42, LEGO_COLORS[pants]],
+        [-19, 86, 18, 8, SHOES],
+        [1, 86, 18, 8, SHOES],
+        // Torso.
+        [-20, 4, 40, 42, sleeve],
+      ];
+}
+
 export default function Body({
   pose,
   shirt,
@@ -110,31 +129,16 @@ export default function Body({
   const game = pose === "hold" || pose === "open" ? pose : null;
   const everyday = game ? null : (pose as BodyPose);
   const blocks: Block[] =
-    part === "arms"
-      ? everyday
-        ? [
-            ...arm(everyday, everyday === "wave" || everyday === "hooray", sleeve, skin),
-            ...arm(everyday, everyday === "hooray", sleeve, skin).map(mirror),
-          ]
-        : gameArms(sleeve, skin)
-      : [
-          // Neck (its top is hidden under the head).
-          [-6, -12, 12, 20, skin],
-          // Legs and shoes.
-          [-17, 44, 15, 42, LEGO_COLORS[pants]],
-          [2, 44, 15, 42, LEGO_COLORS[pants]],
-          [-19, 86, 18, 8, SHOES],
-          [1, 86, 18, 8, SHOES],
-          // Torso.
-          [-20, 4, 40, 42, sleeve],
-        ];
+    part === "arms" && !everyday ? gameArms(sleeve, skin) : bodyBlocks(part, everyday ?? "down", shirt, pants, skin);
   const unit = size / 100;
   return (
     <svg
       aria-hidden="true"
       viewBox={`${BOX.x} ${BOX.y} ${BOX.w} ${BOX.h}`}
       shapeRendering="crispEdges"
-      className="pointer-events-none absolute"
+      // The box itself lets clicks through; the drawn blocks catch them, so tapping a body counts as
+      // tapping that person (in the game, as much as tapping their head).
+      className="pointer-events-none absolute [&_rect]:pointer-events-auto"
       style={{
         width: BOX.w * unit,
         height: BOX.h * unit,

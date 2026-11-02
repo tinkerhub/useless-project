@@ -355,15 +355,15 @@ export type Person = { name: string; group: PersonGroup; photo?: string; head?: 
 // keep serving whatever they cached under a name, so reused names show a mix of old and new.
 export const PEOPLE: Person[] = [
   { name: "habeeb", group: "organisers", photo: "/habeeb.png", head: "/people/heads-v2/habeeb.webp" },
-  { name: "feminia", group: "organisers", photo: "/people/feminia.webp", head: "/people/heads-v2/feminia.webp" },
+  { name: "femina", group: "organisers", photo: "/people/femina.webp", head: "/people/heads-v2/femina.webp" },
   { name: "arundathi", group: "organisers", photo: "/people/arundathi.webp", head: "/people/heads-v2/arundathi.webp" },
-  { name: "kurian", group: "organisers", photo: "/people/kurian.webp", head: "/people/heads-v2/kurian.webp" },
+  { name: "kurian", group: "organisers", photo: "/people/kurian.webp", head: "/people/heads-v2/kurian-2.webp" }, // "-2": re-cut so the whole chin shows
 
   { name: "akhil sam", group: "foundation", photo: "/people/akhil-sam.webp", head: "/people/heads-v2/akhil-sam.webp" },
   { name: "altaf", group: "foundation", photo: "/people/altaf.webp", head: "/people/heads-v2/altaf.webp" },
   { name: "nandana", group: "foundation", photo: "/nandu.png", head: "/people/heads-v2/nandana.webp" },
-  { name: "alina", group: "foundation", photo: "/people/alina.webp", head: "/people/heads-v2/alina.webp" },
-  { name: "achuth", group: "foundation", photo: "/achuth.png", head: "/people/heads-v2/achuth.webp" }, // helped with the website
+  { name: "alina", group: "foundation", photo: "/people/alina.webp", head: "/people/heads-v2/alina-2.webp" }, // "-2": cut from a newer photo
+  { name: "achuth", group: "foundation", photo: "/achuth.png", head: "/people/heads-v2/achuth-2.webp" }, // helped with the website; "-2": brightened, under a new name so no cache serves the old one
   { name: "chandrettan", group: "foundation", photo: "/people/chandrettan.webp", head: "/people/heads-v2/chandrettan.webp" },
 
   { name: "rio", group: "mentors", photo: "/people/rio.webp", head: "/people/heads-v2/rio.webp" },
@@ -380,11 +380,12 @@ export const PEOPLE: Person[] = [
   { name: "elizabeth bobby", group: "volunteers", photo: "/people/elizabeth-bobby.webp", head: "/people/heads-v2/elizabeth-bobby.webp" },
   { name: "jenit", group: "volunteers", photo: "/people/jenit.webp", head: "/people/heads-v2/jenit.webp" },
   { name: "kartick", group: "volunteers", photo: "/people/kartick.webp", head: "/people/heads-v2/kartick.webp" },
-  ...Array.from({ length: 11 }, (_, i) => ({
+  // volunteer-07 is left out: it is a second photo of volunteer-03.
+  ...[1, 2, 3, 4, 5, 6, 8, 9, 10, 11].map((n) => ({
     name: "volunteer",
     group: "volunteers" as const,
-    photo: `/people/volunteer-${String(i + 1).padStart(2, "0")}.webp`,
-    head: `/people/heads-v2/volunteer-${String(i + 1).padStart(2, "0")}.webp`,
+    photo: `/people/volunteer-${String(n).padStart(2, "0")}.webp`,
+    head: `/people/heads-v2/volunteer-${String(n).padStart(2, "0")}.webp`,
   })),
 
   // resource people: to come.
