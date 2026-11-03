@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { currentEdition } from "@/lib/editions";
 import "./globals.css";
 import Splash from "./splash";
+import ScrollHint from "./scroll-hint";
 import SiteNav from "./site-nav";
 
 const geistSans = Geist({
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Splash>{children}</Splash>
         <SiteNav />
+        <ScrollHint />
       </body>
     </html>
   );
