@@ -1,5 +1,5 @@
 // What comes after the crowd on the people page: first a note (the most important part of Useless
-// Projects was the people), then the teams on one screen (we planned, we designed, we made the
+// Projects was the people), then the teams on one screen (we planned, we did media, we made the
 // website...), then everyone who gave a helping hand with the packing, the
 // campus leads, and the makers. No dates or weeks: it is about who, not when.
 //
@@ -30,7 +30,8 @@ export type Team = { title: string; people: string[]; more?: string };
 
 export const TEAMS: Team[] = [
   { title: "we planned", people: ["habeeb", "femina", "arundathi", "kurian"] },
-  { title: "we designed", people: ["nandana", "alina"] },
+  // Adithya, Sreenandan and Arpitha are volunteers who also worked on the media.
+  { title: "we did media", people: ["nandana", "alina", "adithya baiju", "sreenandan", "arpitha"] },
   { title: "we made the website", people: ["achuth", "habeeb"] },
   { title: "we sent things out", people: ["altaf", "habeeb"], more: "+ the volunteers" },
   { title: "we mentored", people: ["rio", "salman", "sunith", "rishi", "shan shoukath"] },

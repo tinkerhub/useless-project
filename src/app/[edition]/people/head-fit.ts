@@ -36,4 +36,10 @@ export const HEAD_FIT: Record<string, { neck: [number, number]; skin: string }> 
   "volunteer-09": { neck: [0.429, 0.898], skin: "#985d3b" },
   "volunteer-10": { neck: [0.54, 0.848], skin: "#a2624e" },
   "volunteer-11": { neck: [0.515, 0.852], skin: "#c08460" },
+  "adithya-baiju": { neck: [0.449, 0.858], skin: "#946144" },
+  "sreenandan": { neck: [0.483, 0.885], skin: "#a86d5d" },
+  "arpitha": { neck: [0.49, 0.852], skin: "#b38064" }, // at her chin: her hair on one side pulls the lower-third middle off it
+  "aasim-2": { neck: [0.496, 0.848], skin: "#f8c3a2" }, // green wall fringe cleared
+  "danyl": { neck: [0.483, 0.879], skin: "#ed8f66" },
+  "tejaswini": { neck: [0.516, 0.858], skin: "#ac5c29" },
 };

@@ -21,7 +21,12 @@ import { CAMPUS, HELPERS, MAKERS, NOTE, STICKER, STORY_END, TEAMS, type StoryMed
 // so its code is fetched separately instead of holding up the first load.
 const GroupPhoto = dynamic(() => import("./group-photo"), { ssr: false, loading: () => <div className="min-h-[60svh] w-full" /> });
 
-const BY_NAME = new Map(PEOPLE.map((p) => [p.name, p]));
+// People by name, and also by the name of their photo (volunteer-12...) for those whose name is
+// not in yet - they are all just "volunteer" by name.
+const BY_NAME = new Map([
+  ...PEOPLE.map((p) => [p.name, p] as const),
+  ...PEOPLE.map((p) => [p.head?.split("/").pop()?.replace(/\.webp$/, "") ?? "", p] as const),
+]);
 const VOLUNTEERS = PEOPLE.filter((p) => p.group === "volunteers");
 // Volunteers whose photo is in but whose name is not yet; their heads show without a caption.
 const UNNAMED = "volunteer";
@@ -94,7 +99,7 @@ export default function Story() {
         <Reveal className="mx-auto w-full max-w-4xl">
           <Chapter title={HELPERS.title} text={HELPERS.text} />
           {/* Everyone huddled together. */}
-          <Crowd people={VOLUNTEERS} className="mx-auto mt-8 max-w-sm md:mt-10 md:max-w-lg" />
+          <Crowd people={VOLUNTEERS} className="mx-auto mt-6 max-w-xl md:mt-8 md:max-w-3xl" />
         </Reveal>
       </div>
       <ScrollStrip media={HELPERS.media} />
@@ -176,7 +181,8 @@ function TeamCell({ team }: { team: Team }) {
         {team.title}
       </h3>
       <div className="mt-3 flex items-center justify-center md:mt-5">
-        <Heads people={people} className="shrink-0 flex-nowrap" />
+        {/* Bigger teams stand a little closer, overlapping slightly, to fit their slot on the screen. */}
+        <Heads people={people} className="shrink-0 flex-nowrap" snug={people.length >= 4} />
         {team.more && <span className="font-nanum-pen ml-1 text-[18px] leading-none whitespace-nowrap text-[#244638] md:text-[22px] xl:text-[26px]">{team.more}</span>}
       </div>
     </div>
@@ -186,13 +192,16 @@ function TeamCell({ team }: { team: Team }) {
 // A row of cut-out heads standing close together, each with its name under it, wrapping onto more
 // rows when there are many. Heads without a name yet get an empty caption line, so rows stay level.
 // Hover (or tap) one and it hops up, grows and tips to one side, and its name turns into a label.
-function Heads({ people, className = "" }: { people: typeof PEOPLE; className?: string }) {
+function Heads({ people, className = "", snug }: { people: typeof PEOPLE; className?: string; snug?: boolean }) {
   return (
-    <div className={`flex items-end justify-center gap-y-2 ${className.includes("flex-nowrap") ? "" : "flex-wrap"} ${className}`}>
+    // Heads lined up along the top, so a name that wraps onto two lines does not lift its head.
+    <div className={`flex items-start justify-center gap-y-2 ${className.includes("flex-nowrap") ? "" : "flex-wrap"} ${className}`}>
       {people.map((person, n) => (
         <figure
           key={`${person.name}-${n}`}
-          className="group relative flex w-14 flex-col items-center hover:z-10 md:w-[80px] lg:w-[90px] xl:w-[104px]"
+          className={`group relative flex w-14 flex-col items-center hover:z-10 md:w-[80px] lg:w-[90px] xl:w-[104px] ${
+            snug ? "-mx-1 md:-mx-2 lg:-mx-3 xl:-mx-3.5" : ""
+          }`}
         >
           <span
             className={`relative block size-[52px] transition-transform duration-300 ease-[cubic-bezier(0.3,1.6,0.5,1)] group-hover:-translate-y-2 group-hover:scale-125 group-active:-translate-y-2 group-active:scale-125 md:size-[76px] lg:size-[86px] xl:size-[100px] ${
@@ -210,7 +219,9 @@ function Heads({ people, className = "" }: { people: typeof PEOPLE; className?: 
               />
             )}
           </span>
-          <figcaption className="font-nanum-pen mt-1 h-4 px-1 text-center text-[15px] leading-none whitespace-nowrap text-[#244638] transition-colors duration-200 group-hover:bg-[#0e0e0d] group-hover:text-white md:h-5 md:text-[19px] xl:h-6 xl:text-[22px]">
+          {/* A long name wraps onto a second line under its own head ("adithya / baiju"), all names
+              starting on the same line, rather than running into the next one. */}
+          <figcaption className="font-nanum-pen mt-1 min-h-4 px-1 text-center text-[15px] leading-[0.95] text-[#244638] transition-colors duration-200 group-hover:bg-[#0e0e0d] group-hover:text-white md:min-h-5 md:text-[19px] xl:min-h-6 xl:text-[22px]">
             {person.name === UNNAMED ? "" : person.name}
           </figcaption>
         </figure>
@@ -219,60 +230,67 @@ function Heads({ people, className = "" }: { people: typeof PEOPLE; className?: 
   );
 }
 
-// A crowd, like a group photo: three staggered rows, the back row smaller and higher, the front row
-// biggest and lowest and drawn on top, every head overlapping its neighbours and tipped a little its
-// own way. Positions are in % of the box, so it scales with the screen. No names: not every
-// volunteer's name is in yet, so none are shown.
-const CROWD_ROWS = 3;
-const ROW_SCALE = [0.8, 0.9, 1];
+// A crowd, bunched up in a rough oval like people huddled round for a photo: heads spread evenly
+// over it (a sunflower spiral, so there are no rows) and spaced so they only touch at the hair -
+// every face stays in full view. Each is nudged and tipped a little its own way so the oval is
+// not exact. Lower in the oval means nearer: a touch bigger, drawn on top. Positions are in % of
+// the box, so it scales with the screen.
+const CROWD_ASPECT = 0.6; // the oval is a little over half as tall as it is wide
 // A fixed shuffle (the same every load, so nobody moves between server and browser render).
 const crowdOrder = (n: number) =>
   Array.from({ length: n }, (_, i) => i).sort((a, b) => ((a * 7919) % 101) - ((b * 7919) % 101));
 
 function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: string }) {
-  // Rows alternate one fewer and one more, so each sits in the gaps of the row in front.
-  const perRow = Math.ceil((people.length + 1) / CROWD_ROWS);
-  const counts: number[] = [];
-  let left = people.length;
-  for (let r = 0; r < CROWD_ROWS; r++) {
-    const want = r === CROWD_ROWS - 1 ? left : Math.min(left, r % 2 === 0 ? perRow - 1 : perRow);
-    counts.push(want);
-    left -= want;
-  }
-  const head = (100 / perRow) * 1.5; // % of the box width; wider than a slot, so neighbours overlap
-  const step = head * 0.34; // each row hides most of the row behind it, shoulder to shoulder
-  const height = step * (CROWD_ROWS - 1) + head + 8; // % of width, plus room for the front row names
-  const order = crowdOrder(people.length);
-  let next = 0;
-  const spots = counts.flatMap((count, r) =>
-    Array.from({ length: count }, (_, c) => {
-      const person = people[order[next++]];
-      const offset = (perRow - count) / 2; // centre a shorter row
-      const jitter = ((next * 37) % 9) - 4;
+  const count = people.length;
+  const order = crowdOrder(count);
+  // Head width (% of the box) from the room each one gets in the oval: a little more than its
+  // share (the cut-outs have room round them), so neighbours touch at the hair but never reach a face.
+  const share = Math.sqrt((Math.PI * CROWD_ASPECT) / count);
+  const head = (1.6 * share * 50) / (1 + 0.8 * share);
+  const across = 50 - head / 2; // the oval's half width, keeping heads inside the box
+  const height = 2 * across * CROWD_ASPECT + head * 1.2; // % of width
+  const spots = people
+    .map((_, i) => {
+      const radius = Math.sqrt((i + 0.5) / count);
+      const angle = i * 2.39996; // the golden angle
+      const nudge = ((i * 37) % 9) - 4; // -4..4
+      const x = 50 + radius * Math.cos(angle) * across + nudge * head * 0.03;
+      const y = across * CROWD_ASPECT * (1 + radius * Math.sin(angle)) + nudge * head * 0.02;
+      const depth = y / (2 * across * CROWD_ASPECT); // 0 at the back, 1 at the front
       return {
-        person,
-        r,
-        left: ((c + offset + 0.5) / perRow) * 100 + jitter * 0.3,
-        top: (step * r + jitter * 0.25) / height * 100,
-        tilt: ((next * 53) % 13) - 6,
+        person: people[order[i]],
+        left: x,
+        top: ((y + head * 0.6) / height) * 100,
+        size: head * (0.93 + depth * 0.14),
+        z: 1 + Math.round(depth * 100),
+        tilt: ((i * 53) % 13) - 6,
       };
-    }),
-  );
+    })
+    .sort((a, b) => a.z - b.z);
   return (
     <div className={`relative w-full ${className}`} style={{ aspectRatio: `100 / ${height}` }}>
-      {spots.map(({ person, r, left: x, top, tilt }, n) => (
+      {spots.map(({ person, left: x, top, size, z, tilt }, n) => (
         <figure
           key={`${person.name}-${n}`}
-          // The hover z-index is marked important so it beats the row stacking set inline below,
-          // bringing a head from the back row to the front.
-          className="group absolute -translate-x-1/2 transition-transform duration-200 hover:z-40! hover:scale-110"
-          style={{ left: `${x}%`, top: `${top}%`, width: `${head * ROW_SCALE[r]}%`, zIndex: r * 10 + 1, rotate: `${tilt}deg` }}
+          // The hover z-index is marked important so it beats the depth stacking set inline below,
+          // bringing a head from the back to the front.
+          className="group absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 hover:z-[200]! hover:scale-110"
+          style={{ left: `${x}%`, top: `${top}%`, width: `${size}%`, zIndex: z, rotate: `${tilt}deg` }}
         >
           <span className="relative block aspect-square">
             {person.head && (
-              <Image src={person.head} alt="A volunteer" fill unoptimized className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.22)]" />
+              <Image src={person.head} alt={person.name === UNNAMED ? "A volunteer" : person.name} fill unoptimized className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.22)]" />
             )}
           </span>
+          {/* The name, shown under the head while it is hovered. */}
+          {person.name !== UNNAMED && (
+            <figcaption
+              className="font-nanum-pen pointer-events-none absolute top-full left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#0e0e0d] px-2 py-0.5 text-[14px] leading-none text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:text-[16px]"
+              style={{ rotate: `${-tilt}deg` }}
+            >
+              {person.name}
+            </figcaption>
+          )}
         </figure>
       ))}
     </div>
