@@ -373,16 +373,36 @@ export const PEOPLE: Person[] = [
   { name: "rishi", group: "mentors", photo: "/people/rishi-2.webp", head: "/people/heads-v2/rishi-2.webp" },
   { name: "shan shoukath", group: "mentors", photo: "/people/shan-shoukath.webp", head: "/people/heads-v2/shan-shoukath.webp" }, // also from the foundation
 
-  // More volunteers to come. The numbered ones are photos still waiting on a name - replace
-  // "volunteer" with theirs.
+  // More volunteers to come. Anyone whose name is not in yet can be listed as just "volunteer".
   { name: "jasil", group: "volunteers", photo: "/people/jasil.webp", head: "/people/heads-v2/jasil.webp" },
   { name: "jazeel", group: "volunteers", photo: "/people/jazeel.webp", head: "/people/heads-v2/jazeel.webp" },
   { name: "elizabeth bobby", group: "volunteers", photo: "/people/elizabeth-bobby.webp", head: "/people/heads-v2/elizabeth-bobby.webp" },
   { name: "jenit", group: "volunteers", photo: "/people/jenit.webp", head: "/people/heads-v2/jenit.webp" },
   { name: "kartick", group: "volunteers", photo: "/people/kartick.webp", head: "/people/heads-v2/kartick.webp" },
-  // volunteer-07 is left out: it is a second photo of volunteer-03.
-  ...[1, 2, 3, 4, 5, 6, 8, 9, 10, 11].map((n) => ({
-    name: "volunteer",
+  // These three also worked on the media (they are in the "we did media" team on the people page).
+  { name: "adithya baiju", group: "volunteers", head: "/people/heads-v2/adithya-baiju.webp" },
+  { name: "sreenandan", group: "volunteers", head: "/people/heads-v2/sreenandan.webp" },
+  { name: "arpitha", group: "volunteers", head: "/people/heads-v2/arpitha.webp" },
+  { name: "aasim", group: "volunteers", head: "/people/heads-v2/aasim-2.webp" },
+  { name: "danyl", group: "volunteers", head: "/people/heads-v2/danyl.webp" },
+  { name: "tejaswini", group: "volunteers", head: "/people/heads-v2/tejaswini.webp" },
+  // Their photos came in before their names, so the files are still numbered. volunteer-07 is left
+  // out: it is a second photo of volunteer-03.
+  ...(
+    [
+      [1, "nihal"],
+      [2, "aswin"],
+      [3, "mahendra"],
+      [4, "royal"],
+      [5, "meenakshi"],
+      [6, "aldron"],
+      [8, "shreya"],
+      [9, "falha"],
+      [10, "shameem"],
+      [11, "amina"],
+    ] as const
+  ).map(([n, name]) => ({
+    name,
     group: "volunteers" as const,
     photo: `/people/volunteer-${String(n).padStart(2, "0")}.webp`,
     head: `/people/heads-v2/volunteer-${String(n).padStart(2, "0")}.webp`,

@@ -332,8 +332,9 @@ function Scene({
           return (
             <div
               key={`${spot.person.head}-${i}`}
-              title={spot.person.name === "volunteer" ? undefined : spot.person.name}
-              className={`absolute ${walking ? "animate-walk-in" : ""}`}
+              // The hover z-index is marked important so it beats the row stacking set inline below,
+              // keeping the name over the row in front.
+              className={`group absolute hover:z-50! ${walking ? "animate-walk-in" : ""}`}
               style={{ left: spot.left, top: spot.top, width: spot.size, height: spot.size, zIndex: 2 + spot.row * 2 + (i % 2), ...walkStyle(spot.walk, walking) }}
             >
               <div className={`relative size-full ${walking ? "animate-step" : ""}`} style={{ rotate: `${spot.tilt}deg`, ...stepStyle(spot.walk, walking) }}>
@@ -343,6 +344,12 @@ function Scene({
                 <Image src={spot.person.head!} alt="" fill loading={walking ? "eager" : "lazy"} unoptimized className="object-contain" />
                 <Body part="arms" pose={bodyPose} shirt={spot.shirt} pants={spot.pants} skin={fit.skin} size={spot.size} neck={fit.neck} />
               </div>
+              {/* The name, shown over the head while hovered (not while they are still walking in). */}
+              {!walking && spot.person.name !== "volunteer" && (
+                <span className="font-nanum-pen pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#0e0e0d] px-2 py-0.5 text-[14px] leading-none text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:text-[16px]">
+                  {spot.person.name}
+                </span>
+              )}
             </div>
           );
         })}

@@ -1,5 +1,5 @@
 // What comes after the crowd on the people page: first a note (the most important part of Useless
-// Projects was the people), then the teams on one screen (we planned, we designed, we made the
+// Projects was the people), then the teams on one screen (we planned, we did media, we made the
 // website...), then everyone who gave a helping hand with the packing, the
 // campus leads, and the makers. No dates or weeks: it is about who, not when.
 //
@@ -12,7 +12,8 @@ export type StoryMedia =
   | { kind: "image"; src: string; alt: string; caption?: string }
   // `crop` shows just part of the frame ([x, y, width, height] as fractions of it) - for a video
   // recorded with a lot of empty border around the picture.
-  | { kind: "video"; src: string; caption?: string; crop?: [number, number, number, number] }
+  // `poster`: the first frame as a still, shown until the video has loaded.
+  | { kind: "video"; src: string; poster?: string; caption?: string; crop?: [number, number, number, number] }
   | { kind: "placeholder"; caption: string };
 
 export const NOTE = {
@@ -30,7 +31,8 @@ export type Team = { title: string; people: string[]; more?: string };
 
 export const TEAMS: Team[] = [
   { title: "we planned", people: ["habeeb", "femina", "arundathi", "kurian"] },
-  { title: "we designed", people: ["nandana", "alina"] },
+  // Adithya, Sreenandan and Arpitha are volunteers who also worked on the media.
+  { title: "we did media", people: ["nandana", "alina", "adithya baiju", "sreenandan", "arpitha"] },
   { title: "we made the website", people: ["achuth", "habeeb"] },
   { title: "we sent things out", people: ["altaf", "habeeb"], more: "+ the volunteers" },
   { title: "we mentored", people: ["rio", "salman", "sunith", "rishi", "shan shoukath"] },
@@ -41,11 +43,12 @@ export const HELPERS: { title: string; text: string; media: StoryMedia[] } = {
   title: "and everyone who gave a hand.",
   text: "They showed up, gave everyone a hand wherever it was needed, and helped bring the whole Useless Projects experience to life.",
   media: [
-    { kind: "video", src: "/people/story/packing-stickers-hq.mp4" },
+    // At 1440px wide: twice the most the card ever shows, so it stays sharp on any screen.
+    { kind: "video", src: "/people/story/packing-stickers-web.mp4", poster: "/people/story/packing-stickers-poster.webp" },
     { kind: "image", src: "/people/story/packing-table-hq.webp", alt: "Volunteers sitting around a table, packing goodies" },
-    { kind: "video", src: "/people/story/late-night-hq.mp4" },
+    { kind: "video", src: "/people/story/late-night-web.mp4", poster: "/people/story/late-night-poster.webp" },
     // The same time-lapse the results page plays, at full quality (the WhatsApp copy was tiny).
-    { kind: "video", src: "/results/goodies-loop.mp4" },
+    { kind: "video", src: "/results/goodies-loop.mp4", poster: "/people/story/goodies-loop-poster.webp" },
   ],
 };
 
