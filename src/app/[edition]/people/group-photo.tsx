@@ -6,6 +6,7 @@ import { PEOPLE, type Person } from "../results/data";
 import Body, { bodyBlocks, PANTS_COLORS, SHIRT_COLORS, type BodyPose } from "./body";
 import { HEAD_FIT } from "./head-fit";
 import { sfx, unlock } from "./sfx";
+import { track, trackOnce, usePeopleTotal } from "./track";
 
 // The end of the people page: a group photo. It starts with the thank-you and a button; press it
 // and everyone from the page walks in from both sides - back rows first - and climbs onto a little
@@ -523,6 +524,9 @@ export default function GroupPhoto({ title, thanks }: { title: string; thanks: s
   const [phase, setPhase] = useState<Phase>("idle");
   const [beat, setBeat] = useState(0);
   const [flash, setFlash] = useState(0);
+  // How many group photos everyone has taken and saved, shown under the frame.
+  const taken = usePeopleTotal("photo-taken");
+  const saved = usePeopleTotal("photo-saved");
   const [seed, setSeed] = useState(1);
   const [kept, setKept] = useState<Shot | null>(null);
   const [justHung, setJustHung] = useState(false);
@@ -581,6 +585,8 @@ export default function GroupPhoto({ title, thanks }: { title: string; thanks: s
     later(snap + FRAME_AFTER_MS, () => {
       const shot = { seed: shotSeed, at: Date.now() };
       saveShot(shot);
+      track("photo-taken");
+      trackOnce("photo-taker");
       setKept(shot);
       setJustHung(true);
       setPhase("framed");
@@ -603,6 +609,7 @@ export default function GroupPhoto({ title, thanks }: { title: string; thanks: s
       link.href = url;
       link.download = `useless-projects-3.0-group-photo-${narrow ? "portrait" : "landscape"}.png`;
       link.click();
+      track("photo-saved");
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } finally {
       setSaving(false);
@@ -721,6 +728,12 @@ export default function GroupPhoto({ title, thanks }: { title: string; thanks: s
               <CameraIcon />
             </button>
           </div>
+        )}
+        {!live && taken !== null && taken > 0 && (
+          <p className="font-nanum-pen mt-4 text-center text-[18px] leading-none text-[#244638]/80 md:mt-5 md:text-[22px]">
+            group photo taken {taken.toLocaleString("en-IN")} {taken === 1 ? "time" : "times"}
+            {saved !== null && saved > 0 && <>, {saved.toLocaleString("en-IN")} saved</>}
+          </p>
         )}
       </div>
     </div>

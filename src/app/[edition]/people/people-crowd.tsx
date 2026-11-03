@@ -6,6 +6,7 @@ import { PEOPLE, type Person } from "../results/data";
 import Body, { BODY_POSES, PANTS_COLORS, SHIRT_COLORS, type BodyPose, type GamePose } from "./body";
 import { useBrickGame } from "./brick-game";
 import { HEAD_FIT } from "./head-fit";
+import { track } from "./track";
 import type { LegoColor } from "@/app/lego-block";
 
 // The same palette the site's dots and tetris blocks use, for heads that don't have a photo yet.
@@ -178,6 +179,8 @@ export default function PeopleCrowd({
     width: sectionRef.current?.clientWidth ?? 0,
     height: sectionRef.current?.clientHeight ?? 0,
   }));
+  // Counts one visit to the page (see people-stats.ts).
+  useEffect(() => track("visit"), []);
   // A nudge to scroll on to the story: once the crowd has been up a while without a game starting,
   // and again when a game ends. Never during a game, and gone as soon as the page moves.
   const [lingered, setLingered] = useState(false);

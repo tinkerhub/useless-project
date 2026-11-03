@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import type { Creature } from "@/lib/creatures";
 import type { HitReport } from "@/lib/hits";
+import { PEOPLE_EVENTS, type PeopleEvent, type PeopleReport } from "@/lib/people-events";
+
+const PEOPLE_LABELS: Record<PeopleEvent, string> = {
+  visit: "visits",
+  "game-player": "people who played",
+  "game-played": "games played",
+  "game-won": "games won",
+  "game-lost": "games lost",
+  "photo-taker": "people who took a photo",
+  "photo-taken": "photos taken",
+  "photo-saved": "photos saved",
+};
 
 export default function AdminPanel() {
   const [creatures, setCreatures] = useState<Creature[] | null>(null);
@@ -13,6 +25,7 @@ export default function AdminPanel() {
   const [togglingClosed, setTogglingClosed] = useState(false);
   const [savingMessage, setSavingMessage] = useState(false);
   const [hitReport, setHitReport] = useState<HitReport | null>(null);
+  const [peopleReport, setPeopleReport] = useState<PeopleReport | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -33,6 +46,10 @@ export default function AdminPanel() {
     fetch("/api/admin/hits")
       .then((res) => res.json())
       .then((data) => setHitReport(data))
+      .catch(() => {});
+    fetch("/api/admin/people")
+      .then((res) => res.json())
+      .then((data) => setPeopleReport(data))
       .catch(() => {});
   }, []);
 
@@ -200,6 +217,41 @@ export default function AdminPanel() {
                   <li key={day} className="flex justify-between border-b border-black/5 py-1 last:border-0">
                     <span>{day}</span>
                     <span className="font-bold text-[#0e0e0d]">{count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-black/10 p-5">
+        <div>
+          <p className="font-helvetica text-[14px] font-bold text-[#0e0e0d]">People page</p>
+          <p className="font-helvetica text-[13px] text-[#33322f]/70">
+            Visits, find-the-brick games and group photos on the 3.0 people page, all time.
+          </p>
+        </div>
+        {peopleReport === null ? (
+          <p className="font-helvetica text-[14px] text-[#33322f]/70">Loading...</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-6">
+              {PEOPLE_EVENTS.map((event) => (
+                <div key={event}>
+                  <p className="font-helvetica text-[22px] font-bold text-[#0e0e0d]">{peopleReport.totals[event]}</p>
+                  <p className="font-helvetica text-[12px] text-[#33322f]/70">{PEOPLE_LABELS[event]}</p>
+                </div>
+              ))}
+            </div>
+            {peopleReport.daily.length > 0 && (
+              <ul className="font-helvetica flex flex-col gap-1 text-[13px] text-[#33322f]">
+                {peopleReport.daily.slice(0, 7).map(({ day, counts }) => (
+                  <li key={day} className="flex flex-wrap justify-between gap-x-4 border-b border-black/5 py-1 last:border-0">
+                    <span>{day}</span>
+                    <span>
+                      {PEOPLE_EVENTS.map((event) => `${counts[event]} ${PEOPLE_LABELS[event]}`).join(" · ")}
+                    </span>
                   </li>
                 ))}
               </ul>

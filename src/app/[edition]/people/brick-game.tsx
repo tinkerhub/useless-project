@@ -5,6 +5,7 @@ import type { Person } from "../results/data";
 import { HANDS_AT, type GamePose } from "./body";
 import { HEAD_FIT } from "./head-fit";
 import { setMuted, sfx, unlock } from "./sfx";
+import { track, trackOnce, usePeopleTotal } from "./track";
 
 // Find the brick: a big lego brick pops up in the middle of the screen, flies into someone's hands,
 // and is passed from hand to hand - always to someone nearby, so it can be followed - getting
@@ -56,6 +57,8 @@ const INTRO = -1; // brickAt value for the big brick in the middle of the screen
 
 export function useBrickGame(figures: GameFigure[], area: () => { width: number; height: number }) {
   const [phase, setPhase] = useState<Phase>("idle");
+  // How many games everyone has played, stuck on the corner of the play button.
+  const played = usePeopleTotal("game-played");
   const [holder, setHolder] = useState(0);
   const [brickAt, setBrickAt] = useState<number | null>(null);
   const [brickShown, setBrickShown] = useState(false);
@@ -120,6 +123,8 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
     const { width, height } = area();
     const players = playersIn(width, height);
     if (players.length < 2) return;
+    track("game-played");
+    trackOnce("game-player");
     setBox({ width, height });
     const at = (i: number) => [(figures[i].left / 100) * width, (figures[i].top / 100) * height];
 
@@ -220,6 +225,7 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
       setBrickAt(i);
       setBrickShown(true);
       setPhase("won");
+      track("game-won");
       setFlashed(null);
       later(120, sfx.win);
       const at = handsAt(i, "open", box.width, box.height);
@@ -244,6 +250,7 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
         setBrickAt(holder);
         setBrickShown(true);
         setPhase("lost");
+        track("game-lost");
         setFlashed(null);
         sfx.lose();
         later(700, sfx.laugh);
@@ -382,6 +389,11 @@ export function useBrickGame(figures: GameFigure[], area: () => { width: number;
               play
               <span className="font-nanum-pen text-[18px] md:text-[22px]">find the brick</span>
             </GameButton>
+            {played !== null && played > 0 && (
+              <span className="font-nanum-pen pointer-events-none absolute -top-4 -right-4 rotate-6 bg-[#ea34df] px-2 py-0.5 text-[15px] leading-none whitespace-nowrap text-white shadow-md md:-top-5 md:-right-6 md:text-[18px]">
+                played {played.toLocaleString("en-IN")} {played === 1 ? "time" : "times"}
+              </span>
+            )}
           </div>
         )}
         {playing && (
