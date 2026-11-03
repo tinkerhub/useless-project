@@ -33,7 +33,7 @@ export const TEAMS: Team[] = [
   { title: "we planned", people: ["habeeb", "femina", "arundathi", "kurian"] },
   // Adithya, Sreenandan and Arpitha are volunteers who also worked on the media.
   { title: "we did media", people: ["nandana", "alina", "adithya baiju", "sreenandan", "arpitha"] },
-  { title: "we made the website", people: ["achuth", "habeeb"] },
+  { title: "we made the app and website", people: ["achuth", "habeeb", "akhil sam"] },
   { title: "we sent things out", people: ["altaf", "habeeb"], more: "+ the volunteers" },
   { title: "we mentored", people: ["rio", "salman", "sunith", "rishi", "shan shoukath"] },
 ];
