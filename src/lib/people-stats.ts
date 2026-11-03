@@ -9,7 +9,9 @@ const STORE_NAME = "people-stats";
 
 function tryStore() {
   try {
-    return getStore(STORE_NAME);
+    // Strong consistency: a listing includes events written a moment ago (the default can lag by
+    // up to a minute, which made the totals look stuck).
+    return getStore({ name: STORE_NAME, consistency: "strong" });
   } catch {
     return null;
   }
