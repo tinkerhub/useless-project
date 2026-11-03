@@ -27,7 +27,9 @@ const BY_NAME = new Map([
   ...PEOPLE.map((p) => [p.name, p] as const),
   ...PEOPLE.map((p) => [p.head?.split("/").pop()?.replace(/\.webp$/, "") ?? "", p] as const),
 ]);
-const VOLUNTEERS = PEOPLE.filter((p) => p.group === "volunteers");
+// Every volunteer, plus anyone who is in none of the teams above, so nobody is left off the page.
+const IN_A_TEAM = new Set(TEAMS.flatMap((team) => team.people));
+const VOLUNTEERS = PEOPLE.filter((p) => p.head && (p.group === "volunteers" || !IN_A_TEAM.has(p.name)));
 // Volunteers whose photo is in but whose name is not yet; their heads show without a caption.
 const UNNAMED = "volunteer";
 // The same huddle of creatures as the handbook (who helps you: your venue, the community, the campus

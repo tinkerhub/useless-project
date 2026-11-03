@@ -386,6 +386,7 @@ export const PEOPLE: Person[] = [
   { name: "aasim", group: "volunteers", head: "/people/heads-v2/aasim-2.webp" },
   { name: "danyl", group: "volunteers", head: "/people/heads-v2/danyl.webp" },
   { name: "tejaswini", group: "volunteers", head: "/people/heads-v2/tejaswini.webp" },
+  { name: "jayasurya", group: "volunteers", head: "/people/heads-v2/jayasurya.webp" },
   // Their photos came in before their names, so the files are still numbered. volunteer-07 is left
   // out: it is a second photo of volunteer-03.
   ...(

@@ -42,4 +42,5 @@ export const HEAD_FIT: Record<string, { neck: [number, number]; skin: string }> 
   "aasim-2": { neck: [0.496, 0.848], skin: "#f8c3a2" }, // green wall fringe cleared
   "danyl": { neck: [0.483, 0.879], skin: "#ed8f66" },
   "tejaswini": { neck: [0.516, 0.858], skin: "#ac5c29" },
+  "jayasurya": { neck: [0.491, 0.862], skin: "#ef9d81" },
 };
