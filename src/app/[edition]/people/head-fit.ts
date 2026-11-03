@@ -43,4 +43,5 @@ export const HEAD_FIT: Record<string, { neck: [number, number]; skin: string }> 
   "danyl": { neck: [0.483, 0.879], skin: "#ed8f66" },
   "tejaswini": { neck: [0.516, 0.858], skin: "#ac5c29" },
   "jayasurya": { neck: [0.491, 0.862], skin: "#ef9d81" },
+  "jasim": { neck: [0.5, 0.946], skin: "#c18c7f" }, // side profile, cut by hand along the jaw
 };
