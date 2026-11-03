@@ -269,14 +269,20 @@ function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: 
       };
     })
     .sort((a, b) => a.z - b.z);
+  // The head tapped last: on a phone there is no hover, so a tap shows the name (and a second tap,
+  // or a tap on someone else, moves it on).
+  const [picked, setPicked] = useState<number | null>(null);
   return (
     <div className={`relative w-full ${className}`} style={{ aspectRatio: `100 / ${height.toFixed(2)}` }}>
       {spots.map(({ person, left: x, top, size, z, tilt }, n) => (
         <figure
           key={`${person.name}-${n}`}
+          onClick={() => setPicked((p) => (p === n ? null : n))}
           // The hover z-index is marked important so it beats the depth stacking set inline below,
           // bringing a head from the back to the front.
-          className="group absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 hover:z-[200]! hover:scale-110"
+          className={`group absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:z-[200]! hover:scale-110 ${
+            picked === n ? "z-[200]! scale-110" : ""
+          }`}
           // Rounded, so the server and the browser write the same numbers (their trig can differ in
           // the last digits, which would not match up on hydration).
           style={{ left: `${x.toFixed(2)}%`, top: `${top.toFixed(2)}%`, width: `${size.toFixed(2)}%`, zIndex: z, rotate: `${tilt}deg` }}
@@ -286,10 +292,12 @@ function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: 
               <Image src={person.head} alt={person.name === UNNAMED ? "A volunteer" : person.name} fill unoptimized className="object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.22)]" />
             )}
           </span>
-          {/* The name, shown under the head while it is hovered. */}
+          {/* The name, shown under the head while it is hovered or after it is tapped. */}
           {person.name !== UNNAMED && (
             <figcaption
-              className="font-nanum-pen pointer-events-none absolute top-full left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#0e0e0d] px-2 py-0.5 text-[14px] leading-none text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:text-[16px]"
+              className={`font-nanum-pen pointer-events-none absolute top-full left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#0e0e0d] px-2 py-0.5 text-[14px] leading-none text-white transition-opacity duration-200 group-hover:opacity-100 md:text-[16px] ${
+                picked === n ? "opacity-100" : "opacity-0"
+              }`}
               style={{ rotate: `${-tilt}deg` }}
             >
               {person.name}
