@@ -116,8 +116,8 @@ const ROUTES = [
 ];
 
 // A year's own pages, shown under the program ones only while you're inside that year.
-// Pages that exist but stay out of the menu - reached by their link (e.g. /people) instead.
-const HIDDEN_FROM_MENU: EditionPage[] = ["people"];
+// Pages that exist but stay out of the menu - reached by their link instead. None right now.
+const HIDDEN_FROM_MENU: EditionPage[] = [];
 
 const EDITION_ICONS: Record<EditionPage, typeof IconHome> = {
   results: IconMedal,
