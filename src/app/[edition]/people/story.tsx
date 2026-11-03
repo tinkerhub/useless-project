@@ -268,14 +268,16 @@ function Crowd({ people, className = "" }: { people: typeof PEOPLE; className?: 
     })
     .sort((a, b) => a.z - b.z);
   return (
-    <div className={`relative w-full ${className}`} style={{ aspectRatio: `100 / ${height}` }}>
+    <div className={`relative w-full ${className}`} style={{ aspectRatio: `100 / ${height.toFixed(2)}` }}>
       {spots.map(({ person, left: x, top, size, z, tilt }, n) => (
         <figure
           key={`${person.name}-${n}`}
           // The hover z-index is marked important so it beats the depth stacking set inline below,
           // bringing a head from the back to the front.
           className="group absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 hover:z-[200]! hover:scale-110"
-          style={{ left: `${x}%`, top: `${top}%`, width: `${size}%`, zIndex: z, rotate: `${tilt}deg` }}
+          // Rounded, so the server and the browser write the same numbers (their trig can differ in
+          // the last digits, which would not match up on hydration).
+          style={{ left: `${x.toFixed(2)}%`, top: `${top.toFixed(2)}%`, width: `${size.toFixed(2)}%`, zIndex: z, rotate: `${tilt}deg` }}
         >
           <span className="relative block aspect-square">
             {person.head && (
@@ -423,13 +425,22 @@ function ScrollStrip({ media }: { media: StoryMedia[] }) {
   );
 }
 
-// A muted looping video that only plays while it is on screen (and does not load until it nearly
-// is). With `crop`, the video is scaled up and shifted so just that part of the frame fills the card.
+// A muted looping video that only plays while it is on screen. It starts loading a screen ahead, so
+// it is already moving by the time it scrolls in, but not before (it would hold up the rest of the
+// page). With `crop`, the video is scaled up and shifted so just that part of the frame fills the card.
 function StoryVideo({ src, crop }: { src: string; crop?: [number, number, number, number] }) {
   const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
+    const near = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        video.preload = "auto";
+        near.disconnect();
+      },
+      { rootMargin: "100% 100%" },
+    );
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) void video.play().catch(() => {});
@@ -437,8 +448,12 @@ function StoryVideo({ src, crop }: { src: string; crop?: [number, number, number
       },
       { rootMargin: "200px 0px" },
     );
+    near.observe(video);
     io.observe(video);
-    return () => io.disconnect();
+    return () => {
+      near.disconnect();
+      io.disconnect();
+    };
   }, []);
   const [x, y, w, h] = crop ?? [0, 0, 1, 1];
   return (
@@ -465,6 +480,10 @@ function MediaCard({ media, tilt, big, wide }: { media: StoryMedia; tilt: number
       <div className={`relative w-full overflow-hidden bg-[#f1f0ea] ${wide || (media.kind === "video" && media.crop) ? "aspect-video" : big ? "aspect-[16/10]" : "aspect-[4/5]"}`}>
         {media.kind === "image" && (
           <Image src={media.src} alt={media.alt} fill sizes="(min-width: 768px) 720px, 90vw" className="object-cover" />
+        )}
+        {/* The still loads lazily like any photo and shows through until the video has a frame. */}
+        {media.kind === "video" && media.poster && !media.crop && (
+          <Image src={media.poster} alt="" fill sizes="(min-width: 768px) 720px, 90vw" className="object-cover" />
         )}
         {media.kind === "video" && <StoryVideo src={media.src} crop={media.crop} />}
         {media.kind === "placeholder" && (

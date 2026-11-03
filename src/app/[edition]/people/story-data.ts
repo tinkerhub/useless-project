@@ -12,7 +12,8 @@ export type StoryMedia =
   | { kind: "image"; src: string; alt: string; caption?: string }
   // `crop` shows just part of the frame ([x, y, width, height] as fractions of it) - for a video
   // recorded with a lot of empty border around the picture.
-  | { kind: "video"; src: string; caption?: string; crop?: [number, number, number, number] }
+  // `poster`: the first frame as a still, shown until the video has loaded.
+  | { kind: "video"; src: string; poster?: string; caption?: string; crop?: [number, number, number, number] }
   | { kind: "placeholder"; caption: string };
 
 export const NOTE = {
@@ -42,11 +43,12 @@ export const HELPERS: { title: string; text: string; media: StoryMedia[] } = {
   title: "and everyone who gave a hand.",
   text: "They showed up, gave everyone a hand wherever it was needed, and helped bring the whole Useless Projects experience to life.",
   media: [
-    { kind: "video", src: "/people/story/packing-stickers-hq.mp4" },
+    // At 1440px wide: twice the most the card ever shows, so it stays sharp on any screen.
+    { kind: "video", src: "/people/story/packing-stickers-web.mp4", poster: "/people/story/packing-stickers-poster.webp" },
     { kind: "image", src: "/people/story/packing-table-hq.webp", alt: "Volunteers sitting around a table, packing goodies" },
-    { kind: "video", src: "/people/story/late-night-hq.mp4" },
+    { kind: "video", src: "/people/story/late-night-web.mp4", poster: "/people/story/late-night-poster.webp" },
     // The same time-lapse the results page plays, at full quality (the WhatsApp copy was tiny).
-    { kind: "video", src: "/results/goodies-loop.mp4" },
+    { kind: "video", src: "/results/goodies-loop.mp4", poster: "/people/story/goodies-loop-poster.webp" },
   ],
 };
 
