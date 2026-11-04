@@ -102,6 +102,16 @@ function IconStack(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+// A folded note, for the manifesto.
+function IconNote(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M6 3h9l4 4v14H6V3Z" />
+      <path d="M15 3v4h4M9 12h7M9 16h5" />
+    </svg>
+  );
+}
+
 // Program pages only - they belong to no year. "home" is the current edition's home page.
 const ROUTES = [
   { href: "/", label: "home", Icon: IconHome },
@@ -113,6 +123,7 @@ const ROUTES = [
   // though the link itself skips past that page.
   { href: "/creatures/gallery", activeMatch: "/creatures", label: "creatures", Icon: IconPixel },
   { href: "/timer", label: "timer", Icon: IconClock },
+  { href: "/manifesto", label: "manifesto", Icon: IconNote },
 ];
 
 // A year's own pages, shown under the program ones only while you're inside that year.
