@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { EDITION_PAGES, editionHome, editionPath, liveEditions } from "@/lib/editions";
 
 const SITE = "https://useless.tinkerhub.org";
-const PROGRAM_PAGES = ["/", "/editions", "/projects", "/creatures/gallery", "/timer"];
+const PROGRAM_PAGES = ["/", "/editions", "/projects", "/creatures/gallery", "/timer", "/manifesto"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const editionPages = liveEditions().flatMap((edition) => [
